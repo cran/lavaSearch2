@@ -5,41 +5,45 @@
 \alias{initVarLinks}
 \title{Normalize var1 and var2}
 \usage{
-initVarLink(var1, var2, repVar1 = FALSE, format = "list",
+initVarLink(var1, var2, rep.var1 = FALSE, format = "list",
   Slink = c(lava.options()$symbols[1], "~"),
   Scov = lava.options()$symbols[2])
 
 initVarLinks(var1, format = "list", ...)
 }
 \arguments{
-\item{var1}{a character indicating the endogeneous variable or a formula}
+\item{var1}{[character or formula] the exogenous variable of the new link or a formula describing the link.}
 
-\item{var2}{an optional character indicating the exogeneous variable}
+\item{var2}{[character] the endogenous variable of the new link.
+Disregarded if the argument \code{var1} is a formula.}
 
-\item{repVar1}{should var1 be duplicated to match var2 length. Only active if format = "list".}
+\item{rep.var1}{[logical] should var1 be duplicated to match var2 length.
+Only active if \code{format = "list"}.}
 
-\item{format}{should the name of the variable be return (format = "list"), a vector of character formula ("txt.formula") or a list of formula ("formula")}
+\item{format}{[character] should the name of the variable be returned (\code{format = "list"}),
+a vector of character formula (\code{format = "txt.formula"}),
+or a list of formula (\code{format = "formula"}).}
 
-\item{Slink}{the symbol for regression link}
+\item{Slink}{[character] the symbol for regression link.}
 
-\item{Scov}{the symbol for covariance link}
+\item{Scov}{[character] the symbol for covariance link.}
 
-\item{...}{argument to be passed to lower level functions}
+\item{...}{argument to be passed to \code{initVarLink}.}
+}
+\value{
+See argument \code{format}.
 }
 \description{
 Convert var1 and var2 from formula or covariance to character.
-}
-\details{
-See test file test/testthat/test-Reduce.R for examples
 }
 \examples{
 initVarLink(y ~ x1)
 initVarLink("y ~ x1")
 initVarLink(y ~ x1 + x2)
 initVarLink("y ~ x1 + x2")
-initVarLink(y ~ x1 + x2, repVar1 = TRUE)
-initVarLink(y ~ x1 + x2, repVar1 = TRUE, format = "formula")
-initVarLink(y ~ x1 + x2, repVar1 = TRUE, format = "txt.formula")
+initVarLink(y ~ x1 + x2, rep.var1 = TRUE)
+initVarLink(y ~ x1 + x2, rep.var1 = TRUE, format = "formula")
+initVarLink(y ~ x1 + x2, rep.var1 = TRUE, format = "txt.formula")
 initVarLink("y", "x1", format = "formula")
 
 initVarLink("y ~ x1:0|1")

@@ -5,34 +5,41 @@
 \alias{findNewLink.lvm}
 \title{Find all New Links Between Variables}
 \usage{
-findNewLink(x, ...)
+findNewLink(object, ...)
 
-\method{findNewLink}{lvm}(x, data = NULL, exclude.var = NULL,
+\method{findNewLink}{lvm}(object, data = NULL, exclude.var = NULL,
   rm.latent_latent = FALSE, rm.endo_endo = FALSE, rm.latent_endo = FALSE,
   output = "names", ...)
 }
 \arguments{
-\item{x}{a lvm model}
+\item{object}{a \code{lvm} object.}
 
-\item{...}{additional arguments to be passed to lower levels functions.}
+\item{...}{[internal] only used by the generic method.}
 
-\item{data}{an optional dataset used to identify the categorical variables if not specified in the lvm object.}
+\item{data}{[optional] a dataset used to identify the categorical variables when not specified in the \code{lvm} object.}
 
-\item{exclude.var}{all links related to these variables will be ignore.}
+\item{exclude.var}{[character vector] all links related to these variables will be ignore.}
 
-\item{rm.latent_latent}{ignore links relating two latent variables.}
+\item{rm.latent_latent}{[logical] should the links relating two latent variables be ignored?}
 
-\item{rm.endo_endo}{ignore links relating two endogenous variables}
+\item{rm.endo_endo}{[logical] should the links relating two endogenous variables be ignored?}
 
-\item{rm.latent_endo}{ignore links relating one endogenous variable and one latent variable}
+\item{rm.latent_endo}{[logical] should the links relating one endogenous variable and one latent variable be ignored?}
 
-\item{output}{return the names of the variables to link ("names") or their position ("index")}
+\item{output}{[character] Specify \code{"names"} to return the names of the variables to link
+or specify \code{"index"} to return their position.}
 }
 \value{
-A list
+A list containing:
+\itemize{
+\item M.links: a matrix with two columns indicating (by name or position) the exogenous and endogenous variable corresponding to each link.
+\item links: the name of the additional possible links
+\item directional: a logical vector indicating for each link whether the link is unidirectional (\code{TRUE}, i.e. regression link)
+or bidirectional (\code{FALSE}, i.e. covariance link).
+}
 }
 \description{
-Find all new links between variables (copied from lava::modelsearch).
+Find all new links between variables (adapted from lava::modelsearch).
 }
 \examples{
 library(lava)
@@ -50,4 +57,8 @@ latent(m) <- ~u
 findNewLink(m, rm.endo = FALSE)
 findNewLink(m, rm.endo = TRUE)
 findNewLink(m, rm.endo = TRUE, output = "index")
+
+}
+\concept{
+modelsearch
 }

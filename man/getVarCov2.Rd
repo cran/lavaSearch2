@@ -16,23 +16,31 @@
   name.endogenous, n.endogenous, cluster, n.cluster, ...)
 }
 \arguments{
-\item{object}{a gls or lme object}
+\item{object}{a \code{gls} or \code{lme} object}
 
 \item{...}{[internal] Only used by the generic method.}
 
-\item{param}{the mean and variance parameters.}
+\item{param}{[numeric vector] the mean and variance coefficients.}
 
-\item{attr.param}{the type of each parameter (mean or variance).}
+\item{attr.param}{[character vector] the type of each coefficients (mean or variance).}
 
-\item{endogenous}{the endogenous variable to which each observation corresponds.}
+\item{endogenous}{[integer vector] the endogenous variable to which each observation corresponds.}
 
-\item{name.endogenous}{the name of the endogenous variables.}
+\item{name.endogenous}{[character vector] the name of the endogenous variables.}
 
-\item{n.endogenous}{the number of endogenous variables.}
+\item{n.endogenous}{[integer >0] the number of endogenous variables.}
 
-\item{cluster}{the grouping variable relative to which the observations are iid.}
+\item{cluster}{[vector] the grouping variable relative to which the observations are iid.
+Only required for \code{gls} models with no correlation argument.}
 
-\item{n.cluster}{the number of groups.}
+\item{n.cluster}{[integer >0] the number of groups.}
+}
+\value{
+A list containing:
+\itemize{
+\item Omega: the marginal variance covariance matrix for a full sample.
+\item ls.indexOmega: a list containing for each sample the subset of endogenous variables available.
+}
 }
 \description{
 Reconstruct the marginal variance covariance matrix from a nlme model.
@@ -48,3 +56,7 @@ The marginal variance covariance matrix for gls model is of the form:
 
 The marginal variance covariance matrix for lme model is of the form:
 }
+\concept{
+extractor
+}
+\keyword{internal}

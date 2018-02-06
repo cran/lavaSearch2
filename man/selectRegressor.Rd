@@ -5,29 +5,37 @@
 \alias{selectRegressor.formula}
 \title{Regressor of a Formula.}
 \usage{
-selectRegressor(x, ...)
+selectRegressor(object, ...)
 
-\method{selectRegressor}{formula}(x, type = "call", ...)
+\method{selectRegressor}{formula}(object, format = "call", ...)
 }
 \arguments{
-\item{x}{a formula}
+\item{object}{a formula}
 
-\item{...}{additional arguments to be passed to lower levels functions.}
+\item{...}{[internal] Only used by the generic method.}
 
-\item{type}{either return an object of type call (\code{"call"}) or the names of the variables (\code{"vars"})}
+\item{format}{[character] should an object of format call be returned (\code{format = "call"}),
+or the names of the variables (\code{format = "vars"})}
 }
 \description{
 Return the regressor variables contained in the formula
 }
 \examples{
 
+\dontrun{
+
+selectRegressor <- lavaSearch2:::selectRegressor
+selectRegressor.formula <- lavaSearch2:::selectRegressor.formula
+
 selectRegressor(Y1~X1+X2)
-selectRegressor(Y1~X1+X2, type = "vars")
+selectRegressor(Y1~X1+X2, format = "vars")
 
 selectRegressor(Y1~X1+Y1)
-selectRegressor(Y1+Y2~X1+Y1, type = "vars")
+selectRegressor(Y1+Y2~X1+Y1, format = "vars")
 
 selectRegressor(~X1+X2)
-selectRegressor(~X1+X2, type = "vars")
+selectRegressor(~X1+X2, format = "vars")
 
 }
+}
+\keyword{internal}

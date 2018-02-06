@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: nov 10 2017 (10:57) 
 ## Version: 
-## Last-Updated: jan 15 2018 (11:32) 
+## Last-Updated: feb  6 2018 (16:45) 
 ##           By: Brice Ozenne
-##     Update #: 120
+##     Update #: 180
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -21,10 +21,19 @@
 #' @name summary
 #'
 #' @param object a \code{gls}, \code{lme} or \code{lvm} object.
-#' @param adjust.residuals Small sample correction: should the leverage-adjusted residuals be used to compute the score? Otherwise the raw residuals will be used.
-#' @param digit the number of digit to keep when diplaying the summary.
-#' @param ... arguments passed to lower level methods.
+#' @param digit [integer > 0] the number of digit to keep when displaying the summary.
+#' @param bias.correct [logical] should the standard errors of the coefficients be corrected for small sample bias?
+#' See \code{\link{sCorrect}} for more details.
+#' @param ... arguments passed to the \code{summary} method of the object (when calling \code{summary})
+#' or to the \code{sCorrect} method (when calling \code{summary2}). 
 #' 
+#' @seealso \code{\link{sCorrect}} for more detail about the small sample correction.
+#'
+#' @details \code{summary2} is the same as \code{summary}
+#' except that it first computes the small sample correction (but does not store it).
+#' So if \code{summary2} is to be called several times,
+#' it is more efficient to pre-compute the quantities for the small sample correction
+#' using \code{sCorrect} and then call \code{summary}.
 #' 
 #' @examples
 #' m <- lvm(Y~X1+X2)
@@ -38,21 +47,23 @@
 #' library(nlme)
 #' e.gls <- gls(Y~X1+X2, data = d, method = "ML")
 #' summary(e.gls)$tTable
-#' dVcov2(e.gls, cluster = 1:NROW(d)) <- FALSE ## no small sample correction
+#' sCorrect(e.gls, cluster = 1:NROW(d)) <- FALSE ## no small sample correction
 #' summary(e.gls)$tTable
 #' 
-#' dVcov2(e.gls, cluster = 1:NROW(d)) <- TRUE ## small sample correction
+#' sCorrect(e.gls, cluster = 1:NROW(d)) <- TRUE ## small sample correction
 #' summary(e.gls)$tTable
 #' 
 #' ## lvm models
 #' e.lvm <- estimate(m, data = d)
 #' summary(e.lvm)$coef
-#' dVcov2(e.lvm) <- FALSE ## no small sample correction
+#' 
+#' sCorrect(e.lvm) <- FALSE ## no small sample correction
 #' summary(e.lvm)$coef
 #' 
-#' dVcov2(e.lvm) <- TRUE ## small sample correction
+#' sCorrect(e.lvm) <- TRUE ## small sample correction
 #' summary(e.lvm)$coef
-#'
+#' 
+#' @concept small sample inference
 
 ## * summary.gls2
 #' @rdname summary
@@ -60,19 +71,26 @@
 #' @export
 summary.gls2 <- function(object, 
                          digit = max(3, getOption("digit")),
-                         adjust.residuals = TRUE, ...){
+                         ...){
+    
+    ### ** perform Wald test
+    name.param <- names(coef(object))
+    n.param <- length(name.param)
 
+    tTable.all <- compare2(object, par = name.param, as.lava = FALSE)
+    tTable <- tTable.all[1:n.param,c("estimate","std","statistic","p-value","df")]
+    dimnames(tTable) <- list(name.param,
+                             c("Value","Std.Error","t-value","p-value","df")
+                             )
+
+    ### ** get summary
     class(object) <- setdiff(class(object),"gls2")
     object.summary <- summary(object, digits = digit, ...)
-
-    ## find digit
-    
     
     ### ** update summary
-    tTable <- lTest(object, Ftest = FALSE)[rownames(object.summary$tTable),c(1:3,5,4)]
-    colnames(tTable) <- c("Value","Std.Error","t-value","p-value","df")
-
     object.summary$tTable <- tTable
+
+    ### ** export
     return(object.summary)
 }
 
@@ -86,32 +104,35 @@ summary.lme2 <- summary.gls2
 #' @rdname summary
 #' @method summary lvmfit2
 #' @export
-summary.lvmfit2 <- function(object, adjust.residuals = FALSE, ...){
+summary.lvmfit2 <- function(object, ...){
 
+    ### ** perform Wald test
+    param <- lava::pars(object)
+    name.param <- names(param)
+    n.param <- length(param)
+
+    table.all <- compare2(object, par = name.param, as.lava = FALSE)
+    table.coef <- table.all[1:n.param,c("estimate","std","statistic","p-value","df")]
+    dimnames(table.coef) <- list(name.param,
+                                 c("Estimate", "Std. Error", "t-value", "P-value", "df")
+                                 )
+
+    ### ** get summary
     class(object) <- setdiff(class(object),"lvmfit2")
-    
     object.summary <- summary(object, ...)
 
     ## find digit
     vec.char <- setdiff(object.summary$coefmat[,"Estimate"],"")
     digit <- max(c(nchar(gsub(".","",vec.char,fixed = TRUE)))-1,1)
 
-    ##
-    param <- lava::pars(object)
-    name.param <- names(param)
-    name.allParam <- rownames(object.summary$coef)
-    n.allParam <- length(name.allParam)
-    data <- stats::model.frame(object)
-    
-    vcov.object <- attr(object$dVcov, "vcov.param")
-        
     ### ** update summary
     ### *** vcov
-    object.summary$vcov <- vcov.object[name.param,name.param]    
+    object.summary$vcov <- attr(object$dVcov, "vcov.param")[name.param,name.param]    
 
     ### *** coef
-    table.coef <- lTest(object, Ftest = FALSE)[rownames(object.summary$coef),c(1:3,5,4)]
-    colnames(table.coef) <- c("Estimate", "Std. Error", "t-value", "P-value", "df")
+    ## re-order table according to lava
+    table.coef <- table.coef[rownames(object.summary$coef),,drop=FALSE]
+    ## remove unappropriate p.values
     table.coef[is.na(object.summary$coef[,"P-value"]),"P-value"] <- NA
     object.summary$coef <- table.coef
     
@@ -150,5 +171,34 @@ summary.lvmfit2 <- function(object, adjust.residuals = FALSE, ...){
     return(object.summary)    
 }
 
+## * summary2
+#' @rdname summary
+#' @export
+`summary2` <-
+  function(object,...) UseMethod("summary2")
+
+## * summary2.gls
+#' @rdname summary
+#' @export
+summary2.gls <- function(object, bias.correct, ...){
+    sCorrect(object, ...) <- bias.correct
+    return(summary(object))
+}
+
+## * summary2.lme
+#' @rdname summary
+#' @export
+summary2.lme <- summary2.gls
+
+## * summary2.lvmfit
+#' @rdname summary
+#' @export
+summary2.lvmfit <- function(object, bias.correct = TRUE, ...){
+    sCorrect(object, ...) <- bias.correct
+    return(summary(object))
+}
+
+
 ##----------------------------------------------------------------------
 ### summary2.R ends here
+

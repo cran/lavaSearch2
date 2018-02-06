@@ -3,9 +3,9 @@
 ## author: Brice Ozenne
 ## created: maj 30 2017 (17:58) 
 ## Version: 
-## last-updated: jan 18 2018 (14:19) 
+## last-updated: feb  5 2018 (15:51) 
 ##           By: Brice Ozenne
-##     Update #: 83
+##     Update #: 88
 #----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -20,8 +20,9 @@
 #' @description Testing the Relevance of Additional Links Using a Likelihood Ratio Test.
 #' @name modelsearchLR
 #' 
-#' @return a list
+#' @return A list.
 #'
+#' @concept modelsearch
 #' @keywords internal
 
 ## * modelsearchLR

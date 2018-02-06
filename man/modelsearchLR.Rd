@@ -8,9 +8,12 @@ modelsearchLR(x, data, restricted, link, directive, update.FCT, update.args,
   method.p.adjust, display.warnings, trace)
 }
 \value{
-a list
+A list.
 }
 \description{
 Testing the Relevance of Additional Links Using a Likelihood Ratio Test.
+}
+\concept{
+modelsearch
 }
 \keyword{internal}

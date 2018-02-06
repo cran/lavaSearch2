@@ -3,9 +3,9 @@
 ## author: Brice Ozenne
 ## created: sep 22 2017 (11:57) 
 ## Version: 
-## last-updated: jan 18 2018 (16:36) 
+## last-updated: feb  5 2018 (18:09) 
 ##           By: Brice Ozenne
-##     Update #: 243
+##     Update #: 278
 #----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -17,12 +17,32 @@
 
 ## * documentation - compareSearch
 #' @title Compare Methods to Identify Missing Local Dependencies in a LVM
-#' @description Compare methods to identify missing local dependencies in a LVM
+#' @description Compare methods to identify missing local dependencies in a LVM.
 #' @name compareSearch
 #' 
-#' @param object a lvm model.
-#' @param alpha the significance level.
-#' @inherit modelsearch2
+#' @param object a \code{lvm} model.
+#' @param alpha [numeric 0-1] the significance cutoff for the p-values.
+#' When the p-value is below, the corresponding link will be added to the model
+#' and the search will continue. Otherwise the search will stop.
+#' @param statistic [character] statistic used to perform the test.
+#' Can the likelihood ratio test (\code{"LR"}),
+#' the score (\code{"score"}),
+#' or the max statistic (\code{"max"}).
+#' @param method.p.adjust [character] the method used to adjust the p.values for multiple comparisons.
+#' Can be any method that is valid for the \code{stats::p.adjust} function (e.g. \code{"fdr"}).
+#' Ignored when using the max statistic.
+#' @param trace [logical] should the execution be traced?
+#' @param ... arguments passed to \code{\link{modelsearch2}}.
+#'
+#' @details This function calls the \code{\link{modelsearch2}} function
+#' to find the local dependencies.
+#' 
+#' @return A list containing:
+#' \itemize{
+#' \item newlink: a list containing for each \code{statistic}-\code{method.p.adjust} the local dependencies.
+#' \item table.coef: a \code{data.frame} object containing for each \code{statistic}-\code{method.p.adjust} the estimated coefficients.
+#' \item ls.search: a list containing for each \code{statistic}-\code{method.p.adjust} a \code{modelsearch2} object.
+#' }
 #' 
 #' @examples
 #' mSim <- lvm(Y~G+X1+X2)
@@ -38,7 +58,7 @@
 #'                      method.p.adjust = c("holm","fdr","max"))
 #' res
 #' }
-#' 
+#' @concept modelsearch
 
 ## * function - compareSearch
 #' @rdname compareSearch
@@ -207,15 +227,15 @@ compareSearch <- function(object, alpha = 0.05,
 }
 
 ## * adjustModelSearch
-.adjustModelSearch <- function(object,model0,  method.p.adjust, alpha){
+.adjustModelSearch <- function(object, model0,  method.p.adjust, alpha){
 
     ## ** adjust p.value
-    seqP.value <- sapply(object$sequenceTest, function(x){        
+    seqP.value <- sapply(object$sequenceTest, function(iTest){        
         if(method.p.adjust!="max"){            
-            x$adjusted.p.value <- stats::p.adjust(x$p.value,
-                                                  method = method.p.adjust)
+            iTest$adjusted.p.value <- stats::p.adjust(iTest$p.value,
+                                                      method = method.p.adjust)
         }
-        return(min(x$adjusted.p.value))
+        return(min(iTest$adjusted.p.value))
     })
 
     ## ** stop search when necessary

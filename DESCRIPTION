@@ -1,8 +1,8 @@
 Package: lavaSearch2
 Type: Package
 Title: Tools for Model Specification in the Latent Variable Framework
-Version: 1.0.0
-Date: 2018-01-22
+Version: 1.1.0
+Date: 2018-02-06
 Author: Brice Ozenne [aut, cre]
 Maintainer: Brice Ozenne <brice.ozenne@orange.fr>
 URL: https://github.com/bozenne/lavaSearch2
@@ -13,13 +13,13 @@ Description: Tools for model specification in the latent variable framework
     and adjustment for multiple comparisons when doing inference for multiple latent variable models. 
 License: GPL-3
 Depends: R (>= 2.10), lava
-Imports: doParallel, foreach, ggplot2, MASS, Matrix, methods, multcomp,
-        mvtnorm, nlme, numDeriv, parallel, reshape2, stats, tcltk,
-        utils
-Suggests: clubSandwich, lava.tobit, lme4, lmerTest, pbapply, pbkrtest,
-        riskRegression, sandwich, survival, testthat
+Imports: ggplot2, MASS, Matrix, methods, multcomp, mvtnorm, nlme,
+        parallel, reshape2, sandwich, stats, utils
+Suggests: clubSandwich, doParallel, foreach, lava.tobit, lme4,
+        lmerTest, numDeriv, pbapply, pbkrtest, riskRegression,
+        survival, tcltk, testthat
 RoxygenNote: 6.0.1
 NeedsCompilation: no
-Packaged: 2018-01-22 11:11:38.969 UTC; hpl802
+Packaged: 2018-02-06 15:50:16.846 UTC; hpl802
 Repository: CRAN
-Date/Publication: 2018-01-24 09:22:40 UTC
+Date/Publication: 2018-02-06 16:35:22 UTC

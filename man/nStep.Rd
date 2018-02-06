@@ -10,10 +10,13 @@ nStep(object)
 \method{nStep}{modelsearch2}(object)
 }
 \arguments{
-\item{object}{a modelsearch2 object}
+\item{object}{a \code{modelsearch2} object.}
+}
+\value{
+an integer.
 }
 \description{
-Find the number of steps performed during the sequential testing
+Find the number of steps performed during the sequential testing.
 }
 \examples{
 mSim <- lvm(Y~G+X1+X2)
@@ -26,4 +29,9 @@ e.lvm <- estimate(mBase, data = df.data)
 res <- modelsearch2(e.lvm, statistic = "score", method.p.adjust = "holm")
 nStep(res)
 
+}
+\concept{
+modelsearch
+
+extractor
 }

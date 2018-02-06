@@ -1,6 +1,7 @@
+## * Documentation
 #' @name validFCTs
-#' @aliases valid.class
-#' @aliases valid.dimension
+#' @aliases validClass
+#' @aliases validDimension
 #' @aliases validInteger
 #' @aliases validLogical
 #' @aliases validNames
@@ -14,8 +15,8 @@
 #' @param value2 the second value of a second argument whose dimensions should be consistent with the first one
 #' @param name1 the name of the (first) argument.
 #' @param name2 the name of the second argument.
-#' @param valid.class the acceptable classes(s) for the argument. 
-#' @param valid.dimension the acceptable dimension for the argument. If \code{NULL} then name2 is used as a reference.
+#' @param validClass the acceptable classes(s) for the argument. 
+#' @param validDimension the acceptable dimension for the argument. If \code{NULL} then name2 is used as a reference.
 #' @param valid.length the acceptable length(s) for the argument. If \code{NULL} no test is performed.
 #' @param valid.values the acceptable value(s) for the argument. If \code{NULL} no test is performed. Can also be "character" or "character_or_logical".
 #' @param super.classes uses the \code{is} function instead of \code{class} to test the class of the object.
@@ -23,21 +24,22 @@
 #' @param refuse.NA should an error be output if value contains \code{NA}.
 #' @param refuse.duplicates should an error be output if value contains duplicated values.
 #' @param refuse.values values that must not appear in the argument
-#' @param type For \code{valid.dimension}: the type of operator used to check the dimensions. For \code{validPath} either "dir" or "file" to check whether to path points to an existing directory or file.
+#' @param type For \code{validDimension}: the type of operator used to check the dimensions. For \code{validPath} either "dir" or "file" to check whether to path points to an existing directory or file.
 #' @param required.values values that must appear in the argument
 #' @param min the minimum acceptable value
 #' @param max the maximum acceptable value
-#' @param extension filter the files by the type of extention. 
+#' @param extension filter the files by the type of extension. 
 #' @param method the name of the function using the argument.
 #' @param check.fsep display a warning when the separator is not correctly specified in 
 #' @param addPP add ": " after the name of the function in the error message.
 #' 
 #' @return An invisible \code{TRUE} or an error message.
 #' 
-#' @keywords function check
+#' @concept check
+#' @keywords internal
 
+## * validCharacter
 #' @rdname validFCTs
-#' @export
 validCharacter <- function(value1, name1 = as.character(substitute(value1)), valid.length, 
                            valid.values = "character", refuse.NULL = TRUE, refuse.duplicates = FALSE, 
                            method = NULL, addPP = TRUE){
@@ -96,9 +98,9 @@ validCharacter <- function(value1, name1 = as.character(substitute(value1)), val
   
 }
 
+## * validClass
 #' @rdname validFCTs
-#' @export
-valid.class <- function(value1, name1 = as.character(substitute(value1)), valid.class, 
+validClass <- function(value1, name1 = as.character(substitute(value1)), validClass, 
                        super.classes = TRUE, method = NULL, addPP = TRUE){
   
   if(!is.null(method) && addPP){
@@ -107,15 +109,15 @@ valid.class <- function(value1, name1 = as.character(substitute(value1)), valid.
   
   if(super.classes == TRUE){
     
-    if( all(is(value1) %in% valid.class == FALSE) ){
-      stop(method, "class of \'", name1, "\' must be one of the following \"", paste(valid.class,collapse="\" \""), "\"  \n", 
+    if( all(is(value1) %in% validClass == FALSE) ){
+      stop(method, "class of \'", name1, "\' must be one of the following \"", paste(validClass,collapse="\" \""), "\"  \n", 
            "proposed superclass : \"", paste(is(value1),collapse="\" \""), "\" \n")
     }  
     
   }else{
     
-    if( class(value1) %in% valid.class == FALSE){
-      stop(method, "class of \'", name1, "\' must be \"", paste(valid.class,collapse="\" \""),"\"  \n", 
+    if( class(value1) %in% validClass == FALSE){
+      stop(method, "class of \'", name1, "\' must be \"", paste(validClass,collapse="\" \""),"\"  \n", 
            "proposed class : ", class(value1)[[1]], "\n")
     }  
     
@@ -125,10 +127,10 @@ valid.class <- function(value1, name1 = as.character(substitute(value1)), valid.
   
 }
 
+## * validDimension
 #' @rdname validFCTs
-#' @export
-valid.dimension <- function(value1, value2 = NULL, name1 = as.character(substitute(value1)), name2 = as.character(substitute(value2)),
-                           valid.dimension = NULL,
+validDimension <- function(value1, value2 = NULL, name1 = as.character(substitute(value1)), name2 = as.character(substitute(value2)),
+                           validDimension = NULL,
                            type = c("NROW","NCOL"), method = NULL, addPP = TRUE){
   
   if(!is.null(method) && addPP){
@@ -145,36 +147,36 @@ valid.dimension <- function(value1, value2 = NULL, name1 = as.character(substitu
   #### dimension 2
   
   
-  if(is.null(valid.dimension)){
+  if(is.null(validDimension)){
     
-    valid.dimension <- sapply(1:n.type, function(x){
+    validDimension <- sapply(1:n.type, function(x){
       do.call(type[x], list(value2))
     })
-    test.valid.dimension <- TRUE
+    test.validDimension <- TRUE
     
   }else if(is.null(name2)){
     
-    test.valid.dimension <- FALSE
+    test.validDimension <- FALSE
     
   }else{
     
-    test.valid.dimension <- TRUE
+    test.validDimension <- TRUE
     
   }
   
   #### main
   for(iter_type in 1:n.type){
     
-    if(testDimension[iter_type] != valid.dimension[iter_type]){
+    if(testDimension[iter_type] != validDimension[iter_type]){
       
-      if(test.valid.dimension){
+      if(test.validDimension){
         stop(method, "dimension mismatch between argument \'", name1, "\' and argument \'", name2, "\' \n", 
              type[iter_type],"(", name1, ") = ", testDimension[iter_type], " \n", 
-             type[iter_type],"(", name2, ") = ", valid.dimension[iter_type], " \n")  
+             type[iter_type],"(", name2, ") = ", validDimension[iter_type], " \n")  
       }else{
         stop(method, "dimension mismatch between argument \'", name1, "\' and argument \'", name2, "\' \n", 
              type[iter_type],"(", name1, ") = ", testDimension[iter_type], " \n", 
-             type[iter_type],"(", name2, ") = ", valid.dimension[iter_type], " \n")
+             type[iter_type],"(", name2, ") = ", validDimension[iter_type], " \n")
         
       }
       
@@ -185,8 +187,8 @@ valid.dimension <- function(value1, value2 = NULL, name1 = as.character(substitu
   return(invisible(TRUE))
 }
 
+## * validInteger
 #' @rdname validFCTs
-#' @export
 validInteger <- function(value1, name1 = as.character(substitute(value1)), valid.length, 
                          valid.values = NULL, min = NULL, max = NULL, 
                          refuse.NA = TRUE, refuse.NULL = TRUE, refuse.duplicates = FALSE, 
@@ -208,8 +210,8 @@ validInteger <- function(value1, name1 = as.character(substitute(value1)), valid
   return(invisible(TRUE))
 }
 
+## * validLogical
 #' @rdname validFCTs
-#' @export
 validLogical <- function(value1, name1 = as.character(substitute(value1)), valid.length, 
                          refuse.NULL = TRUE, refuse.NA = TRUE, 
                          method = NULL, addPP = TRUE){
@@ -248,8 +250,8 @@ validLogical <- function(value1, name1 = as.character(substitute(value1)), valid
   return(invisible(TRUE))
 }
 
+## * validNames
 #' @rdname validFCTs
-#' @export
 validNames <- function(value1, name1 = as.character(substitute(value1)), refuse.NULL = TRUE,
                        valid.length = NULL, valid.values = NULL, required.values = NULL, refuse.values = NULL,
                        method = NULL, addPP = TRUE){
@@ -317,8 +319,9 @@ validNames <- function(value1, name1 = as.character(substitute(value1)), refuse.
   return(invisible(TRUE))
   
 }
+
+## * validNumeric
 #' @rdname validFCTs
-#' @export
 validNumeric <- function(value1, name1 = as.character(substitute(value1)), valid.length,
                          valid.values = NULL , min = NULL, max = NULL,
                          refuse.NA = TRUE, refuse.NULL = TRUE, refuse.duplicates = FALSE, 
@@ -384,8 +387,8 @@ validNumeric <- function(value1, name1 = as.character(substitute(value1)), valid
   return(invisible(TRUE))
 }
 
+## * validPath
 #' @rdname validFCTs
-#' @export
 validPath <- function(value1, name1 = as.character(substitute(value1)), type,
                       method = NULL, addPP = TRUE, extension = NULL, check.fsep = FALSE){
   

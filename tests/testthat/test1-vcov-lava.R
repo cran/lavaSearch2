@@ -3,9 +3,9 @@
 ## author: Brice Ozenne
 ## created: nov  6 2017 (11:44) 
 ## Version: 
-## last-updated: jan 19 2018 (14:58) 
+## last-updated: feb  5 2018 (17:18) 
 ##           By: Brice Ozenne
-##     Update #: 66
+##     Update #: 74
 #----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -48,24 +48,24 @@ d <- sim(m,n)
 
 e <- estimate(m,d)
 param <- coef(e)
-prepareScore2(e) <- FALSE
+## prepareScore2(e) <- FALSE
 
 test_that("linear regression (at ML)",{
-    test <- attr(score2(e, p = pars(e), indiv=TRUE, adjust.residuals = FALSE, return.vcov.param = TRUE),
+    test <- attr(score2(e, p = pars(e), indiv=TRUE, bias.correct = FALSE, return.vcov.param = TRUE),
                  "vcov.param")
     GS <- rmAttr(vcov(e),c("det","pseudo","minSV"))
     expect_equal(unname(test), unname(GS))    
 })
 
 test_that("linear regression (not at ML: +1)",{
-    test <- attr(score2(e, p = param+1, indiv=TRUE, adjust.residuals = FALSE, return.vcov.param = TRUE),
+    test <- attr(score2(e, p = param+1, indiv=TRUE, bias.correct = FALSE, return.vcov.param = TRUE),
                  "vcov.param")
     GS <- solve(information(e, p = param+1))
     expect_equal(unname(test), GS)
 })
 
 test_that("linear regression (not at ML: +1:p)",{
-    test <- attr(score2(e, p = param+0.1*(1:length(param)), indiv=TRUE, adjust.residuals = FALSE, return.vcov.param = TRUE),
+    test <- attr(score2(e, p = param+0.1*(1:length(param)), indiv=TRUE, bias.correct = FALSE, return.vcov.param = TRUE),
                  "vcov.param")
     GS <- solve(information(e, p = param+0.1*(1:length(param))))
     expect_equal(unname(test), GS)    
@@ -75,7 +75,7 @@ test_that("linear regression: constrains",{
     m <- lvm(Y[0:2]~X1+1*X2)
     e <- estimate(m, d)
     
-    test <- attr(score2(e, p = pars(e), indiv=TRUE, adjust.residuals = FALSE, return.vcov.param = TRUE),
+    test <- attr(score2(e, p = pars(e), indiv=TRUE, bias.correct = FALSE, return.vcov.param = TRUE),
                  "vcov.param")
     GS <- rmAttr(vcov(e),c("det","pseudo","minSV"))
     expect_equal(unname(test), unname(GS))  
@@ -83,7 +83,7 @@ test_that("linear regression: constrains",{
     m <- lvm(Y~beta*X1+beta*X2)
     e <- estimate(m, d)
 
-    test <- attr(score2(e, p = pars(e), indiv=TRUE, adjust.residuals = FALSE, return.vcov.param = TRUE),
+    test <- attr(score2(e, p = pars(e), indiv=TRUE, bias.correct = FALSE, return.vcov.param = TRUE),
                  "vcov.param")
     GS <- rmAttr(vcov(e),c("det","pseudo","minSV"))
     expect_equal(unname(test), unname(GS))  
@@ -98,10 +98,10 @@ d <- sim(m,n)
 
 e <- estimate(m,d)
 param <- coef(e)
-prepareScore2(e) <- FALSE
+## prepareScore2(e) <- FALSE
 
 test_that("multiple linear regression (at ML)",{
-    test <- attr(score2(e, p = pars(e), indiv=TRUE, adjust.residuals = FALSE, return.vcov.param = TRUE),
+    test <- attr(score2(e, p = pars(e), indiv=TRUE, bias.correct = FALSE, return.vcov.param = TRUE),
                  "vcov.param")
     GS <- rmAttr(vcov(e),c("det","pseudo","minSV"))
 
@@ -109,14 +109,14 @@ test_that("multiple linear regression (at ML)",{
 })
 
 test_that("multiple linear regression (not at ML: +1)",{
-    test <- attr(score2(e, p = param+1, indiv=TRUE, adjust.residuals = FALSE, return.vcov.param = TRUE),
+    test <- attr(score2(e, p = param+1, indiv=TRUE, bias.correct = FALSE, return.vcov.param = TRUE),
                  "vcov.param")
     GS <- solve(information(e, p = param+1))
     expect_equal(unname(test), GS)
 })
 
 test_that("multiple linear regression (not at ML: +1:p)",{
-    test <- attr(score2(e, p = param+0.1*(1:length(param)), indiv=TRUE, adjust.residuals = FALSE, return.vcov.param = TRUE),
+    test <- attr(score2(e, p = param+0.1*(1:length(param)), indiv=TRUE, bias.correct = FALSE, return.vcov.param = TRUE),
                  "vcov.param")
     GS <- solve(information(e, p = param+0.1*(1:length(param))))
     expect_equal(unname(test), GS)    
@@ -126,7 +126,7 @@ test_that("multiple linear regressions: constrains",{
     m <- lvm(Y1~X1+1*X2,Y2~2*X3+2*X1,Y3~X2)
     e <- estimate(m, d)
 
-    test <- attr(score2(e, p = pars(e), indiv=TRUE, adjust.residuals = FALSE, return.vcov.param = TRUE),
+    test <- attr(score2(e, p = pars(e), indiv=TRUE, bias.correct = FALSE, return.vcov.param = TRUE),
                  "vcov.param")
     GS <- rmAttr(vcov(e),c("det","pseudo","minSV"))
     expect_equal(unname(test), unname(GS))    
@@ -140,24 +140,24 @@ d <- sim(m,n)
 
 e <- estimate(m,d)
 param <- coef(e)
-prepareScore2(e) <- FALSE
+## prepareScore2(e) <- FALSE
 
 test_that("multiple linear regression, covariance link (at ML)",{
-    test <- attr(score2(e, p = pars(e), indiv=TRUE, adjust.residuals = FALSE, return.vcov.param = TRUE),
+    test <- attr(score2(e, p = pars(e), indiv=TRUE, bias.correct = FALSE, return.vcov.param = TRUE),
                  "vcov.param")
     GS <- rmAttr(vcov(e),c("det","pseudo","minSV"))
     expect_equal(unname(test), unname(GS))    
 })
 
 test_that("multiple linear regression, covariance link (not at ML: +1)",{
-    test <- attr(score2(e, p = param+1, indiv=TRUE, adjust.residuals = FALSE, return.vcov.param = TRUE),
+    test <- attr(score2(e, p = param+1, indiv=TRUE, bias.correct = FALSE, return.vcov.param = TRUE),
                  "vcov.param")
     GS <- solve(information(e, p = param+1))
     expect_equal(unname(test), GS)
 })
 
 test_that("multiple linear regression, covariance link (not at ML: +1:p)",{
-    test <- attr(score2(e, p = param+0.1*(1:length(param)), indiv=TRUE, adjust.residuals = FALSE, return.vcov.param = TRUE),
+    test <- attr(score2(e, p = param+0.1*(1:length(param)), indiv=TRUE, bias.correct = FALSE, return.vcov.param = TRUE),
                  "vcov.param")
     GS <- solve(information(e, p = param+0.1*(1:length(param))))
     expect_equal(unname(test), GS)    
@@ -177,24 +177,24 @@ regression(m) <- eta1~X1+X2
 
 e <- estimate(m,d)
 param <- coef(e)
-prepareScore2(e) <- FALSE
+## prepareScore2(e) <- FALSE
 
 test_that("factor model (at ML)",{
-    test <- attr(score2(e, p = pars(e), indiv=TRUE, adjust.residuals = FALSE, return.vcov.param = TRUE),
+    test <- attr(score2(e, p = pars(e), indiv=TRUE, bias.correct = FALSE, return.vcov.param = TRUE),
                  "vcov.param")
     GS <- rmAttr(vcov(e),c("det","pseudo","minSV"))
     expect_equal(unname(test), unname(GS))    
 })
 
 test_that("factor model (not at ML: +1)",{
-    test <- attr(score2(e, p = param+1, indiv=TRUE, adjust.residuals = FALSE, return.vcov.param = TRUE),
+    test <- attr(score2(e, p = param+1, indiv=TRUE, bias.correct = FALSE, return.vcov.param = TRUE),
                  "vcov.param")
     GS <- solve(information(e, p = param+1))
     expect_equal(unname(test), GS)
 })
 
 test_that("factor model (not at ML: +1:p)",{
-    test <- attr(score2(e, p = param+0.1*(1:length(param)), indiv=TRUE, adjust.residuals = FALSE, return.vcov.param = TRUE),
+    test <- attr(score2(e, p = param+0.1*(1:length(param)), indiv=TRUE, bias.correct = FALSE, return.vcov.param = TRUE),
                  "vcov.param")
     GS <- solve(information(e, p = param+0.1*(1:length(param))))
     expect_equal(unname(test), GS)    
@@ -204,7 +204,7 @@ test_that("factor model: fixed coefficients",{
     m <- lvm(Y1~1*eta+1*X2,Y2~1*eta,Y3~1*eta)
     e <- estimate(m, d)
 
-    test <- attr(score2(e, p = pars(e), indiv=TRUE, adjust.residuals = FALSE, return.vcov.param = TRUE),
+    test <- attr(score2(e, p = pars(e), indiv=TRUE, bias.correct = FALSE, return.vcov.param = TRUE),
                  "vcov.param")
     GS <- rmAttr(vcov(e),c("det","pseudo","minSV"))
     expect_equal(unname(test), unname(GS))    
@@ -214,7 +214,7 @@ test_that("factor model: constrains",{
     m <- lvm(Y1~1*eta+X2,Y2~lambda*eta+X2,Y3~lambda*eta,eta ~ beta*X2+beta*X1)
     e <- estimate(m, d)
 
-    test <- attr(score2(e, p = pars(e), indiv=TRUE, adjust.residuals = FALSE, return.vcov.param = TRUE),
+    test <- attr(score2(e, p = pars(e), indiv=TRUE, bias.correct = FALSE, return.vcov.param = TRUE),
                  "vcov.param")
     GS <- rmAttr(vcov(e),c("det","pseudo","minSV"))
     expect_equal(unname(test), unname(GS))    
@@ -229,24 +229,24 @@ latent(m) <- ~eta1+eta2
 
 e <- estimate(m,d)
 param <- coef(e)
-prepareScore2(e) <- FALSE
+## prepareScore2(e) <- FALSE
 
 test_that("2 factor model (at ML)",{
-    test <- attr(score2(e, p = pars(e), indiv=TRUE, adjust.residuals = FALSE, return.vcov.param = TRUE),
+    test <- attr(score2(e, p = pars(e), indiv=TRUE, bias.correct = FALSE, return.vcov.param = TRUE),
                  "vcov.param")
     GS <- rmAttr(vcov(e),c("det","pseudo","minSV"))
     expect_equal(unname(test), unname(GS))    
 })
 
 test_that("2 factor model (not at ML: +1)",{
-    test <- attr(score2(e, p = param+1, indiv=TRUE, adjust.residuals = FALSE, return.vcov.param = TRUE),
+    test <- attr(score2(e, p = param+1, indiv=TRUE, bias.correct = FALSE, return.vcov.param = TRUE),
                  "vcov.param")
     GS <- solve(information(e, p = param+1))
     expect_equal(unname(test), GS)
 })
 
 test_that("2 factor model (not at ML: +1:p)",{
-    test <- attr(score2(e, p = param+0.1*(1:length(param)), indiv=TRUE, adjust.residuals = FALSE, return.vcov.param = TRUE),
+    test <- attr(score2(e, p = param+0.1*(1:length(param)), indiv=TRUE, bias.correct = FALSE, return.vcov.param = TRUE),
                  "vcov.param")
     GS <- solve(information(e, p = param+0.1*(1:length(param))))
     expect_equal(unname(test), GS)    
@@ -257,7 +257,7 @@ test_that("2 factor model: constrains",{
              Z1~0+eta2,Z2~lambda*eta2,Z3~eta2)
     e <- estimate(m, d)
 
-     test <- attr(score2(e, p = pars(e), indiv=TRUE, adjust.residuals = FALSE, return.vcov.param = TRUE),
+     test <- attr(score2(e, p = pars(e), indiv=TRUE, bias.correct = FALSE, return.vcov.param = TRUE),
                  "vcov.param")
     GS <- rmAttr(vcov(e),c("det","pseudo","minSV"))
     expect_equal(unname(test), unname(GS))    
@@ -271,24 +271,24 @@ latent(m) <- ~eta1+eta2
 
 e <- estimate(m,d)
 param <- coef(e)
-prepareScore2(e) <- FALSE
+## prepareScore2(e) <- FALSE
 
 test_that("2 factor model, covariance (at ML)",{
-    test <- attr(score2(e, p = pars(e), indiv=TRUE, adjust.residuals = FALSE, return.vcov.param = TRUE),
+    test <- attr(score2(e, p = pars(e), indiv=TRUE, bias.correct = FALSE, return.vcov.param = TRUE),
                  "vcov.param")
     GS <- rmAttr(vcov(e),c("det","pseudo","minSV"))
     expect_equal(unname(test), unname(GS))    
 })
 
 test_that("2 factor model, covariance (not at ML: +1)",{
-    test <- attr(score2(e, p = param+1, indiv=TRUE, adjust.residuals = FALSE, return.vcov.param = TRUE),
+    test <- attr(score2(e, p = param+1, indiv=TRUE, bias.correct = FALSE, return.vcov.param = TRUE),
                  "vcov.param")
     GS <- solve(information(e, p = param+1))
     expect_equal(unname(test), GS)
 })
 
 test_that("2 factor model, covariance (not at ML: +1:p)",{
-    test <- attr(score2(e, p = param+0.1*(1:length(param)), indiv=TRUE, adjust.residuals = FALSE, return.vcov.param = TRUE),
+    test <- attr(score2(e, p = param+0.1*(1:length(param)), indiv=TRUE, bias.correct = FALSE, return.vcov.param = TRUE),
                  "vcov.param")
     GS <- solve(information(e, p = param+0.1*(1:length(param))))
     expect_equal(unname(test), GS)    
@@ -302,24 +302,24 @@ regression(m) <- eta1 ~ eta2+X2
 
 e <- estimate(m,d)
 param <- coef(e)
-prepareScore2(e) <- FALSE
+## prepareScore2(e) <- FALSE
 
 test_that("2 factor model, correlation (at ML)",{
-    test <- attr(score2(e, p = pars(e), indiv=TRUE, adjust.residuals = FALSE, return.vcov.param = TRUE),
+    test <- attr(score2(e, p = pars(e), indiv=TRUE, bias.correct = FALSE, return.vcov.param = TRUE),
                  "vcov.param")
     GS <- rmAttr(vcov(e),c("det","pseudo","minSV"))
     expect_equal(unname(test), unname(GS))    
 })
 
 test_that("2 factor model, correlation (not at ML: +1)",{
-    test <- attr(score2(e, p = param+1, indiv=TRUE, adjust.residuals = FALSE, return.vcov.param = TRUE),
+    test <- attr(score2(e, p = param+1, indiv=TRUE, bias.correct = FALSE, return.vcov.param = TRUE),
                  "vcov.param")
     GS <- solve(information(e, p = param+1))
     expect_equal(unname(test), GS)
 })
 
 test_that("2 factor model, correlation (not at ML: +1:p)",{
-    test <- attr(score2(e, p = param+0.1*(1:length(param)), indiv=TRUE, adjust.residuals = FALSE, return.vcov.param = TRUE),
+    test <- attr(score2(e, p = param+0.1*(1:length(param)), indiv=TRUE, bias.correct = FALSE, return.vcov.param = TRUE),
                  "vcov.param")
     GS <- solve(information(e, p = param+0.1*(1:length(param))))
     expect_equal(unname(test), GS)    
@@ -335,8 +335,8 @@ d <- sim(m,n)
 
 e.lvm <- estimate(lvm(Y~X1+X2+X3),d)
 e.lm <- lm(Y~X1+X2+X3, data = d)
-Sigma.lvm <- attr(residuals2(e.lvm, adjust.residuals = TRUE, return.vcov.param = TRUE), "vcov.param")
-Sigma.lm <- attr(residuals2(e.lm, adjust.residuals = TRUE, return.vcov.param = TRUE), "vcov.param")
+Sigma.lvm <- attr(residuals2(e.lvm, bias.correct = TRUE, return.vcov.param = TRUE), "vcov.param")
+Sigma.lm <- attr(residuals2(e.lm, bias.correct = TRUE, return.vcov.param = TRUE), "vcov.param")
 
 test_that("Corrected vcov - linear model",{
     expect_equal(unname(Sigma.lvm), unname(Sigma.lm))
@@ -367,7 +367,7 @@ e2.lm <- lm(Y2~X1+X2, data = df)
 e.lvm <- estimate(m, data = df)
 
 ## *** tests
-Sigma.lvm <- attr(residuals2(e.lvm, return.vcov.param = TRUE, adjust.residuals = TRUE),
+Sigma.lvm <- attr(residuals2(e.lvm, return.vcov.param = TRUE, bias.correct = TRUE),
                  "vcov.param")
 
 Sigma.lvm[c("Y1","Y1~X1","Y1~X2"),c("Y1","Y1~X1","Y1~X2")]/vcov(e1.lm)
@@ -407,7 +407,7 @@ e.lmer <- lme4::lmer(value ~ time + G + Gender + (1|Id),
 
 ## *** tests
 Sigma0.lvm <- vcov(e.lvm)
-SigmaAdj.lvm <- attr(residuals2(e.lvm, adjust.residuals = TRUE, return.vcov.param = TRUE), "vcov.param")
+SigmaAdj.lvm <- attr(residuals2(e.lvm, bias.correct = TRUE, return.vcov.param = TRUE), "vcov.param")
 ## Sigma0.lvm/SigmaAdj.lvm
 SigmaAdjRed.lvm <- SigmaAdj.lvm[1:5,1:5]
 Sigma.GS <- vcovAdj(e.lmer)

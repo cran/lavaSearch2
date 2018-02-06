@@ -1,0 +1,21 @@
+# -*- mode: org -*-
+
+* Version 1.1.0 <2018-02-01 Thu>
+** User visible changes
+ - The argument =numericDerivative= has been renamed =numeric.derivative=.
+ - The argument =adjust.residuals= has been renamed =bias.correct=.
+ - The method =dVcov2= has been renamed =sCorrect=.
+ - The method =lTest= is now replaced by the method =compare2=.
+   =compare2= is similar to =lava::compare= but with small sample correction.
+   The argument =C= of =lTest= is now =contrast= in =compare2=.
+ - The interaction with the multtest package has been re-organized. 
+   There is no more =mlf2= or =mmm2= function. 
+   When no small sample correction is needed use =glht=, otherwise =glht2=.
+ - The function =createContrast= has been improved.
+
+** Internal changes
+ - When possible argument x has been converted to object.
+ - Dependency on several packages has been moved from Import to
+   Suggest.  This leads to several requireNamespace in the code to
+   check the presence of packages.
+ 

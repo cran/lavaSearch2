@@ -6,33 +6,35 @@
 \alias{addLink.lvm.reduced}
 \title{Add a New Link Between Two Variables in a LVM}
 \usage{
-addLink(x, ...)
+addLink(object, ...)
 
-\method{addLink}{lvm}(x, var1, var2, covariance, allVars = vars(x),
+\method{addLink}{lvm}(object, var1, var2, covariance, all.vars = vars(object),
   warnings = FALSE, ...)
 
-\method{addLink}{lvm.reduced}(x, ...)
+\method{addLink}{lvm.reduced}(object, ...)
 }
 \arguments{
-\item{x}{a lvm model}
+\item{object}{a \code{lvm} object.}
 
-\item{...}{additional arguments to be passed to lower levels functions.}
+\item{...}{[internal] only used by the generic method and from \code{addLink.lvm.reduced} to \code{addLink.lvm}.}
 
-\item{var1}{the first variable (character) or a formula describing the link to be added to the lvm}
+\item{var1}{[character or formula] the exogenous variable of the new link or a formula describing the link to be added to the lvm.}
 
-\item{var2}{the second variable (character). Only used if var1 is a character.}
+\item{var2}{[character] the endogenous variable of the new link. Disregarded if the argument \code{var1} is a formula.}
 
-\item{covariance}{does the link is bidirectional. Ignored if one of the variable is exogenous.}
+\item{covariance}{[logical] is the link is bidirectional? Ignored if one of the variables non-stochastic (e.g. exogenous variables).}
 
-\item{allVars}{all the existing variables.}
+\item{all.vars}{[internal] a character vector containing all the variables of the \code{lvm} object.}
 
-\item{warnings}{should a warning be displayed when no link is added}
+\item{warnings}{[logical] Should a warning be displayed when no link is added?}
 }
 \description{
-Generic interface to add links to lvm objects.
+Generic interface to add links to \code{lvm} objects.
 }
 \details{
-The argument allVars is useful for \code{lvm.reduce} object where the command \code{vars(x)} does not return all variables. The command \code{vars(x, xlp = TRUE)} must be used instead.
+The argument \code{all.vars} is useful for \code{lvm.reduce} object where the command \code{vars(object)} does not return all variables. The command \code{vars(object, xlp = TRUE)} must be used instead.
+
+Arguments \code{var1} and \code{var2} are passed to \code{initVarlink}.
 }
 \examples{
 library(lava)
@@ -52,4 +54,8 @@ addLink(m2, "x1", "y1", covariance = FALSE)
 addLink(m2, "y1", "x1", covariance = FALSE)
 newM <- addLink(m, "y1", "y2", covariance = TRUE)
 coef(newM)
+
+}
+\concept{
+setter
 }

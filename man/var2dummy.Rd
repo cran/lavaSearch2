@@ -6,29 +6,33 @@
 \alias{var2dummy.lvm}
 \title{Convert Variable Names to Dummy Variables Names.}
 \usage{
-var2dummy(x, ...)
+var2dummy(object, ...)
 
-\method{var2dummy}{list}(x, var, rm.first.factor = TRUE, ...)
+\method{var2dummy}{list}(object, var, rm.first.factor = TRUE, ...)
 
-\method{var2dummy}{lvm}(x, data = NULL, ...)
+\method{var2dummy}{lvm}(object, data = NULL, ...)
 }
 \arguments{
-\item{x}{a latent variable model.}
+\item{object}{a \code{lvm} object.}
 
-\item{...}{additional arguments to be passed to lower levels functions.}
+\item{...}{[internal] additional arguments to be passed from \code{var2dummy.lvm} to \code{var2dummy.list}.}
 
-\item{var}{the variable to be transformed.}
+\item{var}{[character] the variable to be transformed.}
 
-\item{rm.first.factor}{should the first level of each categorical variable be ignored?}
+\item{rm.first.factor}{[logical] should the first level of each categorical variable be ignored?}
 
-\item{data}{dataset according to which the model should be updated.}
+\item{data}{[data.frame] dataset according to which the model should be updated.}
 }
 \description{
 When dealing with categorical variables, the \code{estimate} function convert the categorical variables into dummy variables.
 This function convert a set of variable names to their corresponding name in the model with dummy variables
 }
 \examples{
-library(lava)
+
+\dontrun{
+var2dummy <- lavaSearch2:::var2dummy
+var2dummy.list <- lavaSearch2:::var2dummy.list
+var2dummy.lvm <- lavaSearch2:::var2dummy.lvm
 
 m <- lvm()
 regression(m) <- c(y1,y2,y3)~u
@@ -39,3 +43,6 @@ var2dummy(m, var = c("X1","X2"))
 categorical(m,labels=c("1","2","3")) <- ~X2
 var2dummy(m, var = c("X1","X2"))
 }
+
+}
+\keyword{internal}

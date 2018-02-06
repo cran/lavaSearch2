@@ -3,9 +3,9 @@
 ## author: Brice Ozenne
 ## created: okt 26 2017 (16:35) 
 ## Version: 
-## last-updated: jan 18 2018 (14:16) 
+## last-updated: feb  5 2018 (18:17) 
 ##           By: Brice Ozenne
-##     Update #: 138
+##     Update #: 153
 #----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -20,11 +20,19 @@
 #' @description Identify categorical links in latent variable models.
 #' @name defineCategoricalLink
 #' 
-#' @param object a lvm model.
-#' @param link the links to be analyzed. If NULL, all the coefficients from the lvm model are used instead.
-#' @param data the dataset that will be used to fit the model. If \code{NULL}, a simulated data will be generated from the model.
+#' @param object a \code{lvm} model.
+#' @param link [character] the links to be analyzed. If \code{NULL}, all the coefficients from the lvm model are used instead.
+#' @param data [data.frame] the dataset that will be used to fit the model. If \code{NULL}, a simulated data will be generated from the model.
+#'
+#' @return a \code{data.frame} with a description of each link in rows. \cr
+#' The column factitious identify the links that will be replaced with other links
+#' (e.g. "Y1~X1" becomes "Y1~X1b" and "Y1~X1c"). \cr
 #' 
 #' @examples
+#' \dontrun{
+#' defineCategoricalLink <- lavaSearch2:::defineCategoricalLink
+#' defineCategoricalLink.lvm <- lavaSearch2:::defineCategoricalLink.lvm
+#' 
 #' ## linear model
 #' m <- lvm(Y1~X1+X2,Y2~X1+X3)
 #' categorical(m, K = 3) <- "X1"
@@ -48,16 +56,16 @@
 #' categorical(m, labels = as.character(1:3)) <- "X1"
 #'
 #' defineCategoricalLink(m)
+#'}
 #' 
-
-#' @export
+#' @concept setter
+#' @keywords internal 
 `defineCategoricalLink` <-
   function(object, link, data) UseMethod("defineCategoricalLink")
 
 
 ## * defineCategoricalLink.lvm
 #' @rdname defineCategoricalLink
-#' @export
 defineCategoricalLink.lvm <- function(object, link = NULL, data = NULL){
 
     ### ** normalize arguments
@@ -119,7 +127,7 @@ defineCategoricalLink.lvm <- function(object, link = NULL, data = NULL){
                              endogenous = Y.name.allcat,
                              exogenous = X.name.allcat,
                              type = "categorical",
-                             factice = FALSE,
+                             factitious = FALSE,
                              level = X.level.allcat,
                              originalLink = original.link.allcat,
                              externalLink = external.link.allcat,
@@ -135,13 +143,13 @@ defineCategoricalLink.lvm <- function(object, link = NULL, data = NULL){
         var.tempo <- initVarLinks(link.Ncat)
         Y.name.Ncat <- var.tempo$var1
         X.name.Ncat <- var.tempo$var2
-        test.factice <- X.name.Ncat %in% names(object$attributes$ordinalparname)
+        test.factitious <- X.name.Ncat %in% names(object$attributes$ordinalparname)
 
         df.Ncat <- data.frame(link = link.Ncat,
                               endogenous = Y.name.Ncat,
                               exogenous = X.name.Ncat,
                               type = "continuous",
-                              factice = test.factice,
+                              factitious = test.factitious,
                               level = NA,
                               originalLink = link.Ncat,
                               externalLink = NA,

@@ -3,9 +3,9 @@
 ## author: Brice Ozenne
 ## created: jun 21 2017 (16:44) 
 ## Version: 
-## last-updated: jan 22 2018 (11:40) 
+## last-updated: feb  6 2018 (09:27) 
 ##           By: Brice Ozenne
-##     Update #: 410
+##     Update #: 470
 #----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -20,21 +20,35 @@
 #' @description Adjust the p.values using the quantiles of the max statistic.
 #' @name calcDistMax
 #'
-#' @param statistic the observed statistic relative to the coefficients to test.
-#' @param iid zero-mean iid decomposition of the observed coefficients used to compute the statistic.
-#' @param iid.previous zero-mean iid decomposition of the previous step to condition on.
-#' @param quantile.compute should the critical quantile be computed.
-#' @param quantile.previous critical threshold of the previous step to condition on.
-#' If not \code{NULL} the values should correspond the variable in to the first column(s) of the argument iid.
-#' @param df the degree of freedom for the t statistic.
-#' @param method the method used to compute the p.values. Can be \code{"integration"}, \code{"boot-wild"}, or \code{"boot-norm"}.
-#' See the detail section.
-#' @param alpha the significance threshold for retaining a new link
-#' @param ncpus the number of cpu to use for parellel computations
-#' @param initCpus should the cpus be initialized.
-#' @param n.sim the total number of simulations.
-#' @param n.repMax the maximum number of rejection when using "\code{"boot-wild"} or \code{"boot-norm"}.
-#' @param trace should the execution of the function be traced.
+#' @param statistic [numeric vector] the observed Wald statistic.
+#' Each statistic correspond to a null hypothesis (i.e. a coefficient) that one wish to test.
+#' @param iid [matrix] zero-mean iid decomposition of the coefficient used to compute the statistic.
+#' @param iid.previous [matrix, EXPERIMENTAL] zero-mean iid decomposition of previously tested coefficient.
+#' @param quantile.compute [logical] should the rejection quantile be computed?
+#' @param quantile.previous [numeric, EXPERIMENTAL] rejection quantiles of the previously tested hypotheses. If not \code{NULL} the values should correspond the variable in to the first column(s) of the argument \code{iid.previous}.
+#' @param df [numeric] the degree of freedom defining the multivariate Student's t distribution.
+#' If \code{NULL} the multivariate Gaussian distribution will be used instead.
+#' @param method [character] the method used to compute the p-values.
+#' See the output of \code{lava.options()$search.calcMaxDist} for the possible values.
+#' @param alpha [numeric 0-1] the significance cutoff for the p-values.
+#' When the p-value is below, the corresponding link will be retained.
+#' @param ncpus [integer >0] the number of processors to use.
+#' If greater than 1, the computation of the p-value relative to each test is performed in parallel. 
+#' @param init.cpus [logical] should the processors for the parallel computation be initialized?
+#' @param n.sim [integer >0] the number of bootstrap simulations used to compute each p-values.
+#' Disregarded when the p-values are computed using numerical integration.
+#' @param n.repmax [integer >0] the maximum number of rejection for each bootstrap sample before switching to a new bootstrap sample.
+#' Only relevant when conditioning on a previous test.
+#' Disregarded when the p-values are computed using numerical integration.
+#' @param trace [logical] should the execution of the function be traced?
+#'
+#' @return A list containing
+#' \itemize{
+#' \item p.adjust: the adjusted p-values.
+#' \item z: the rejection threshold.
+#' \item Sigma: the correlation matrix between the test statistic.
+#' \item correctedLevel: the alpha level corrected for conditioning on previous tests.
+#' }
 #' 
 #' @examples 
 #' library(mvtnorm)
@@ -64,7 +78,7 @@
 #'
 #' r4 <- calcDistMaxBootstrap(statistic = statistic, iid = X.iid,
 #'             method = "wild",
-#'             trace = FALSE, alpha = 0.05, initCpus = TRUE, n.sim = n.sim)
+#'             trace = FALSE, alpha = 0.05, init.cpus = TRUE, n.sim = n.sim)
 #' 
 #' rbind(integration = c(r1$p.adjust, quantile = r1$z),
 #'       bootNaive    = c(r2$p.adjust, quantile = r2$z),
@@ -98,7 +112,8 @@
 #'       bootResidual = c(r3c$p.adjust, quantile = r3c$z),
 #'       bootWild    = c(r4c$p.adjust, quantile = r4c$z))
 #' }
-#' 
+#' @concept modelsearch
+#' @concept post-selection inference
 
 
 ## * calcDistMaxIntegral
@@ -107,7 +122,7 @@
 calcDistMaxIntegral <- function(statistic, iid, df, 
                                 iid.previous = NULL, quantile.previous = NULL,
                                 quantile.compute = lava.options()$search.calc.quantile.int,
-                                alpha, ncpus = 1, initCpus = TRUE, trace){
+                                alpha, ncpus = 1, init.cpus = TRUE, trace){
 
     ## ** normalize arguments
     p.iid <- NCOL(iid)
@@ -167,12 +182,28 @@ calcDistMaxIntegral <- function(statistic, iid, df,
     if(trace > 0){ cat("Computation of multivariate student probabilities to adjust the p.values: ") }
     if(ncpus > 1){
         ## *** parallel computations
-        if(initCpus){
+        if(init.cpus){
+            test.package <- try(requireNamespace("doParallel"), silent = TRUE)
+            if(inherits(test.package,"try-error")){
+                stop("There is no package \'doParallel\' \n",
+                     "This package is necessary when argument \'ncpus\' is greater than 1 \n")
+            }
+            test.package <- try(requireNamespace("foreach"), silent = TRUE)
+            if(inherits(test.package,"try-error")){
+                stop("There is no package \'foreach\' \n",
+                     "This package is necessary when argument \'ncpus\' is greater than 1 \n")
+            }
             cl <- parallel::makeCluster(ncpus)
             doParallel::registerDoParallel(cl)
         }
 
         if(trace > 0){
+            test.package <- try(requireNamespace("tcltk"), silent = TRUE)
+            if(inherits(test.package,"try-error")){
+                stop("There is no package \'tcltk\' \n",
+                     "This package is necessary when argument \'trace\' is TRUE \n")
+            }
+        
             pb.max <- length(index.new)
             parallel::clusterExport(cl, "trace")
         }
@@ -193,15 +224,19 @@ calcDistMaxIntegral <- function(statistic, iid, df,
                                          return(warperP(value))
                                      })
 
-        if(initCpus){
+        if(init.cpus){
             parallel::stopCluster(cl)
         }
             
     }else{
         ## *** sequential computations
         if(trace>0){
-            requireNamespace("pbapply")
-            out$p.adjust <- pbapply::pbsapply(index.new, warperP)
+            test.package <- try(requireNamespace("pbapply"), silent = TRUE)
+            if(inherits(test.package,"try-error")){
+                stop("There is no package \'pbapply\' \n",
+                     "This package is necessary when argument \'trace\' is TRUE \n")
+            }
+            out$p.adjust <- pbapply::pbsapply(index.new, warperP)            
         }else{
             out$p.adjust <- sapply(index.new, warperP)
         }
@@ -219,7 +254,7 @@ calcDistMaxIntegral <- function(statistic, iid, df,
 #' @rdname calcDistMax
 #' @export
 calcDistMaxBootstrap <- function(statistic, iid, iid.previous = NULL, quantile.previous = NULL,
-                                 method, alpha, ncpus = 1, initCpus = TRUE, n.sim, trace, n.repMax = 100){
+                                 method, alpha, ncpus = 1, init.cpus = TRUE, n.sim, trace, n.repmax = 100){
 
     ## ** normalize arguments
     n <- NROW(iid)
@@ -248,7 +283,17 @@ calcDistMaxBootstrap <- function(statistic, iid, iid.previous = NULL, quantile.p
         n.simCpus <- rep(round(n.sim/ncpus),ncpus)
         n.simCpus[1] <- n.sim-sum(n.simCpus[-1])
 
-        if(initCpus){
+        if(init.cpus){
+            test.package <- try(requireNamespace("doParallel"), silent = TRUE)
+            if(inherits(test.package,"try-error")){
+                stop("There is no package \'doParallel\' \n",
+                     "This package is necessary when argument \'ncpus\' is greater than 1 \n")
+            }
+            test.package <- try(requireNamespace("foreach"), silent = TRUE)
+            if(inherits(test.package,"try-error")){
+                stop("There is no package \'foreach\' \n",
+                     "This package is necessary when argument \'ncpus\' is greater than 1 \n")
+            }
             cl <- parallel::makeCluster(ncpus)
             doParallel::registerDoParallel(cl)
         }
@@ -262,27 +307,32 @@ calcDistMaxBootstrap <- function(statistic, iid, iid.previous = NULL, quantile.p
                                                                warperBoot(iid = iid.all, sigma = Sigma.statistic,
                                                                           n = n, method = method,
                                                                           index.new = index.new, index.previous = index.previous,
-                                                                          quantile.previous = quantile.previous, n.repMax = n.repMax))
+                                                                          quantile.previous = quantile.previous, n.repmax = n.repmax))
                                                  })
 
-        if(initCpus){
+        if(init.cpus){
             parallel::stopCluster(cl)
         }
         
     }else{
 
-       if(trace>0){
-            requireNamespace("pbapply")
+        if(trace>0){
+            test.package <- try(requireNamespace("pbapply"), silent = TRUE)
+            if(inherits(test.package,"try-error")){
+                stop("There is no package \'pbapply\' \n",
+                     "This package is necessary when argument \'trace\' is TRUE \n")
+            }
             distMax <- pbapply::pbsapply(1:n.sim, warperBoot, method = method,
                                          iid = iid.all, sigma = Sigma.statistic, n = n,                                         
                                          index.new = index.new, index.previous = index.previous,
-                                         quantile.previous = quantile.previous, n.repMax = n.repMax)
-       }else{
-           distMax <- sapply(1:n.sim, warperBoot, method = method,
-                             iid = iid.all, sigma = Sigma.statistic, n = n,
-                             index.new = index.new, index.previous = index.previous,
-                             quantile.previous = quantile.previous, n.repMax = n.repMax)
-       }
+                                         quantile.previous = quantile.previous, n.repmax = n.repmax)
+            
+        }else{
+            distMax <- sapply(1:n.sim, warperBoot, method = method,
+                              iid = iid.all, sigma = Sigma.statistic, n = n,
+                              index.new = index.new, index.previous = index.previous,
+                              quantile.previous = quantile.previous, n.repmax = n.repmax)
+        }
         
     }
      
@@ -351,13 +401,13 @@ calcDistMaxBootstrap <- function(statistic, iid, iid.previous = NULL, quantile.p
 
 ## * .bootMaxDist: bootstrap simulation
 .bootMaxDist <- function(iid, sigma, n, method,
-                         index.new, index.previous, quantile.previous, n.repMax,
+                         index.new, index.previous, quantile.previous, n.repmax,
                          ...){
 
     iRep <- 0
     cv <- FALSE
 
-    while(iRep < n.repMax && cv == FALSE){
+    while(iRep < n.repmax && cv == FALSE){
 
         ## ** resample to obtain a new influence function
         if(method == "naive"){

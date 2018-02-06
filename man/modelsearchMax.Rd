@@ -7,15 +7,18 @@
 modelsearchMax(x, restricted, link, directive, packages, update.FCT,
   update.args, iid.FCT, alpha, method.p.adjust, method.max, n.sim = 1000,
   iid.previous = NULL, quantile.previous = NULL, export.iid, trace, ncpus,
-  initCpus)
+  init.cpus)
 }
 \value{
-an object of class lvmfit
+A \code{lvmfit} object.
 }
 \description{
 Testing the Relevance of Additional Links Using the Max Statistic.
 }
 \seealso{
 \code{link{modelsearch2}}
+}
+\concept{
+modelsearch
 }
 \keyword{internal}

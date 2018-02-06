@@ -8,28 +8,28 @@ calcType1postSelection(level, mu, Sigma, quantile.previous, distribution, df,
   n = 10, correct = TRUE, ...)
 }
 \arguments{
-\item{level}{expected coverage.}
+\item{level}{[numeric 0-1] expected coverage.}
 
-\item{mu}{vector of means for the joint distribution of the test statistics}
+\item{mu}{[numeric vector] the expectation of the joint distribution of the test statistics}
 
-\item{Sigma}{variance-covariance matrix for the joint distribution of the test statistics.}
+\item{Sigma}{[matrix] the variance-covariance of the joint distribution of the test statistics.}
 
-\item{quantile.previous}{significance quantile used at the previous step.}
+\item{quantile.previous}{[numeric] significance quantile used at the previous step.}
 
-\item{distribution}{distribution of the test statistics.
-Can be \code{"pmvnorm"} (normal distribution) or \code{"pvmt"} (student's t distribution)}
+\item{distribution}{[character] distribution of the test statistics.
+Can be \code{"pmvnorm"} (normal distribution) or \code{"pvmt"} (Student's t distribution)}
 
-\item{df}{degree of freedoms (only used for the student distribution).}
+\item{df}{[integer > 0] the degree of freedom of the joint Student's t distribution.
+Only used when \code{distribution="pvmt"}.}
 
-\item{n}{number of points for the numerical integration}
+\item{n}{[integer > 0] number of points for the numerical integration}
 
-\item{correct}{logical. If true, returns the corrected level that should be used
-to obtain the expected coverage.}
+\item{correct}{[logical] if true, correct the level to account for previous testings.}
 
-\item{...}{arguments passed to lower level functions}
+\item{...}{arguments passed to \code{\link{intDensTri}}.}
 }
 \value{
-type 1 error (numeric)
+[numeric] the type 1 error.
 }
 \description{
 Compute the type 1 error after selection.
@@ -39,7 +39,7 @@ The number of tests at the current step (i.e. after selection) is assumed to be
 one less than the number of tests at the previous step (i.e. before selection).
 
 Arguments \code{mu} and \code{Sigma} must contain the moments for the vector of test statistics
-after and before selection.
+before and after selection (in that order).
 }
 \examples{
 library(mvtnorm)
@@ -90,4 +90,7 @@ calcType1postSelection(levelC, quantile.previous = z2, distribution = "gaussian"
 }
 \author{
 Brice Ozenne
+}
+\concept{
+post-selection inference
 }

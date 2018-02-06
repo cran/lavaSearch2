@@ -3,9 +3,9 @@
 ## author: Brice Ozenne
 ## created: nov  6 2017 (12:57) 
 ## Version: 
-## last-updated: jan 19 2018 (14:44) 
+## last-updated: feb  4 2018 (13:55) 
 ##           By: Brice Ozenne
-##     Update #: 102
+##     Update #: 103
 #----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -59,8 +59,8 @@ test_that("gls equivalent to lvm", {
 })
 
 test_that("gls: HC0/HC1", {
-    iid2HC0.gls <- iid2(e.gls, adjust.residuals = FALSE, data = dL, cluster = dL$Id)
-    iid2HC0.lvm <- iid2(e.lvm, adjust.residuals = FALSE, cluster = dL$Id)
+    iid2HC0.gls <- iid2(e.gls, bias.correct = FALSE, data = dL, cluster = dL$Id)
+    iid2HC0.lvm <- iid2(e.lvm, bias.correct = FALSE, cluster = dL$Id)
     expect_equal(unname(iid2HC0.gls[,index.coef]),unname(iid2HC0.lvm[,index.coef]))
     
     VsandwichHC0.gls <- crossprod(iid2HC0.gls)[index.coef,index.coef]
@@ -75,8 +75,8 @@ test_that("gls: HC0/HC1", {
 })
 
 test_that("gls: HC2", {
-    iid2HC2.gls <- iid2(e.gls, adjust.residuals = TRUE, data = dL, cluster = dL$Id, as.clubSandwich = 2)
-    iid2HC2.lvm <- iid2(e.lvm, adjust.residuals = TRUE, cluster = dL$I, as.clubSandwich = 2)
+    iid2HC2.gls <- iid2(e.gls, bias.correct = TRUE, data = dL, cluster = dL$Id, as.clubSandwich = 2)
+    iid2HC2.lvm <- iid2(e.lvm, bias.correct = TRUE, cluster = dL$I, as.clubSandwich = 2)
     expect_equal(unname(iid2HC2.gls[,index.coef]),unname(iid2HC2.lvm[,index.coef]))
   
     VsandwichHC2.gls <- crossprod(iid2HC2.gls)[index.coef,index.coef]
@@ -105,9 +105,9 @@ test_that("lme/gls equivalent to lvm", {
 })
 
 test_that("lme: HC0/HC1", {
-    iid2HC0.lme <- iid2(e.lme, data = dL, adjust.residuals = FALSE)
-    iid2HC0.gls <- iid2(e.gls, data = dL, adjust.residuals = FALSE)
-    iid2HC0.lvm <- iid2(e.lvm, adjust.residuals = FALSE)
+    iid2HC0.lme <- iid2(e.lme, data = dL, bias.correct = FALSE)
+    iid2HC0.gls <- iid2(e.gls, data = dL, bias.correct = FALSE)
+    iid2HC0.lvm <- iid2(e.lvm, bias.correct = FALSE)
     
     expect_equal(unname(iid2HC0.lme),unname(iid2HC0.lvm))
     expect_equal(unname(iid2HC0.gls[,index.coef]),unname(iid2HC0.lvm[,index.coef]))
@@ -126,9 +126,9 @@ test_that("lme: HC0/HC1", {
 })
 
 test_that("lme: HC2", {
-    iid2HC2.lme <- iid2(e.lme, data = dL, adjust.residuals = TRUE, as.clubSandwich = 2)
-    iid2HC2.gls <- iid2(e.gls, data = dL, adjust.residuals = TRUE, as.clubSandwich = 2)
-    iid2HC2.lvm <- iid2(e.lvm, adjust.residuals = TRUE, as.clubSandwich = 2)    
+    iid2HC2.lme <- iid2(e.lme, data = dL, bias.correct = TRUE, as.clubSandwich = 2)
+    iid2HC2.gls <- iid2(e.gls, data = dL, bias.correct = TRUE, as.clubSandwich = 2)
+    iid2HC2.lvm <- iid2(e.lvm, bias.correct = TRUE, as.clubSandwich = 2)    
     expect_equal(unname(iid2HC2.lme),unname(iid2HC2.lvm))
     expect_equal(unname(iid2HC2.gls[,index.coef]),unname(iid2HC2.lvm[,index.coef]))
 
@@ -158,8 +158,8 @@ test_that("lme/gls equivalent to lvm", {
 })
 
 test_that("lme/gls/lvm: HC0/HC1", {
-    iid2HC0.lme <- iid2(e.lme, data = dL, adjust.residuals = FALSE)
-    iid2HC0.lvm <- iid2(e.lvm, adjust.residuals = FALSE)    
+    iid2HC0.lme <- iid2(e.lme, data = dL, bias.correct = FALSE)
+    iid2HC0.lvm <- iid2(e.lvm, bias.correct = FALSE)    
     expect_equal(unname(iid2HC0.lme[,index.coef]),unname(iid2HC0.lvm[,index.coef]), tol = 1e-6)
 
     VsandwichHC0.lme <- crossprod(iid2HC0.lme)[index.coef,index.coef]
@@ -174,8 +174,8 @@ test_that("lme/gls/lvm: HC0/HC1", {
 })
 
 test_that("lme/gls/lvm: HC2", {
-    iid2HC2.lme <- iid2(e.lme, data = dL, adjust.residuals = TRUE, as.clubSandwich = 2)
-    iid2HC2.lvm <- iid2(e.lvm, adjust.residuals = TRUE, as.clubSandwich = 2)    
+    iid2HC2.lme <- iid2(e.lme, data = dL, bias.correct = TRUE, as.clubSandwich = 2)
+    iid2HC2.lvm <- iid2(e.lvm, bias.correct = TRUE, as.clubSandwich = 2)    
     expect_equal(unname(iid2HC2.lme[,index.coef]),unname(iid2HC2.lvm[,index.coef]), tol = 1e-6)
 
     VsandwichHC2.lme <- crossprod(iid2HC2.lme)[index.coef,index.coef]
@@ -213,15 +213,15 @@ test_that("lme/gls equivalent to lvm", {
 
 
 test_that("gls/lvm: HC0/HC1", {
-    iid2HC0.gls <- iid2(e.gls, data = dataRed, adjust.residuals = FALSE)
-    ## iid2HC0.lme <- iid2(e.lme, adjust.residuals = FALSE) ## not invertible
-    iid2HC0.lvm <- iid2(e.lvm, adjust.residuals = FALSE)
+    iid2HC0.gls <- iid2(e.gls, data = dataRed, bias.correct = FALSE)
+    ## iid2HC0.lme <- iid2(e.lme, bias.correct = FALSE) ## not invertible
+    iid2HC0.lvm <- iid2(e.lvm, bias.correct = FALSE)
     
 
     VsandwichHC0.gls <- crossprod(iid2HC0.gls)[index.coef,index.coef]
     VsandwichHC0.lvm <- crossprod(iid2HC0.lvm)[index.coef,index.coef]    
     expect_equal(as.double(VsandwichHC0.gls), as.double(VsandwichHC0.lvm), tol = 1e-7)
-    ## scoreX <- score2(e.lvm, adjust.residuals = FALSE)
+    ## scoreX <- score2(e.lvm, bias.correct = FALSE)
     ## colSums(scoreX)
     GS <- clubSandwich::vcovCR(e.gls, type = "CR0", cluster = dataRed$Id)
     ## VsandwichHC0.gls-GS
@@ -233,8 +233,8 @@ test_that("gls/lvm: HC0/HC1", {
 })
 
 test_that("lme: HC2", {
-    iid2HC2.gls <- iid2(e.gls, data = dataRed, adjust.residuals = TRUE, as.clubSandwich = 2)
-    iid2HC2.lvm <- iid2(e.lvm, adjust.residuals = TRUE, as.clubSandwich = 2)    
+    iid2HC2.gls <- iid2(e.gls, data = dataRed, bias.correct = TRUE, as.clubSandwich = 2)
+    iid2HC2.lvm <- iid2(e.lvm, bias.correct = TRUE, as.clubSandwich = 2)    
 
     VsandwichHC2.gls <- crossprod(iid2HC2.gls)[index.coef,index.coef]
     VsandwichHC2.lvm <- crossprod(iid2HC2.lvm)[index.coef,index.coef]    

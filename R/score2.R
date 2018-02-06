@@ -3,9 +3,9 @@
 ## author: Brice Ozenne
 ## created: okt 12 2017 (16:43) 
 ## Version: 
-## last-updated: jan 19 2018 (11:21) 
+## last-updated: feb  5 2018 (17:26) 
 ##           By: Brice Ozenne
-##     Update #: 2194
+##     Update #: 2201
 #----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -21,12 +21,14 @@
 #' @name score2
 #' 
 #' @param object a linear model or a latent variable model.
-#' @param p [optional] vector of parameters at which to evaluate the score.
-#' @param data [optional] data set.
-#' @param cluster [only required for gls objects] a vector indicating the clusters of observation that are iid.
-#' @param indiv Should the score relative to each observation be exported? Otherwise the total score (i.e. sum over all observations) will be exported.
-#' @param return.vcov.param Should the variance covariance matrix of the parameters be included in the output?
-#' @param ... Arguments to be passed to \code{\link{residuals2}}
+#' @param p [numeric vector, optional] vector of coefficients at which to evaluate the score.
+#' @param data [data.frame, optional] data set.
+#' @param cluster [vector] the grouping variable relative to which the observations are iid.
+#' Only required for \code{gls} models with no correlation argument.
+#' @param indiv [logical] should the score relative to each observation be exported?
+#' Otherwise the total score (i.e. sum over all observations) will be exported.
+#' @param return.vcov.param [logical] should the variance covariance matrix of the coefficients be included in the output?
+#' @param ... arguments to be passed to \code{\link{residuals2}}
 #'
 #' @return A matrix.
 #' 
@@ -61,7 +63,8 @@
 #'
 #' e <- estimate(m,sim(m,1e2))
 #' score2(e)
-#' 
+#'
+#' @concept small sample inference
 #' @export
 `score2` <-
   function(object, ...) UseMethod("score2")
@@ -195,12 +198,12 @@ score2.lvmfit <- function(object, p = NULL, data = NULL,
             iOmega.tempo <- chol2inv(chol(Omega[ls.indexOmega[[iC]],ls.indexOmega[[iC]],drop=FALSE]))
             epsilon.iOmega.tempo <- iOmega.tempo %*% cbind(epsilon[iC,ls.indexOmega[[iC]]])
 
-            ## *** Compute score relative to the mean parameters
+            ## *** Compute score relative to the mean coefficients
             for(iP in name.meanparam){ # iP <- name.meanparam[1]
                 out.score[iC,iP] <- out.score[iC,iP] + dmu.dtheta[[iP]][iC,ls.indexOmega[[iC]]] %*% epsilon.iOmega.tempo
             }
 
-            ## *** Compute score relative to the variance-covariance parameters
+            ## *** Compute score relative to the variance-covariance coefficients
             for(iP in name.vcovparam){ # iP <- name.vcovparam[1]
                 dOmega.dtheta.tempo <-  dOmega.dtheta[[iP]][ls.indexOmega[[iC]],ls.indexOmega[[iC]],drop=FALSE]
                                                             
@@ -216,11 +219,11 @@ score2.lvmfit <- function(object, p = NULL, data = NULL,
         iOmega <- chol2inv(chol(Omega))
         epsilon.iOmega <- epsilon %*% iOmega
 
-        ## *** Compute score relative to the mean parameters
+        ## *** Compute score relative to the mean coefficients
         for(iP in name.meanparam){ # iP <- 1
             out.score[,iP] <- out.score[,iP] + rowSums(dmu.dtheta[[iP]] * epsilon.iOmega)            
         }
-        ## *** Compute score relative to the variance-covariance parameters
+        ## *** Compute score relative to the variance-covariance coefficients
         for(iP in name.vcovparam){ # iP <- 1
             term2 <- - 1/2 * tr(iOmega %*% dOmega.dtheta[[iP]])            
             term3 <- 1/2 * rowSums(epsilon.iOmega %*% dOmega.dtheta[[iP]] * epsilon.iOmega)

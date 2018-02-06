@@ -3,9 +3,9 @@
 ## author: Brice Ozenne
 ## created: okt 27 2017 (16:59) 
 ## Version: 
-## last-updated: jan 19 2018 (14:48) 
+## last-updated: feb  5 2018 (17:19) 
 ##           By: Brice Ozenne
-##     Update #: 742
+##     Update #: 766
 #----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -20,37 +20,41 @@
 #' @description Compute partial derivatives regarding to the mean and the variance, and compute the design matrices.
 #' @name prepareScore2
 #' 
-#' @param object a latent variable model.
-#' @param x same as object.
-#' @param X the design matrix.
-#' @param param the fitted parameters.
-#' @param p same as param.
-#' @param attr.param the type of each parameter (e.g. mean or variance parameter).
-#' @param second.order should the terms relative to the third derivative of the likelihood be be pre-computed?
-#' @param n.cluster the number of i.i.d. observations.
-#' @param n.endogenous the number of outcomes
-#' @param index.obs the indexes of the outcomes relative to each observation (e.g. 1,3 if only outcome 1 and 3 are observed for the observation).
-#' @param usefit If TRUE the parameters estimated by the model are used to pre-compute quantities. Only for lvmfit objects.
-#' @param value same as usefit.
-#' @param data [optional] data set.
-#' @param name.endogenous [optional] name of the endogenous variables
-#' @param name.latent [optional] name of the latent variables
-#' @param ... [internal] Only used by the generic method.
+#' @param object,x a latent variable model.
+#' @param X [matrix] the design matrix.
+#' @param param,p [numeric vector] the fitted coefficients.
+#' @param attr.param [character vector] the type of each coefficient
+#' (e.g. mean or variance coefficient).
+#' @param second.order [logical] should the terms relative to the third derivative of the likelihood be be pre-computed?
+#' @param n.cluster [integer >0] the number of i.i.d. observations.
+#' @param n.endogenous [integer >0] the number of outcomes.
+#' @param index.obs [integer vector] the indexes of the outcomes relative to each observation (e.g. 1,3 if only outcome 1 and 3 are observed for the observation).
+#' @param usefit,value [logical] If TRUE the coefficients estimated by the model are used to pre-compute quantities. Only for lvmfit objects.
+#' @param data [data.frame, optional] data set.
+#' @param name.endogenous [character vector, optional] name of the endogenous variables
+#' @param name.latent [character vector, optional] name of the latent variables
+#' @param ... [internal] only used by the generic method or by the <- methods.
 #' 
 #' @details For lvmfit objects, there are two levels of pre-computation:
 #' \itemize{
-#' \item a basic one that do no involve the model parameter
-#' \item an advanced one that require the model parameters. 
+#' \item a basic one that do no involve the model coefficient
+#' \item an advanced one that require the model coefficients. 
 #' }
 #' 
 #' @examples
+#' prepareScore2 <- lavaSearch2:::prepareScore2
+#' 
 #' m <- lvm(Y1~eta,Y2~eta,Y3~eta)
 #' latent(m) <- ~eta
 #'
 #' e <- estimate(m, lava::sim(m,1e2))
 #' res <- prepareScore2(e)
 #' res$skeleton$df.param
-#' @export
+#'
+#' @concept small sample inference
+#' @concept derivative of the score equation
+#' 
+#' @keywords internal
 `prepareScore2` <-
   function(object, ...) UseMethod("prepareScore2")
 
@@ -364,7 +368,7 @@ prepareScore2.lvmfit <- function(object, data = NULL, p = NULL, usefit = TRUE,
 `prepareScore2<-` <-
   function(x, ..., value) UseMethod("prepareScore2<-")
 
-## * prepareScore2<-.gls
+## * prepareScore2<-.lvmfit
 #' @rdname prepareScore2
 #' @export
 `prepareScore2<-.lvmfit` <- function(x, ..., value){

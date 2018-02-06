@@ -3,32 +3,36 @@
 \name{iidJack}
 \alias{iidJack}
 \alias{iidJack.default}
-\title{Jacknife iid Decomposition from Model Object}
+\title{Jackknife iid Decomposition from Model Object}
 \usage{
-iidJack(x, ...)
+iidJack(object, ...)
 
-\method{iidJack}{default}(x, data = NULL, grouping = NULL, ncpus = 1,
-  keep.warnings = TRUE, keep.error = TRUE, initCpus = TRUE,
+\method{iidJack}{default}(object, data = NULL, grouping = NULL, ncpus = 1,
+  keep.warnings = TRUE, keep.error = TRUE, init.cpus = TRUE,
   trace = TRUE, ...)
 }
 \arguments{
-\item{x}{model object.}
+\item{object}{a object containing the model.}
 
-\item{...}{additional arguments.}
+\item{...}{[internal] only used by the generic method.}
 
-\item{data}{dataset used to perform the jacknife.}
+\item{data}{[data.frame] dataset used to perform the jackknife.}
 
-\item{grouping}{variable defining cluster of observations that will be simultaneously removed by the jackknife.}
+\item{grouping}{[vector] variable defining cluster of observations that will be simultaneously removed by the jackknife.}
 
-\item{ncpus}{number of cpus available for parallel computation.}
+\item{ncpus}{[integer >0] the number of processors to use.
+If greater than 1, the fit of the model and the computation of the influence function for each jackknife sample is performed in parallel.}
 
-\item{keep.warnings}{keep warning messages obtained when estimating the model with the jackknife samples.}
+\item{keep.warnings}{[logical] keep warning messages obtained when estimating the model with the jackknife samples.}
 
-\item{keep.error}{keep error messages obtained when estimating the model with the jackknife samples.}
+\item{keep.error}{[logical]keep error messages obtained when estimating the model with the jackknife samples.}
 
-\item{initCpus}{should the parallel computation be initialized?}
+\item{init.cpus}{[logical] should the processors for the parallel computation be initialized?}
 
-\item{trace}{should a progress bar be used to trace the execution of the function}
+\item{trace}{[logical] should a progress bar be used to trace the execution of the function}
+}
+\value{
+A matrix with in row the samples and in columns the parameters.
 }
 \description{
 Extract iid decomposition (i.e. influence function) from model object.
@@ -102,4 +106,8 @@ e2 <- lme(Y~G, random = ~1|Id, data = dL)
 iid3 <- iidJack(e2)
 apply(iid3,2,sd)
 }
+
+}
+\concept{
+iid decomposition
 }

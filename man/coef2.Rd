@@ -14,12 +14,24 @@
 \method{.coef2}{lme}(object)
 }
 \arguments{
-\item{object}{a gls or lme object.}
+\item{object}{a \code{gls} or \code{lme} object.}
+}
+\value{
+A numeric vector named with the names of the coefficient with three attributes:
+\itemize{
+\item mean.coef: the name of the mean coefficients.
+\item var.coef: the name of the variance coefficients.
+\item cor.coef:  the name of the correlation coefficients.
+}
 }
 \description{
 Export mean and variance coefficients from a nlme model.
 }
 \details{
-The variance coefficients that are exported are the residual variance of each outcome.
+The variance coefficients that are exported are the residual variance of each outcome. 
 This is \eqn{\sigma^2} for the first one and \eqn{k^2 \sigma^2} for the remaining ones.
 }
+\concept{
+extractor
+}
+\keyword{internal}

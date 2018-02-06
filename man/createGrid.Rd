@@ -7,24 +7,33 @@
 createGrid(n, xmin, xmax, d.y, d.z, zmax, fine, double)
 }
 \arguments{
-\item{n}{the number of points for the mesh in the x direction.}
+\item{n}{[integer >0] the number of points for the mesh in the x direction.}
 
-\item{xmin}{the minimal x value.}
+\item{xmin}{[numeric] the minimal x value.}
 
-\item{xmax}{the maximal x value.}
+\item{xmax}{[numeric] the maximal x value.}
 
-\item{d.y}{the number of dimensions for the triangle.}
+\item{d.y}{[integer >0] the number of dimensions for the triangle.}
 
-\item{d.z}{the number of dimensions.}
+\item{d.z}{[integer >0] the number of dimensions.}
 
-\item{zmax}{the maximal z value (in absolute value).}
+\item{zmax}{[numeric >0] the maximal z value (in absolute value).}
 
-\item{fine}{should the mesh be displayed}
+\item{fine}{[logical] should the mesh be displayed?}
 
-\item{double}{should the grid be just outside the region of interest? Otherwise it will be just inside.}
+\item{double}{[logical] should the grid be just outside the region of interest?
+Otherwise it will be just inside.}
+}
+\value{
+A list containing:
+\itemize{
+\item grid: a \code{data.frame} where each line corresponds to a point.
+\item seqNames.min: a \code{character} giving the name of the x,y variables (min).
+\item seqNames.max: a \code{character} giving the name of the x,y variables (max).
+}
 }
 \description{
-Create a mesh for the integration
+Create a mesh for the integration.
 }
 \details{
 This create a mesh for integrating over a triangular surface using rectangles.
@@ -40,6 +49,7 @@ The intersection of these three conditions define the domain.
 The mesh is obtained slicing the triangles using rectangles.
 }
 \examples{
+createGrid <- lavaSearch2:::createGrid
 
 ## no z 
 gridInt_2d <- createGrid(5, d.y = 1, xmin = 0, xmax = 4, 
@@ -67,3 +77,7 @@ gridExtZ2_4d <- createGrid(5, d.y = 3, xmin = 0, xmax = 4,
                            d.z = 2, zmax = 2, fine = FALSE, double = TRUE)
 
 }
+\concept{
+post-selection inference
+}
+\keyword{internal}

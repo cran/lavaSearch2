@@ -24,17 +24,19 @@ score2(object, ...)
 \arguments{
 \item{object}{a linear model or a latent variable model.}
 
-\item{...}{Arguments to be passed to \code{\link{residuals2}}}
+\item{...}{arguments to be passed to \code{\link{residuals2}}}
 
-\item{indiv}{Should the score relative to each observation be exported? Otherwise the total score (i.e. sum over all observations) will be exported.}
+\item{indiv}{[logical] should the score relative to each observation be exported?
+Otherwise the total score (i.e. sum over all observations) will be exported.}
 
-\item{return.vcov.param}{Should the variance covariance matrix of the parameters be included in the output?}
+\item{return.vcov.param}{[logical] should the variance covariance matrix of the coefficients be included in the output?}
 
-\item{cluster}{[only required for gls objects] a vector indicating the clusters of observation that are iid.}
+\item{cluster}{[vector] the grouping variable relative to which the observations are iid.
+Only required for \code{gls} models with no correlation argument.}
 
-\item{p}{[optional] vector of parameters at which to evaluate the score.}
+\item{p}{[numeric vector, optional] vector of coefficients at which to evaluate the score.}
 
-\item{data}{[optional] data set.}
+\item{data}{[data.frame, optional] data set.}
 }
 \value{
 A matrix.
@@ -75,4 +77,7 @@ latent(m) <- ~eta
 e <- estimate(m,sim(m,1e2))
 score2(e)
 
+}
+\concept{
+small sample inference
 }

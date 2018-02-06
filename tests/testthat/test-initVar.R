@@ -52,12 +52,12 @@ initVarLink(var1 = a ~ b+c+d*e, format = "formula")
 
 
 initVarLink(var1 = Y~X1+X2)
-initVarLink(var1 = Y~X1+X2, repVar1 = TRUE)
+initVarLink(var1 = Y~X1+X2, rep.var1 = TRUE)
 initVarLink(var1 = Y~X1+X2, format = "formula")
 initVarLink(var1 = Y~X1+X2, format = "txt.formula")
 
 lava.options(symbols = c("<-","<->"))
-initVarLink(var1 = "Y<-X1+X2", repVar1 = TRUE)
+initVarLink(var1 = "Y<-X1+X2", rep.var1 = TRUE)
 initVarLink(var1 = "Y<-X1+X2", format = "formula")
 initVarLink(var1 = "Y<-X1+X2", format = "txt.formula")
 

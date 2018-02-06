@@ -1,11 +1,11 @@
-### dVcov2.R --- 
+### sCorrect.R --- 
 ##----------------------------------------------------------------------
 ## Author: Brice Ozenne
 ## Created: jan  3 2018 (14:29) 
 ## Version: 
-## Last-Updated: jan 19 2018 (15:53) 
+## Last-Updated: feb  5 2018 (17:20) 
 ##           By: Brice Ozenne
-##     Update #: 225
+##     Update #: 256
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -15,37 +15,39 @@
 ## 
 ### Code:
 
-## * Documentation - dVcov2
+## * Documentation - sCorrect
 #' @title  Compute the Derivative of the Information Matrix
 #' @description Compute the derivative of the information matrix.
-#' @name dVcov2
+#' @name sCorrect
 #'
-#' @param object a gls, lme, or lvm object.
-#' @param x same as object.
-#' @param cluster the grouping variable relative to which the observations are iid.
-#'                Only required for gls models with no correlation argument.
-#' @param vcov.param the variance-covariance matrix of the estimates.
-#' @param adjust.residuals Small sample correction: should the leverage-adjusted residuals be used to compute the score? Otherwise the raw residuals will be used.
-#' @param value same as adjust.residuals.
-#' @param numericDerivative If TRUE, the degree of freedom are computed using a numerical derivative.
-#' @param return.score [for internal use] export the score.
-#' @param ... arguments to be passed to lower level methods.
+#' @param object,x a \code{gls}, \code{lme}, or \code{lvm} object.
+#' @param cluster [vector] the grouping variable relative to which the observations are iid.
+#' Only required for \code{gls} models with no correlation argument.
+#' @param vcov.param [matrix] the variance-covariance matrix of the estimates.
+#' @param bias.correct,value [logical] should the standard errors of the coefficients be corrected for small sample bias?
+#' @param numeric.derivative [logical] should a numerical derivative be used to compute the first derivative of the information matrix?
+#' Otherwise an analytic formula is used.
+#' @param return.score [internal] export the score.
+#' @param ... [internal] only used by the generic method or by the <- methods.
+#'
+#' @concept small sample inference
+#' @concept derivative of the score equation
 #' 
 #' @export
-`dVcov2` <-
-  function(object, ...) UseMethod("dVcov2")
+`sCorrect` <-
+  function(object, ...) UseMethod("sCorrect")
 
 
 ## * dVcov.lm
-#' @rdname dVcov2
+#' @rdname sCorrect
 #' @export
-dVcov2.lm <- function(object, adjust.residuals = FALSE,
+sCorrect.lm <- function(object, bias.correct = FALSE,
                       return.score = FALSE, ...){
 
     ## ** extract information
     X <- stats::model.matrix(object)
         
-    epsilonD2 <- residuals2(object, adjust.residuals = adjust.residuals,
+    epsilonD2 <- residuals2(object, bias.correct = bias.correct,
                             return.vcov.param = TRUE)
     p <- c(stats::coef(object), sigma2 = mean(stats::residuals(object)^2))
     name.param <- names(p)
@@ -77,11 +79,11 @@ dVcov2.lm <- function(object, adjust.residuals = FALSE,
     return(dVcov.dtheta)
     
 }
-## * dVcov2.gls
-#' @rdname dVcov2
+## * sCorrect.gls
+#' @rdname sCorrect
 #' @export
-dVcov2.gls <- function(object, cluster, vcov.param = NULL,
-                       adjust.residuals = FALSE, numericDerivative = FALSE,
+sCorrect.gls <- function(object, cluster, vcov.param = NULL,
+                       bias.correct = FALSE, numeric.derivative = FALSE,
                        return.score = FALSE, ...){
 
     p <- .coef2(object)
@@ -96,23 +98,23 @@ dVcov2.gls <- function(object, cluster, vcov.param = NULL,
     keep.param <- setdiff(name.param, attr(.coef2(object),"mean.coef"))
 
     ## ** pre-compute quantities
-    if(return.score || numericDerivative == FALSE){
+    if(return.score || numeric.derivative == FALSE){
         epsilonD2 <- residuals2(object, p = p, data = data, cluster = cluster,
-                                adjust.residuals = adjust.residuals,
+                                bias.correct = bias.correct,
                                 as.clubSandwich = as.clubSandwich,
                                 return.prepareScore2 = TRUE, return.vcov.param = TRUE, second.order = TRUE)
         pS2  <- attr(epsilonD2, "prepareScore2")
     }
     
     ### ** Compute the gradient
-    if(numericDerivative){
+    if(numeric.derivative){
         
         ### *** Define function to compute the variance-covariance matrix
         calcSigma <- function(iParam){ # x <- p.obj
             pp <- p
             pp[names(iParam)] <- iParam
             res.tempo <- residuals2(object, cluster = cluster, p = pp, data = data,
-                                    adjust.residuals = adjust.residuals,
+                                    bias.correct = bias.correct,
                                     as.clubSandwich = as.clubSandwich,
                                     return.vcov.param = TRUE, second.order = FALSE)
             vcov.tempo <- attr(res.tempo, "vcov.param")
@@ -125,7 +127,13 @@ dVcov2.gls <- function(object, cluster, vcov.param = NULL,
         }
 
         ### *** numerical derivative
-        jac.param <- p[keep.param]
+        test.package <- try(requireNamespace("numDeriv"), silent = TRUE)
+        if(inherits(test.package,"try-error")){
+            stop("There is no package \'numDeriv\' \n",
+                 "This package is necessary when argument \'numeric.derivative\' is TRUE \n")
+        }
+        
+        jac.param <- p[keep.param]        
         res.tempo <- numDeriv::jacobian(calcSigma, x = jac.param, method = "Richardson")
 
         dVcov.dtheta <- array(res.tempo,
@@ -181,16 +189,16 @@ dVcov2.gls <- function(object, cluster, vcov.param = NULL,
  
 }
 
-## * dVcov2.lme
-#' @rdname dVcov2
+## * sCorrect.lme
+#' @rdname sCorrect
 #' @export
-dVcov2.lme <- dVcov2.gls
+sCorrect.lme <- sCorrect.gls
 
-## * dVcov2.lvmfit
-#' @rdname dVcov2
+## * sCorrect.lvmfit
+#' @rdname sCorrect
 #' @export
-dVcov2.lvmfit <- function(object, vcov.param = NULL,
-                          adjust.residuals = TRUE, numericDerivative = FALSE,
+sCorrect.lvmfit <- function(object, vcov.param = NULL,
+                          bias.correct = TRUE, numeric.derivative = FALSE,
                           return.score = FALSE, ...){
 
     detail <- NULL ## [:for CRAN check] subset
@@ -205,17 +213,17 @@ dVcov2.lvmfit <- function(object, vcov.param = NULL,
 
     ## ** Pre-compute quantities
     if(is.null(object$prepareScore2)){
-        ## when using numerical derivative the score is computed for different sets of parameters
-        ## therefore the pre-computations should not use the estimated parameters
-        ## when using explicit formula for the derivative it is ok to use the estimated parameters in the pre-computations
+        ## when using numerical derivative the score is computed for different sets of coefficients
+        ## therefore the pre-computations should not use the estimated coefficients
+        ## when using explicit formula for the derivative it is ok to use the estimated coefficients in the pre-computations
         object$prepareScore2 <- prepareScore2(object,
                                               second.order = TRUE,
-                                              usefit = (numericDerivative==FALSE) )
+                                              usefit = (numeric.derivative==FALSE) )
     }
 
-    if(return.score || numericDerivative == FALSE){
+    if(return.score || numeric.derivative == FALSE){
         epsilonD2 <- residuals2(object, p = p, data = data,
-                                adjust.residuals = adjust.residuals,
+                                bias.correct = bias.correct,
                                 as.clubSandwich = as.clubSandwich,
                                 return.prepareScore2 = TRUE, return.vcov.param = TRUE, second.order = TRUE)
         pS2  <- attr(epsilonD2, "prepareScore2")
@@ -229,10 +237,10 @@ dVcov2.lvmfit <- function(object, vcov.param = NULL,
                          select = "originalLink", drop = TRUE)
     
     ### ** Compute the gradient 
-    if(numericDerivative){
+    if(numeric.derivative){
 
         ### *** Define function to compute the variance-covariance matrix
-        if(adjust.residuals==FALSE){
+        if(bias.correct==FALSE){
             calcVcov <- function(iParam){ # x <- p.obj
                 pp <- p
                 pp[names(iParam)] <- iParam
@@ -245,7 +253,7 @@ dVcov2.lvmfit <- function(object, vcov.param = NULL,
                 pp <- p
                 pp[names(iParam)] <- iParam
                 res.tempo <- residuals2(object, p = pp, data = data,
-                                        adjust.residuals = adjust.residuals,                                        
+                                        bias.correct = bias.correct,                                        
                                         as.clubSandwich = as.clubSandwich,
                                         return.vcov.param = TRUE)
                 vcov.tempo <- attr(res.tempo, "vcov.param")
@@ -260,6 +268,12 @@ dVcov2.lvmfit <- function(object, vcov.param = NULL,
         }
         
         ### *** numerical derivative
+        test.package <- try(requireNamespace("numDeriv"), silent = TRUE)
+        if(inherits(test.package,"try-error")){
+            stop("There is no package \'numDeriv\' \n",
+                 "This package is necessary when argument \'numeric.derivative\' is TRUE \n")
+        }
+        
         jac.param <- p[keep.param]
         res.tempo <- numDeriv::jacobian(calcVcov, x = jac.param, method = "Richardson")
 
@@ -318,65 +332,65 @@ dVcov2.lvmfit <- function(object, vcov.param = NULL,
 
 
 
-## * dVcov2.lvmfit2
-#' @rdname dVcov2
+## * sCorrect.lvmfit2
+#' @rdname sCorrect
 #' @export
-dVcov2.lvmfit2 <- function(object, ...){
+sCorrect.lvmfit2 <- function(object, ...){
     class(object) <- setdiff(class(object),"lvmfit2")
-    return(dVcov2(object, ...))    
+    return(sCorrect(object, ...))    
 }
 
-## * dVcov2<-
-#' @rdname dVcov2
+## * sCorrect<-
+#' @rdname sCorrect
 #' @export
-`dVcov2<-` <-
-  function(x, ..., value) UseMethod("dVcov2<-")
+`sCorrect<-` <-
+  function(x, ..., value) UseMethod("sCorrect<-")
 
-## * dVcov2<-.lm
-#' @rdname dVcov2
+## * sCorrect<-.lm
+#' @rdname sCorrect
 #' @export
-`dVcov2<-.lm` <- function(x, ..., value){
-    x$dVcov <- dVcov2(x, ..., adjust.residuals = value)
+`sCorrect<-.lm` <- function(x, ..., value){
+    x$dVcov <- sCorrect(x, ..., bias.correct = value)
     class(x) <- append("lm2",class(x))
 
     return(x)
 }    
-## * dVcov2<-.gls
-#' @rdname dVcov2
+## * sCorrect<-.gls
+#' @rdname sCorrect
 #' @export
-`dVcov2<-.gls` <- function(x, ..., value){
-    x$dVcov <- dVcov2(x, ..., adjust.residuals = value)
+`sCorrect<-.gls` <- function(x, ..., value){
+    x$dVcov <- sCorrect(x, ..., bias.correct = value)
     class(x) <- append("gls2",class(x))
 
     return(x)
 }    
-## * dVcov2<-.lme
-#' @rdname dVcov2
+## * sCorrect<-.lme
+#' @rdname sCorrect
 #' @export
-`dVcov2<-.lme` <- function(x, ..., value){
-    x$dVcov <- dVcov2(x, ..., adjust.residuals = value)
+`sCorrect<-.lme` <- function(x, ..., value){
+    x$dVcov <- sCorrect(x, ..., bias.correct = value)
     class(x) <- append("lme2",class(x))
     
     return(x)
 }    
 
-## * dVcov2<-.lvmfit
-#' @rdname dVcov2
+## * sCorrect<-.lvmfit
+#' @rdname sCorrect
 #' @export
-`dVcov2<-.lvmfit` <- function(x, ..., value){
-    x$dVcov <- dVcov2(x, ..., adjust.residuals = value)
+`sCorrect<-.lvmfit` <- function(x, ..., value){
+    x$dVcov <- sCorrect(x, ..., bias.correct = value)
     class(x) <- append("lvmfit2",class(x))
 
     return(x)
 }    
 
-## * dVcov2<-.lvmfit2
-#' @rdname dVcov2
+## * sCorrect<-.lvmfit2
+#' @rdname sCorrect
 #' @export
-`dVcov2<-.lvmfit2` <- function(x, ..., value){
+`sCorrect<-.lvmfit2` <- function(x, ..., value){
 
     class(x) <- setdiff(class(x),"lvmfit2")
-    x$dVcov <- dVcov2(x, ..., adjust.residuals = value)
+    x$dVcov <- sCorrect(x, ..., bias.correct = value)
     class(x) <- append("lvmfit2",class(x))
     
     return(x)
@@ -403,7 +417,7 @@ dVcov2.lvmfit2 <- function(object, ...){
         iN.cluster <- as.double(n.cluster - diag(df.mean))
     }
     
-    ### ** compute the derivative of the information matrix for each parameters
+    ### ** compute the derivative of the information matrix for each coefficients
     dInfo <-  array(0,
                     dim = c(n.param, n.param, length(name.deriv)),
                     dimnames = list(name.param, name.param, name.deriv))
@@ -591,7 +605,7 @@ dVcov2.lvmfit2 <- function(object, ...){
 
 
 ##----------------------------------------------------------------------
-### dVcov2.R ends here
+### sCorrect.R ends here
 
 
 

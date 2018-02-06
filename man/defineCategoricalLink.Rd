@@ -10,16 +10,25 @@ defineCategoricalLink(object, link, data)
 \method{defineCategoricalLink}{lvm}(object, link = NULL, data = NULL)
 }
 \arguments{
-\item{object}{a lvm model.}
+\item{object}{a \code{lvm} model.}
 
-\item{link}{the links to be analyzed. If NULL, all the coefficients from the lvm model are used instead.}
+\item{link}{[character] the links to be analyzed. If \code{NULL}, all the coefficients from the lvm model are used instead.}
 
-\item{data}{the dataset that will be used to fit the model. If \code{NULL}, a simulated data will be generated from the model.}
+\item{data}{[data.frame] the dataset that will be used to fit the model. If \code{NULL}, a simulated data will be generated from the model.}
+}
+\value{
+a \code{data.frame} with a description of each link in rows. \cr
+The column factitious identify the links that will be replaced with other links
+(e.g. "Y1~X1" becomes "Y1~X1b" and "Y1~X1c"). \cr
 }
 \description{
 Identify categorical links in latent variable models.
 }
 \examples{
+\dontrun{
+defineCategoricalLink <- lavaSearch2:::defineCategoricalLink
+defineCategoricalLink.lvm <- lavaSearch2:::defineCategoricalLink.lvm
+
 ## linear model
 m <- lvm(Y1~X1+X2,Y2~X1+X3)
 categorical(m, K = 3) <- "X1"
@@ -43,5 +52,10 @@ covariance(m) <- y1~y2
 categorical(m, labels = as.character(1:3)) <- "X1"
 
 defineCategoricalLink(m)
+}
 
 }
+\concept{
+setter
+}
+\keyword{internal}

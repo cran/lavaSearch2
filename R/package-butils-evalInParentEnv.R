@@ -3,9 +3,9 @@
 ## author: Brice Ozenne
 ## created: okt  5 2017 (10:48) 
 ## Version: 
-## last-updated: jan 15 2018 (11:45) 
+## last-updated: feb  5 2018 (15:58) 
 ##           By: Brice Ozenne
-##     Update #: 8
+##     Update #: 11
 #----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -19,9 +19,10 @@
 #' 
 #' @description Search an object in the parent environments. For internal use.
 #' 
-#' @param name character string containing the name of the object to get.
-#' @param envir the environment from which to look for the object.
+#' @param name [character] the name of the object to get.
+#' @param envir [environments] the environment from which to look for the object.
 #'
+#' @concept extractor
 #' @keywords internal
 evalInParentEnv <- function(name, envir){
   

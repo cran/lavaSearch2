@@ -17,7 +17,3 @@
 
 lava_categorical2dummy <- get("categorical2dummy", envir = asNamespace("lava"), inherits = FALSE)
 lava_estimate.lvm <- get("estimate.lvm", envir = asNamespace("lava"), inherits = FALSE)
-lava_matrices.lvm <- get("matrices.lvm", envir = asNamespace("lava"), inherits = FALSE)
-multcomp_glht.matrix <- get("glht.matrix", envir = asNamespace("multcomp"), inherits = FALSE)
-multcomp_coef.mmm <- get("coef.mmm", envir = asNamespace("multcomp"), inherits = FALSE)
-multcomp_.bdiag <- get(".bdiag", envir = asNamespace("multcomp"), inherits = FALSE)

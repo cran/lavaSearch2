@@ -5,19 +5,22 @@
 \alias{checkData.lvm}
 \title{Check that Validity of the Dataset}
 \usage{
-checkData(x, data, trace)
+checkData(object, data, trace)
 
-\method{checkData}{lvm}(x, data, trace = TRUE)
+\method{checkData}{lvm}(object, data, trace = TRUE)
 }
 \arguments{
-\item{x}{a lvm model}
+\item{object}{a \code{lvm} object.}
 
-\item{data}{the dataset containing the variables used to estimate the lvm.}
+\item{data}{[data.frame] the dataset used to obtain the object.}
 
-\item{trace}{[logical] should a message be output to indicate the outcome of the check?}
+\item{trace}{[logical] when \code{TRUE}, the outcome of the check will be displayed.}
+}
+\value{
+Invisible  \code{TRUE} or \code{FALSE}.
 }
 \description{
-Check the validity of the dataset used to estimate a lvm.
+Check whether the dataset can be used to fit the \code{lvm} object.
 }
 \examples{
 m <- lvm()
@@ -33,4 +36,7 @@ checkData(m, d[,-4])
 
 try(checkData(m, d[,-(3:4)])) # return an error
 
+}
+\concept{
+diagnostic
 }

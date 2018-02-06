@@ -10,7 +10,7 @@ tryWithWarnings(expr)
 \item{expr}{the line of code to be evaluated}
 }
 \value{
-a list containing:
+A list containing:
 \itemize{
 \item value the result of the evaluation of the expression
 \item warnings warning(s) generated during the evaluation of the expression
@@ -30,8 +30,5 @@ FctTest <- function(x){
 tryWithWarnings(FctTest(-1))
 tryWithWarnings(FctTest(1))
 tryWithWarnings(FctTest(xxxx))
-' '
-}
-\author{
-Brice Ozenne
+
 }

@@ -5,25 +5,25 @@
 \alias{setLink.lvm}
 \title{Set a Link to a Value}
 \usage{
-setLink(x, ...)
+setLink(object, ...)
 
-\method{setLink}{lvm}(x, var1, var2, value, warnings = FALSE, ...)
+\method{setLink}{lvm}(object, var1, var2, value, warnings = FALSE, ...)
 }
 \arguments{
-\item{x}{a lvm model}
+\item{object}{a \code{lvm} object.}
 
-\item{...}{additional arguments to be passed to lower levels functions.}
+\item{...}{[internal] only used by the generic method.}
 
-\item{var1}{the first variable (character) or a formula describing the link}
+\item{var1}{[character or formula] the exogenous variable of the new link or a formula describing the link to be added to the lvm.}
 
-\item{var2}{the second variable (character). Only used if var1 is a character.}
+\item{var2}{[character] the endogenous variable of the new link. Disregarded if the argument \code{var1} is a formula.}
 
-\item{value}{the value to which the link should be set}
+\item{value}{[numeric] the value at which the link should be set.}
 
-\item{warnings}{should a warning be displayed when the link is not found in the lvm.}
+\item{warnings}{[logical] should a warning be displayed if the link is not found in the \code{lvm} object.}
 }
 \description{
-Generic interface to set a value to a link in a lvm object.
+Generic interface to set a value to a link in a \code{lvm} object.
 }
 \examples{
 library(lava)
@@ -41,4 +41,8 @@ estimate(m1, lava::sim(m,1e2))
 
 m2 <- setLink(m, y1 ~ y2, value = 0.5)
 estimate(m2, lava::sim(m,1e2))
+
+}
+\concept{
+setter
 }

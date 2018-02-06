@@ -3,21 +3,24 @@
 \name{getNewLink}
 \alias{getNewLink}
 \alias{getNewLink.modelsearch2}
-\title{Find the Links that Should be Added Accroding to the Sequential Testing}
+\title{Extract the Links that Have Been Found by the modelsearch2.}
 \usage{
 getNewLink(object, ...)
 
 \method{getNewLink}{modelsearch2}(object, step = 1:nStep(object), ...)
 }
 \arguments{
-\item{object}{a modelsearch2 object}
+\item{object}{a \code{modelsearch2} object.}
 
-\item{...}{not used}
+\item{...}{[internal] only used by the generic method.}
 
-\item{step}{which test should be extracted?}
+\item{step}{[logical] which test should be extracted?}
+}
+\value{
+A character vector.
 }
 \description{
-Find the links that should be added accroding to the sequential testing
+Extract the links that have been found relevant by modelsearch2.
 }
 \examples{
 mSim <- lvm(Y~G+X1+X2)
@@ -30,4 +33,9 @@ e.lvm <- estimate(mBase, data = df.data)
 res <- modelsearch2(e.lvm, statistic = "score", method.p.adjust = "holm")
 getNewLink(res)
 
+}
+\concept{
+modelsearch
+
+extractor
 }

@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: nov  8 2017 (10:35) 
 ## Version: 
-## Last-Updated: jan 19 2018 (15:53) 
+## Last-Updated: feb  5 2018 (18:13) 
 ##           By: Brice Ozenne
-##     Update #: 688
+##     Update #: 719
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -20,26 +20,28 @@
 #' @description Pre-compute quantities that are necessary to compute the score of a lvm model.
 #' @name skeleton
 #' 
-#' @param object a latent variable model
-#' @param df.param.all a \code{data.table} object containing detailing the type of each parameter.
-#' @param param2originalLink matching between the name of the parameter in lava and their label.
-#' @param B pre-computed matrix.
-#' @param alpha.XGamma pre-computed matrix.
-#' @param Lambda pre-computed matrix.
-#' @param Psi pre-computed matrix.
-#' @param OD list containing the pre-computed quantities for the second derivatives. 
-#' @param as.lava should the name of the links be used to name the parameters?
-#' Otherwise uses the labels (when defined) of each parameter.
-#' @param name.endogenous name of the endogenous variables
-#' @param name.latent name of the latent variables
-#' @param p [optional] vector of parameters at which to evaluate the score.
-#' @param data [optional] data set.
-#' @param ... [internal] Only used by the generic method.
+#' @param object a \code{lvm} object.
+#' @param df.param.all [data.frame] output of \code{\link{coefType}} containing the type of each coefficient.
+#' @param param2originalLink [named character vector] matching between the name of the coefficient in lava and their label.
+#' @param B,alpha.XGamma,Lambda,Psi [matrix] pre-computed matrix.
+#' @param OD [list] the pre-computed quantities for the second derivatives. 
+#' @param as.lava [logical] should the name of the links be used to name the coefficient?
+#' Otherwise uses the labels (when defined) of each coefficient.
+#' @param name.endogenous [character vector] name of the endogenous variables
+#' @param name.latent [character vector] name of the latent variables
+#' @param p [numeric vector, optional] vector of coefficients at which to evaluate the score.
+#' @param data [data.frame, optional] data set.
+#' @param ... [internal] only used by the generic method.
 #' 
 #' @details
-#' When the use specify names for the parameters (e.g. Y1[mu:sigma]) or uses constrains (Y1~beta*X1), \code{as.lava=FALSE} will use the names specified by the user (e.g. mu, sigma, beta) while \code{as.lava=TRUE} will use the name of the first link defining the parameter.
+#' When the use specify names for the coefficients (e.g. Y1[mu:sigma]) or uses constrains (Y1~beta*X1), \code{as.lava=FALSE} will use the names specified by the user (e.g. mu, sigma, beta) while \code{as.lava=TRUE} will use the name of the first link defining the coefficient.
 #'
 #' @examples
+#' \dontrun{
+#' skeleton <- lavaSearch2::skeleton
+#' skeleton.lvm <- lavaSearch2::skeleton.lvm
+#' skeleton.lvmfit <- lavaSearch2::skeleton.lvmfit
+#' 
 #' ## without constrain
 #' m <- lvm(Y1~X1+X2+eta,Y2~X3+eta,Y3~eta)
 #' latent(m) <- ~eta
@@ -71,14 +73,16 @@
 #'          name.latent = NULL, 
 #'          update.value = FALSE)$skeleton
 #' 
-#' @export
+#'}
+#' @concept small sample inference
+#' @concept derivative of the score equation
+#' @keywords internal
 `skeleton` <-
     function(object, ...) UseMethod("skeleton")
 
 
 ## * skeleton.lvm
 #' @rdname skeleton
-#' @export
 skeleton.lvm <- function(object, as.lava,
                          name.endogenous, name.latent,
                          ...){
@@ -255,7 +259,6 @@ skeleton.lvm <- function(object, as.lava,
 
 ## * skeleton.lvmfit
 #' @rdname skeleton
-#' @export
 skeleton.lvmfit <- function(object, as.lava,
                             p, data,
                             name.endogenous, name.latent,
@@ -351,26 +354,24 @@ skeleton.lvmfit <- function(object, as.lava,
 
 ## * skeletonDtheta
 #' @rdname skeleton
-#' @export
 `skeletonDtheta` <-
     function(object, ...) UseMethod("skeletonDtheta")
 
 ## * skeletonDtheta.lvm
 #' @rdname skeleton
-#' @export
 skeletonDtheta.lvm <- function(object, data,
                                df.param.all, param2originalLink,
                                name.endogenous, name.latent, ...){
 
-    factice <- marginal <- param <- value <- X <- Y <- NULL ## [:for CRAN check] subset
+    factitious <- marginal <- param <- value <- X <- Y <- NULL ## [:for CRAN check] subset
 
     n.endogenous <- length(name.endogenous)
     n.latent <- length(name.latent)
 
-    df.param <- subset(df.param.all, subset = is.na(value) & marginal == FALSE & factice == FALSE)
+    df.param <- subset(df.param.all, subset = is.na(value) & marginal == FALSE & factitious == FALSE)
     Utype.by.detail <- tapply(df.param$detail, df.param$param, function(x){length(unique(x))})
     if(any(Utype.by.detail>1)){
-        stop("cannot constrain two parameters of different types to be equal \n")
+        stop("cannot constrain two coefficients of different types to be equal \n")
     }
     name.param <- subset(df.param, subset = !duplicated(param), select = param, drop = TRUE)
     n.param <- length(name.param)
@@ -492,7 +493,6 @@ skeletonDtheta.lvm <- function(object, data,
 
 ## * skeletonDtheta.lvmfit
 #' @rdname skeleton
-#' @export
 skeletonDtheta.lvmfit <- function(object, data,
                                   df.param.all, param2originalLink,
                                   name.endogenous, name.latent,
@@ -525,7 +525,7 @@ skeletonDtheta.lvmfit <- function(object, data,
         OD$Psi.iIB <- Psi %*% OD$iIB
         OD$tLambda.tiIB.Psi.iIB <- t(OD$iIB.Lambda) %*% OD$Psi.iIB
         
-        ## *** mean parameters
+        ## *** mean coefficients
         type.meanparam <- type2update[type2update %in% c("alpha","Lambda","Gamma","B")]
         n.meanparam <- length(type.meanparam)
         name.meanparam <- names(type.meanparam)
@@ -549,7 +549,7 @@ skeletonDtheta.lvmfit <- function(object, data,
             }
         }
 
-        ## *** variance-covariance parameters
+        ## *** variance-covariance coefficients
         type.vcovparam <- type2update[type2update %in% c("Psi_var","Psi_cov","Lambda","B")]
         n.vcovparam <- length(type.vcovparam)
         name.vcovparam <- names(type.vcovparam)
@@ -585,23 +585,21 @@ skeletonDtheta.lvmfit <- function(object, data,
 
 ## * skeletonDtheta2
 #' @rdname skeleton
-#' @export
 `skeletonDtheta2` <-
     function(object, ...) UseMethod("skeletonDtheta2")
 
 ## * skeletonDtheta2.lvm
 #' @rdname skeleton
-#' @export
 skeletonDtheta2.lvm <- function(object, data, df.param.all,
                                 param2originalLink, name.latent, ...){
 
-    detail <- factice <- marginal <- param <- value <- Y <- NULL ## [:for CRAN check] subset
+    detail <- factitious <- marginal <- param <- value <- Y <- NULL ## [:for CRAN check] subset
     
-    df.param <- subset(df.param.all, is.na(value) & marginal == FALSE & factice == FALSE)
+    df.param <- subset(df.param.all, is.na(value) & marginal == FALSE & factitious == FALSE)
     n.latent <- length(name.latent)
     n.data <- NROW(data)
 
-    ### ** identify all combinations of parameters with second derivative
+    ### ** identify all combinations of coefficients with second derivative
     grid.mean <- list()
 
     grid.mean$alpha.B <- .combinationDF(df.param,
@@ -773,7 +771,6 @@ skeletonDtheta2.lvm <- function(object, data, df.param.all,
 
 ## * skeletonDtheta2.lvmfit
 #' @rdname skeleton
-#' @export
 skeletonDtheta2.lvmfit <- function(object, data, OD,
                                    df.param.all, param2originalLink,
                                    name.endogenous, name.latent,
@@ -798,7 +795,7 @@ skeletonDtheta2.lvmfit <- function(object, data, OD,
     ### ** second order partial derivatives
     if(any(OD2$toUpdate)){
         
-        ## *** mean parameters        
+        ## *** mean coefficients        
         if(OD2$n.mean$alpha.B>0){
             for(iP in 1:OD2$n.mean$alpha.B){ # iP <- 1
                 iName1 <- OD2$grid.mean$alpha.B[iP,"alpha"]
@@ -855,7 +852,7 @@ skeletonDtheta2.lvmfit <- function(object, data, OD,
             }
         }
 
-        ## *** variance-covariance parameters
+        ## *** variance-covariance coefficients
         if(OD2$n.vcov$Psi.Lambda>0){
             for(iP in 1:OD2$n.vcov$Psi.Lambda){ # iP <- 1
                 iName1 <- OD2$grid.vcov$Psi.Lambda[iP,"Psi"]
@@ -923,16 +920,20 @@ skeletonDtheta2.lvmfit <- function(object, data, OD,
 #' @description Form all unique combinations between two vectors (removing symmetric combinations).
 #' @name combination
 #'
-#' @param ... vectors
+#' @param ... [vectors] elements to be combined.
+#'
+#' @return A matrix, each row being a different combination.
 #' 
 #' @examples
+#' .combination <- lavaSearch2:::.combination
+#' 
 #' .combination(1,1)
 #' .combination(1:2,1:2)
 #' .combination(c(1:2,1:2),1:2)
 #' 
 #' .combination(alpha = 1:2, beta = 3:4)
 #'
-#' @export
+#' @keywords internal
 .combination <- function(...){
 
     ## ** normalize arguments

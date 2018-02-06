@@ -9,40 +9,55 @@
 calcDistMaxIntegral(statistic, iid, df, iid.previous = NULL,
   quantile.previous = NULL,
   quantile.compute = lava.options()$search.calc.quantile.int, alpha,
-  ncpus = 1, initCpus = TRUE, trace)
+  ncpus = 1, init.cpus = TRUE, trace)
 
 calcDistMaxBootstrap(statistic, iid, iid.previous = NULL,
-  quantile.previous = NULL, method, alpha, ncpus = 1, initCpus = TRUE,
-  n.sim, trace, n.repMax = 100)
+  quantile.previous = NULL, method, alpha, ncpus = 1, init.cpus = TRUE,
+  n.sim, trace, n.repmax = 100)
 }
 \arguments{
-\item{statistic}{the observed statistic relative to the coefficients to test.}
+\item{statistic}{[numeric vector] the observed Wald statistic.
+Each statistic correspond to a null hypothesis (i.e. a coefficient) that one wish to test.}
 
-\item{iid}{zero-mean iid decomposition of the observed coefficients used to compute the statistic.}
+\item{iid}{[matrix] zero-mean iid decomposition of the coefficient used to compute the statistic.}
 
-\item{df}{the degree of freedom for the t statistic.}
+\item{df}{[numeric] the degree of freedom defining the multivariate Student's t distribution.
+If \code{NULL} the multivariate Gaussian distribution will be used instead.}
 
-\item{iid.previous}{zero-mean iid decomposition of the previous step to condition on.}
+\item{iid.previous}{[matrix, EXPERIMENTAL] zero-mean iid decomposition of previously tested coefficient.}
 
-\item{quantile.previous}{critical threshold of the previous step to condition on.
-If not \code{NULL} the values should correspond the variable in to the first column(s) of the argument iid.}
+\item{quantile.previous}{[numeric, EXPERIMENTAL] rejection quantiles of the previously tested hypotheses. If not \code{NULL} the values should correspond the variable in to the first column(s) of the argument \code{iid.previous}.}
 
-\item{quantile.compute}{should the critical quantile be computed.}
+\item{quantile.compute}{[logical] should the rejection quantile be computed?}
 
-\item{alpha}{the significance threshold for retaining a new link}
+\item{alpha}{[numeric 0-1] the significance cutoff for the p-values.
+When the p-value is below, the corresponding link will be retained.}
 
-\item{ncpus}{the number of cpu to use for parellel computations}
+\item{ncpus}{[integer >0] the number of processors to use.
+If greater than 1, the computation of the p-value relative to each test is performed in parallel.}
 
-\item{initCpus}{should the cpus be initialized.}
+\item{init.cpus}{[logical] should the processors for the parallel computation be initialized?}
 
-\item{trace}{should the execution of the function be traced.}
+\item{trace}{[logical] should the execution of the function be traced?}
 
-\item{method}{the method used to compute the p.values. Can be \code{"integration"}, \code{"boot-wild"}, or \code{"boot-norm"}.
-See the detail section.}
+\item{method}{[character] the method used to compute the p-values.
+See the output of \code{lava.options()$search.calcMaxDist} for the possible values.}
 
-\item{n.sim}{the total number of simulations.}
+\item{n.sim}{[integer >0] the number of bootstrap simulations used to compute each p-values.
+Disregarded when the p-values are computed using numerical integration.}
 
-\item{n.repMax}{the maximum number of rejection when using "\code{"boot-wild"} or \code{"boot-norm"}.}
+\item{n.repmax}{[integer >0] the maximum number of rejection for each bootstrap sample before switching to a new bootstrap sample.
+Only relevant when conditioning on a previous test.
+Disregarded when the p-values are computed using numerical integration.}
+}
+\value{
+A list containing
+\itemize{
+\item p.adjust: the adjusted p-values.
+\item z: the rejection threshold.
+\item Sigma: the correlation matrix between the test statistic.
+\item correctedLevel: the alpha level corrected for conditioning on previous tests.
+}
 }
 \description{
 Adjust the p.values using the quantiles of the max statistic.
@@ -75,7 +90,7 @@ r3 <- calcDistMaxBootstrap(statistic = statistic, iid = X.iid,
 
 r4 <- calcDistMaxBootstrap(statistic = statistic, iid = X.iid,
             method = "wild",
-            trace = FALSE, alpha = 0.05, initCpus = TRUE, n.sim = n.sim)
+            trace = FALSE, alpha = 0.05, init.cpus = TRUE, n.sim = n.sim)
 
 rbind(integration = c(r1$p.adjust, quantile = r1$z),
       bootNaive    = c(r2$p.adjust, quantile = r2$z),
@@ -109,5 +124,9 @@ rbind(integration = c(r1c$p.adjust, quantile = r1c$z),
       bootResidual = c(r3c$p.adjust, quantile = r3c$z),
       bootWild    = c(r4c$p.adjust, quantile = r4c$z))
 }
+}
+\concept{
+modelsearch
 
+post-selection inference
 }

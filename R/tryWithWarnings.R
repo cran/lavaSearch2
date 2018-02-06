@@ -3,9 +3,9 @@
 ## author: Brice Ozenne
 ## created: aug 29 2017 (09:52) 
 ## Version: 
-## last-updated: jan 15 2018 (11:47) 
+## last-updated: feb  5 2018 (16:07) 
 ##           By: Brice Ozenne
-##     Update #: 18
+##     Update #: 20
 #----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -23,7 +23,7 @@
 ##' @details
 ##' from https://stackoverflow.com/questions/4948361/how-do-i-save-warnings-and-errors-as-output-from-a-function
 ##' 
-##' @return a list containing:
+##' @return A list containing:
 ##' \itemize{
 ##' \item value the result of the evaluation of the expression
 ##' \item warnings warning(s) generated during the evaluation of the expression
@@ -37,8 +37,7 @@
 ##' tryWithWarnings(FctTest(-1))
 ##' tryWithWarnings(FctTest(1))
 ##' tryWithWarnings(FctTest(xxxx))
-##'' '
-##' @author Brice Ozenne
+##'
 ##' @export
 tryWithWarnings <- function(expr) {
     myWarnings <- NULL

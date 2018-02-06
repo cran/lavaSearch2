@@ -5,29 +5,41 @@
 \alias{selectResponse.formula}
 \title{Response Variable of a Formula}
 \usage{
-selectResponse(x, ...)
+selectResponse(object, ...)
 
-\method{selectResponse}{formula}(x, type = "call", ...)
+\method{selectResponse}{formula}(object, format = "call", ...)
 }
 \arguments{
-\item{x}{a formula}
+\item{object}{a formula}
 
-\item{...}{additional arguments to be passed to lower levels functions.}
+\item{...}{[internal] Only used by the generic method.}
 
-\item{type}{either return an object of type call (\code{"call"}) or the names of the variables (\code{"vars"})}
+\item{format}{[character] should an object of type call be returned (\code{format = "call"}),
+or the names of the variables (\code{format = "vars"})}
+}
+\value{
+See argument \code{format}.
 }
 \description{
-Return the reponse variable contained in the formula.
+Return the response variable contained in the formula.
 }
 \examples{
+
+\dontrun{
+
+selectResponse <- lavaSearch2:::selectResponse
+selectResponse.formula <- lavaSearch2:::selectResponse.formula
+
 selectResponse(Y1~X1+X2)
-selectResponse(Y1~X1+X2, type = "vars")
-selectResponse(Surv(event,time)~X1+X2, type = "vars")
+selectResponse(Y1~X1+X2, format = "vars")
+selectResponse(Surv(event,time)~X1+X2, format = "vars")
 
 selectResponse(Y1~X1+Y1)
-selectResponse(Y1+Y2~X1+Y1, type = "vars")
+selectResponse(Y1+Y2~X1+Y1, format = "vars")
 
 selectResponse(~X1+X2)
-selectResponse(~X1+X2, type = "vars")
+selectResponse(~X1+X2, format = "vars")
+}
 
 }
+\keyword{internal}

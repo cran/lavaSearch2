@@ -8,47 +8,39 @@ compareSearch(object, alpha = 0.05, method.p.adjust, statistic, trace = 1,
   ...)
 }
 \arguments{
-\item{object}{a lvm model.}
+\item{object}{a \code{lvm} model.}
 
-\item{alpha}{the significance level.}
+\item{alpha}{[numeric 0-1] the significance cutoff for the p-values.
+When the p-value is below, the corresponding link will be added to the model
+and the search will continue. Otherwise the search will stop.}
 
-\item{method.p.adjust}{the method used to adjust the p.values for multiple comparisons. Ignored when using the max statistic. Can be any method that is valid for the \code{stats::p.adjust} function (e.g. \code{"fdr"}).}
+\item{method.p.adjust}{[character] the method used to adjust the p.values for multiple comparisons.
+Can be any method that is valid for the \code{stats::p.adjust} function (e.g. \code{"fdr"}).
+Ignored when using the max statistic.}
 
-\item{statistic}{statistic used to perform the test. Can the likelihood ratio test (\code{"LR"}), the score (\code{"score"}) or the max statistic (\code{"max"}).}
+\item{statistic}{[character] statistic used to perform the test.
+Can the likelihood ratio test (\code{"LR"}),
+the score (\code{"score"}),
+or the max statistic (\code{"max"}).}
 
-\item{trace}{should the execution be traced?}
+\item{trace}{[logical] should the execution be traced?}
 
-\item{...}{additional arguments to be passed to \code{\link{findNewLink}} and \code{.modelsearch2}, see details.}
+\item{...}{arguments passed to \code{\link{modelsearch2}}.}
 }
 \value{
-a latent variable model
+A list containing:
+\itemize{
+\item newlink: a list containing for each \code{statistic}-\code{method.p.adjust} the local dependencies.
+\item table.coef: a \code{data.frame} object containing for each \code{statistic}-\code{method.p.adjust} the estimated coefficients.
+\item ls.search: a list containing for each \code{statistic}-\code{method.p.adjust} a \code{modelsearch2} object.
+}
 }
 \description{
-Compare methods to identify missing local dependencies in a LVM
+Compare methods to identify missing local dependencies in a LVM.
 }
 \details{
-Argument \code{link}:
-\itemize{
-\item \code{lvmfit} object: when not specified all possible additional links are considered.
-\item other objects: this argument must be specified.
-}
-
-Argument \code{...} passed to \code{\link{findNewLink}}, see the documentation of this function:
-\itemize{
-\item exclude.var
-\item rm.latent_latent
-\item rm.endo_endo
-\item rm.latent_endo
-}
-
-Argument \code{...} passed to \code{\link{modelsearch2}}:
-\itemize{
-\item alpha: the significance threshold for retaining a new link.
-\item method.max: the method used to compute the distribution of the max statistic. See lava.options()$search.calcMaxDist.
-\item ncpus: the number of cpus that can be used for the computations.
-\item nStep: the maximum number of links that can be added to the model.
-\item na.omit: should model leading to NA for the test statistic be ignored. Otherwise this will stop the selection process.
-}
+This function calls the \code{\link{modelsearch2}} function
+to find the local dependencies.
 }
 \examples{
 mSim <- lvm(Y~G+X1+X2)
@@ -64,5 +56,7 @@ res <- compareSearch(e.lvm, statistic = c("score","Wald"),
                      method.p.adjust = c("holm","fdr","max"))
 res
 }
-
+}
+\concept{
+modelsearch
 }

@@ -36,37 +36,32 @@ prepareScore2(x, ...) <- value
 \method{prepareScore2}{lvmfit}(x, ...) <- value
 }
 \arguments{
-\item{object}{a latent variable model.}
+\item{object, x}{a latent variable model.}
 
-\item{...}{[internal] Only used by the generic method.}
+\item{...}{[internal] only used by the generic method or by the <- methods.}
 
-\item{X}{the design matrix.}
+\item{X}{[matrix] the design matrix.}
 
-\item{param}{the fitted parameters.}
+\item{param, p}{[numeric vector] the fitted coefficients.}
 
-\item{attr.param}{the type of each parameter (e.g. mean or variance parameter).}
+\item{attr.param}{[character vector] the type of each coefficient
+(e.g. mean or variance coefficient).}
 
-\item{second.order}{should the terms relative to the third derivative of the likelihood be be pre-computed?}
+\item{second.order}{[logical] should the terms relative to the third derivative of the likelihood be be pre-computed?}
 
-\item{n.cluster}{the number of i.i.d. observations.}
+\item{n.cluster}{[integer >0] the number of i.i.d. observations.}
 
-\item{n.endogenous}{the number of outcomes}
+\item{n.endogenous}{[integer >0] the number of outcomes.}
 
-\item{name.endogenous}{[optional] name of the endogenous variables}
+\item{name.endogenous}{[character vector, optional] name of the endogenous variables}
 
-\item{index.obs}{the indexes of the outcomes relative to each observation (e.g. 1,3 if only outcome 1 and 3 are observed for the observation).}
+\item{index.obs}{[integer vector] the indexes of the outcomes relative to each observation (e.g. 1,3 if only outcome 1 and 3 are observed for the observation).}
 
-\item{x}{same as object.}
+\item{data}{[data.frame, optional] data set.}
 
-\item{value}{same as usefit.}
+\item{name.latent}{[character vector, optional] name of the latent variables}
 
-\item{data}{[optional] data set.}
-
-\item{name.latent}{[optional] name of the latent variables}
-
-\item{p}{same as param.}
-
-\item{usefit}{If TRUE the parameters estimated by the model are used to pre-compute quantities. Only for lvmfit objects.}
+\item{usefit, value}{[logical] If TRUE the coefficients estimated by the model are used to pre-compute quantities. Only for lvmfit objects.}
 }
 \description{
 Compute partial derivatives regarding to the mean and the variance, and compute the design matrices.
@@ -74,15 +69,24 @@ Compute partial derivatives regarding to the mean and the variance, and compute 
 \details{
 For lvmfit objects, there are two levels of pre-computation:
 \itemize{
-\item a basic one that do no involve the model parameter
-\item an advanced one that require the model parameters. 
+\item a basic one that do no involve the model coefficient
+\item an advanced one that require the model coefficients. 
 }
 }
 \examples{
+prepareScore2 <- lavaSearch2:::prepareScore2
+
 m <- lvm(Y1~eta,Y2~eta,Y3~eta)
 latent(m) <- ~eta
 
 e <- estimate(m, lava::sim(m,1e2))
 res <- prepareScore2(e)
 res$skeleton$df.param
+
 }
+\concept{
+small sample inference
+
+derivative of the score equation
+}
+\keyword{internal}

@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: nov 16 2017 (10:36) 
 ## Version: 
-## Last-Updated: jan 19 2018 (14:45) 
+## Last-Updated: feb  5 2018 (13:49) 
 ##           By: Brice Ozenne
-##     Update #: 34
+##     Update #: 37
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -24,6 +24,8 @@ if(FALSE){ ## already called in test-all.R
 
 library(nlme)
 lava.options(symbols = c("~","~~"))
+.coef2 <- lavaSearch2:::.coef2
+.getGroups2 <- lavaSearch2:::.getGroups2
 
 context("Utils-nlme")
 n <- 5e1

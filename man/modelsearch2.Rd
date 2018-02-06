@@ -10,36 +10,57 @@ modelsearch2(object, ...)
 
 \method{modelsearch2}{lvmfit}(object, link = NULL, data = NULL,
   statistic = "Wald", method.p.adjust = "max", typeSD = "information",
-  df = FALSE, adjust.residuals = FALSE, trace = TRUE, ...)
+  sCorrect = FALSE, bias.correct = FALSE, trace = TRUE, ...)
 
 \method{modelsearch2}{default}(object, link, data = NULL,
   statistic = "Wald", method.p.adjust = "max", typeSD = "information",
-  df = FALSE, adjust.residuals = FALSE, trace = TRUE, ...)
+  sCorrect = FALSE, bias.correct = FALSE, trace = TRUE, ...)
 }
 \arguments{
 \item{object}{a \code{lvmfit} object.}
 
 \item{...}{additional arguments to be passed to \code{\link{findNewLink}} and \code{.modelsearch2}, see details.}
 
-\item{link}{the name of the additional relationships to consider when expanding the model. Should be a vector containing strings like "Y~X". Optional for \code{lvmfit} objects, see details.}
+\item{link}{[character, optional for \code{lvmfit} objects] the name of the additional relationships to consider when expanding the model. Should be a vector containing strings like "Y~X". See the details section.}
 
-\item{data}{[optional] the dataset used to identify the model}
+\item{data}{[data.frame, optional] the dataset used to identify the model}
 
-\item{statistic}{statistic used to perform the test. Can the likelihood ratio test (\code{"LR"}), the score (\code{"score"}) or the max statistic (\code{"max"}).}
+\item{statistic}{[character] statistic used to perform the test.
+Can the likelihood ratio test (\code{"LR"}),
+the score (\code{"score"}),
+or the max statistic (\code{"max"}).}
 
-\item{method.p.adjust}{the method used to adjust the p.values for multiple comparisons. Ignored when using the max statistic. Can be any method that is valid for the \code{stats::p.adjust} function (e.g. \code{"fdr"}).}
+\item{method.p.adjust}{[character] the method used to adjust the p.values for multiple comparisons.
+Ignored when using the max statistic.
+Can be any method that is valid for the \code{stats::p.adjust} function (e.g. \code{"fdr"}).}
 
-\item{typeSD}{[relevant when statistic is Wald] the type of standard error to be used to compute the Wald statistic.
+\item{typeSD}{[character]
+the type of standard error to be used to compute the Wald statistic.
 Can be \code{"information"}, \code{"robust"} or \code{"jackknife"}.}
 
-\item{df}{[relevant when statistic is Wald] small sample correction: should the degree of freedom be computed using the Satterthwaite approximation.}
+\item{sCorrect}{[logical]
+should the degree of freedom be computed using the Satterthwaite approximation?
+Only relevant when the argument \code{statistic} is set to \code{"Wald"}.}
 
-\item{adjust.residuals}{[relevant when statistic is Wald] small sample correction: should the leverage-adjusted residuals be used to compute the influence function? Otherwise the raw residuals will be used.}
+\item{bias.correct}{[logical] should the standard errors of the coefficients be corrected for small sample bias?
+Only relevant when the argument \code{statistic} is set to \code{"Wald"}.}
 
-\item{trace}{should the execution be traced?}
+\item{trace}{[logical] should the execution be traced?}
 }
 \value{
-a latent variable model
+A list containing:
+\itemize{
+\item sequenceTest: the sequence of test that has been performed.
+\item sequenceModel: the sequence of models that has been obtained.
+\item sequenceQuantile: the sequence of rejection threshold. Optional. 
+\item sequenceIID: the influence functions relative to each test. Optional. 
+\item sequenceSigma: the covariance matrix relative to each test. Optional. 
+\item statistic: the argument \code{statistic}.
+\item method.p.adjust: the argument \code{method.p.adjust}.
+\item typeSD: the argument \code{typeSD}.
+\item alpha: [numeric 0-1] the significance cutoff for the p-values.
+\item cv: whether the procedure has converged.
+}
 }
 \description{
 Procedure adding relationship between variables that are supported by the data.
@@ -124,4 +145,7 @@ resLR <- modelsearch2(e, statistic = "LR", method.p.adjust = "holm")
 resMax <- modelsearch2(e, rm.endo_endo = TRUE, statistic = "Wald")
 }
 
+}
+\concept{
+modelsearch
 }

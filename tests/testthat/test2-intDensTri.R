@@ -1,11 +1,11 @@
-### test-IntDensTri.R --- 
+### test-intDensTri.R --- 
 #----------------------------------------------------------------------
 ## author: Brice Ozenne
 ## created: aug 31 2017 (16:32) 
 ## Version: 
-## last-updated: jan 15 2018 (22:02) 
+## last-updated: feb  6 2018 (09:29) 
 ##           By: Brice Ozenne
-##     Update #: 13
+##     Update #: 14
 #----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -25,7 +25,7 @@ if(TRUE){ ## already called in test-all.R
 library(mvtnorm)
 lava.options(symbols = c("~","~~"))
 
-context("IntDensTri")
+context("intDensTri")
 
 ## * tests
 # {{{ around 0
@@ -35,7 +35,7 @@ test_that("Integrate standard gaussian density (2D)", {
     mu <- rep(0, p)
 
     for(n in c(5,10,20,50,100)){ # n <- 5
-        res <- IntDensTri(mu = mu, Sigma = Sigma, n=n, x.min=0)
+        res <- intDensTri(mu = mu, Sigma = Sigma, n=n, x.min=0)
         expect_equal(res$value,
                      1/2,
                      tol = 1e-6)
@@ -48,7 +48,7 @@ test_that("Integrate standard gaussian density (3D)", {
     mu <- rep(0, p)
 
     for(n in c(5,10,20,50,100)){
-        res <- IntDensTri(mu = mu, Sigma = Sigma, n=n, x.min=0, z.max=10)
+        res <- intDensTri(mu = mu, Sigma = Sigma, n=n, x.min=0, z.max=10)
         expect_equal(res$value,
                      1/2,
                      tol = 1e-6)
@@ -63,7 +63,7 @@ test_that("Integrate standard gaussian density (2D)", {
     mu <- c(10,0)
 
     for(n in c(5,10,20,50,100)){
-        res <- IntDensTri(mu = mu, Sigma = Sigma, n=n, x.min=0)
+        res <- intDensTri(mu = mu, Sigma = Sigma, n=n, x.min=0)
         expect_equal(res$value,
                      1,
                      tol = 1e-6)
@@ -76,7 +76,7 @@ test_that("Integrate standard gaussian density (3D)", {
     mu <- c(10,0,0)
 
     for(n in c(5,10,20,50,100)){
-        res <- IntDensTri(mu = mu, Sigma = Sigma, n=n, x.min=0, z.max=10)
+        res <- intDensTri(mu = mu, Sigma = Sigma, n=n, x.min=0, z.max=10)
         expect_equal(res$value,
                      1,
                      tol = 1e-6)
@@ -86,4 +86,4 @@ test_that("Integrate standard gaussian density (3D)", {
 
 
 #----------------------------------------------------------------------
-### test-IntDensTri.R ends here
+### test-intDensTri.R ends here

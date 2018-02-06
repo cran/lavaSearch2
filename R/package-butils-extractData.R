@@ -1,11 +1,15 @@
+## * Documentation
 #' @title Extract Data From a Model
 #' 
 #' @description Extract data from a model using \code{nlme::getData}, \code{riskRegression::coxDesign} or \code{model.frame}.. 
 #' If it fails it will try to extract it by its name according to \code{model$call$data}.
 #' 
 #' @param object the fitted model.
-#' @param design.matrix should the data be extracted after transformation (e.g. conversion of categorical variables to dummy variables)? Otherwise the original data will be returned.
-#' @param as.data.frame should the output be converted into a dataa.frame object?
+#' @param design.matrix [logical] should the data be extracted after transformation (e.g. conversion of categorical variables to dummy variables)?
+#' Otherwise the original data will be returned.
+#' @param as.data.frame [logical] should the output be converted into a \code{data.frame} object?
+#'
+#' @return a dataset.
 #' 
 #' @examples
 #' set.seed(10)
@@ -38,7 +42,6 @@
 #'
 #' \dontrun{
 #'   library(riskRegression) ## needs version >=1.4.3
-#'   library(data.table)
 #'   dt.surv <- sampleData(n, outcome = "survival")
 #'   m.cox <- coxph(Surv(time, event) ~ X1 + X2, data = dt.surv, x = TRUE, y = TRUE)
 #'   f <- extractData(m.cox, design.matrix = FALSE)
@@ -55,6 +58,7 @@
 #'    extractData(m)
 #' }
 #' g <- fct1(m.gls)
+#' @concept extractor
 #' @export
 `extractData` <-
     function(object, design.matrix, as.data.frame){

@@ -3,9 +3,9 @@
 \name{validFCTs}
 \alias{validFCTs}
 \alias{validCharacter}
-\alias{valid.class}
-\alias{valid.class}
-\alias{valid.dimension}
+\alias{validClass}
+\alias{validClass}
+\alias{validDimension}
 \alias{validInteger}
 \alias{validLogical}
 \alias{validNames}
@@ -17,12 +17,12 @@ validCharacter(value1, name1 = as.character(substitute(value1)), valid.length,
   valid.values = "character", refuse.NULL = TRUE,
   refuse.duplicates = FALSE, method = NULL, addPP = TRUE)
 
-valid.class(value1, name1 = as.character(substitute(value1)), valid.class,
+validClass(value1, name1 = as.character(substitute(value1)), validClass,
   super.classes = TRUE, method = NULL, addPP = TRUE)
 
-valid.dimension(value1, value2 = NULL,
+validDimension(value1, value2 = NULL,
   name1 = as.character(substitute(value1)),
-  name2 = as.character(substitute(value2)), valid.dimension = NULL,
+  name2 = as.character(substitute(value2)), validDimension = NULL,
   type = c("NROW", "NCOL"), method = NULL, addPP = TRUE)
 
 validInteger(value1, name1 = as.character(substitute(value1)), valid.length,
@@ -63,7 +63,7 @@ validPath(value1, name1 = as.character(substitute(value1)), type,
 
 \item{addPP}{add ": " after the name of the function in the error message.}
 
-\item{valid.class}{the acceptable classes(s) for the argument.}
+\item{validClass}{the acceptable classes(s) for the argument.}
 
 \item{super.classes}{uses the \code{is} function instead of \code{class} to test the class of the object.}
 
@@ -71,9 +71,9 @@ validPath(value1, name1 = as.character(substitute(value1)), type,
 
 \item{name2}{the name of the second argument.}
 
-\item{valid.dimension}{the acceptable dimension for the argument. If \code{NULL} then name2 is used as a reference.}
+\item{validDimension}{the acceptable dimension for the argument. If \code{NULL} then name2 is used as a reference.}
 
-\item{type}{For \code{valid.dimension}: the type of operator used to check the dimensions. For \code{validPath} either "dir" or "file" to check whether to path points to an existing directory or file.}
+\item{type}{For \code{validDimension}: the type of operator used to check the dimensions. For \code{validPath} either "dir" or "file" to check whether to path points to an existing directory or file.}
 
 \item{min}{the minimum acceptable value}
 
@@ -85,7 +85,7 @@ validPath(value1, name1 = as.character(substitute(value1)), type,
 
 \item{refuse.values}{values that must not appear in the argument}
 
-\item{extension}{filter the files by the type of extention.}
+\item{extension}{filter the files by the type of extension.}
 
 \item{check.fsep}{display a warning when the separator is not correctly specified in}
 }
@@ -95,5 +95,7 @@ An invisible \code{TRUE} or an error message.
 \description{
 Check the validity of the arguments in functions.
 }
-\keyword{check}
-\keyword{function}
+\concept{
+check
+}
+\keyword{internal}

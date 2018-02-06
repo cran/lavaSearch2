@@ -3,9 +3,9 @@
 ## author: Brice Ozenne
 ## created: okt 12 2017 (13:31) 
 ## Version: 
-## last-updated: jan 19 2018 (14:44) 
+## last-updated: feb  4 2018 (13:55) 
 ##           By: Brice Ozenne
-##     Update #: 141
+##     Update #: 142
 #----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -48,12 +48,12 @@ name.coef <- names(coef(e.lm))
 
 ## ** iid2 matches iid
 test_that("iid2 matches iid", {
-    e.iid2.lm <- iid2(e.lm, adjust.residuals = FALSE) ## dim(e.iid2.lm)
+    e.iid2.lm <- iid2(e.lm, bias.correct = FALSE) ## dim(e.iid2.lm)
     GS1 <- iid(e.lm) ## dim(GS1) ## head(GS1)
     attr(GS1, "bread") <- NULL
     expect_equal(e.iid2.lm[,name.coef], GS1)
 
-    e1.iid2.lvm <- iid2(e.lvm, adjust.residuals = FALSE)
+    e1.iid2.lvm <- iid2(e.lvm, bias.correct = FALSE)
     expect_equal(unname(e1.iid2.lvm), unname(e.iid2.lm))
     e.GS <- iid(e.lvm)
     attr(e.GS, "bread") <- NULL
@@ -73,8 +73,8 @@ test_that("iid2 matches iid", {
 ## ** iid2 lvm matches iid2 lm
 test_that("iid2 lvm matches iid2 lm", {
     for(iAdj in c(FALSE,TRUE)){ # iAdj <- 1
-        e.iid2.lm <- iid2(e.lm, adjust.residuals = iAdj)
-        e0.iid2.lvm <- iid2(e.lvm, adjust.residuals = iAdj)
+        e.iid2.lm <- iid2(e.lm, bias.correct = iAdj)
+        e0.iid2.lvm <- iid2(e.lvm, bias.correct = iAdj)
         
         expect_equivalent(e.iid2.lm, e0.iid2.lvm)       
     }
@@ -82,9 +82,9 @@ test_that("iid2 lvm matches iid2 lm", {
 
 ## ** iid2 matches clubSandwich
 test_that("iid2.lm/iid2.lvm matches clubSandwich", {
-    eHC2.iid2.lm <- iid2(e.lm, adjust.residuals = TRUE, as.clubSandwich = 2)
+    eHC2.iid2.lm <- iid2(e.lm, bias.correct = TRUE, as.clubSandwich = 2)
     ## Aleardy checked before
-    ## eHC2.iid2.lvm <- iid2(e.lvm, adjust.residuals = TRUE, as.clubSandwich = 2)
+    ## eHC2.iid2.lvm <- iid2(e.lvm, bias.correct = TRUE, as.clubSandwich = 2)
     ## expect_equal(unname(eHC2.iid2.lm),
     ##              unname(eHC2.iid2.lvm))
 

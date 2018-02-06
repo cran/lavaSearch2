@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: nov 15 2017 (17:29) 
 ## Version: 
-## Last-Updated: jan 18 2018 (10:17) 
+## Last-Updated: feb  5 2018 (17:22) 
 ##           By: Brice Ozenne
-##     Update #: 157
+##     Update #: 182
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -20,24 +20,31 @@
 #' @description Export mean and variance coefficients from a nlme model.
 #' @name coef2
 #'
-#' @param object a gls or lme object.
+#' @param object a \code{gls} or \code{lme} object.
 #'  
-#' @details The variance coefficients that are exported are the residual variance of each outcome.
+#' @details The variance coefficients that are exported are the residual variance of each outcome. 
 #' This is \eqn{\sigma^2} for the first one and \eqn{k^2 \sigma^2} for the remaining ones.
 #'
-#' @export
+#' @return A numeric vector named with the names of the coefficient with three attributes:
+#' \itemize{
+#' \item mean.coef: the name of the mean coefficients.
+#' \item var.coef: the name of the variance coefficients.
+#' \item cor.coef:  the name of the correlation coefficients.
+#' }
+#'
+#' @concept extractor
+#' @keywords internal
 `.coef2` <-
     function(object) UseMethod(".coef2")
 
 ## * .coef2.gls
 #' @rdname coef2
-#' @export
 .coef2.gls <- function(object){
 
-     ## *** mean parameters
+     ## *** mean coefficients
     mean.coef <- stats::coef(object)
 
-    ## *** variance parameters
+    ## *** variance coefficients
     if(!is.null(object$modelStruct$varStruct)){
         var.coef <- c(sigma2 = stats::sigma(object),
                       stats::coef(object$modelStruct$varStruct, unconstrained = FALSE, allCoef = FALSE)
@@ -46,7 +53,7 @@
         var.coef <- c(sigma2 = stats::sigma(object)^2)
     }
 
-    ## *** covariance parameters
+    ## *** covariance coefficients
     if(!is.null(object$modelStruct$corStruct)){
         cor.coef <- stats::coef(object$modelStruct$corStruct, unconstrained = FALSE)
         names(cor.coef) <- paste0("corCoef",1:length(cor.coef))
@@ -66,24 +73,23 @@
 
 ## * .coef2.lme
 #' @rdname coef2
-#' @export
 .coef2.lme <- function(object){
 
-     ## *** mean parameters
+     ## *** mean coefficients
     mean.coef <- nlme::fixef(object)
 
-    ## *** variance parameters
+    ## *** variance coefficients
     if(!is.null(object$modelStruct$varStruct)){
         var.coef <- c(sigma2 = stats::sigma(object),stats::coef(object$modelStruct$varStruct, unconstrained = FALSE, allCoef = FALSE))^2
     }else{
         var.coef <- c(sigma2 = stats::sigma(object)^2)
     }
 
-    ## *** random effect parameters
+    ## *** random effect coefficients
     random.coef <- as.double(nlme::getVarCov(object))    
     names(random.coef) <- paste0("ranCoef",1:length(random.coef))
 
-     ## *** correlation parameters
+     ## *** correlation coefficients
     if(!is.null(object$modelStruct$corStruct)){
         cor.coef <- stats::coef(object$modelStruct$corStruct, unconstrained = FALSE)
         names(cor.coef) <- paste0("corCoef",1:length(cor.coef))
@@ -119,21 +125,31 @@
 #' @description Reconstruct the cluster variable from a nlme model.
 #' @name getGroup2
 #'
-#' @param object a gls or lme object.
-#' @param cluster the grouping variable relative to which the observations are iid.
-#' @param data the data set.
+#' @param object a \code{gls} or \code{lme} object.
+#' @param cluster [vector] the grouping variable relative to which the observations are iid.
+#' Only required for \code{gls} models with no correlation argument.
+#' @param data [data.frame] the data set.
 #' @param ... [internal] Only used by the generic method.
 #'  
 #' @details The variance coefficients that are exported are the residual variance of each outcome.
 #' This is \eqn{\sigma^2} for the first one and \eqn{k^2 \sigma^2} for the remaining ones.
 #'
-#' @export
+#' @return A list containing:
+#' \itemize{
+#' \item cluster: the cluster index for each observation.
+#' \item n.cluster: the number of clusters.
+#' \item endogenous: to which endogenous variable each observation corresponds to.
+#' \item n.endogenous: the number of endogenous variables.
+#' \item index.obs: a vector to convert observations from the vector format to the matrix format.
+#' }
+#'
+#' @concept extractor
+#' @keywords internal
 `.getGroups2` <-
     function(object, ...) UseMethod(".getGroups2")
 
 ## * .getGroups2.gls
 #' @rdname getGroup2
-#' @export
 .getGroups2.gls <- function(object, cluster, data, ...){
 
     ### ** get cluster
@@ -186,7 +202,6 @@
 
 ## * .getGroups2.lme
 #' @name getGroup2
-#' @export
 .getGroups2.lme <- function(object, ...){
 
     ## ** get cluster
@@ -236,14 +251,15 @@
 #' @description Reconstruct the marginal variance covariance matrix from a nlme model.
 #' @name getVarCov2
 #'
-#' @param object a gls or lme object
-#' @param param the mean and variance parameters.
-#' @param attr.param the type of each parameter (mean or variance).
-#' @param endogenous the endogenous variable to which each observation corresponds.
-#' @param name.endogenous the name of the endogenous variables. 
-#' @param n.endogenous the number of endogenous variables.
-#' @param cluster the grouping variable relative to which the observations are iid.
-#' @param n.cluster the number of groups.
+#' @param object a \code{gls} or \code{lme} object
+#' @param param [numeric vector] the mean and variance coefficients.
+#' @param attr.param [character vector] the type of each coefficients (mean or variance).
+#' @param endogenous [integer vector] the endogenous variable to which each observation corresponds.
+#' @param name.endogenous [character vector] the name of the endogenous variables. 
+#' @param n.endogenous [integer >0] the number of endogenous variables.
+#' @param cluster [vector] the grouping variable relative to which the observations are iid.
+#' Only required for \code{gls} models with no correlation argument.
+#' @param n.cluster [integer >0] the number of groups.
 #' @param ... [internal] Only used by the generic method.
 #'  
 #' @details The marginal variance covariance matrix for gls model is of the form:
@@ -255,14 +271,19 @@
 #' }
 #'
 #' The marginal variance covariance matrix for lme model is of the form:
-#'
-#' @export
+#' @return A list containing:
+#' \itemize{
+#' \item Omega: the marginal variance covariance matrix for a full sample.
+#' \item ls.indexOmega: a list containing for each sample the subset of endogenous variables available.
+#' }
+#' 
+#' @concept extractor
+#' @keywords internal
 `.getVarCov2` <-
     function(object, ...) UseMethod(".getVarCov2")
 
 ## * .getVarCov2.gls
 #' @rdname getVarCov2
-#' @export
 .getVarCov2.gls <- function(object, param, attr.param,
                             endogenous, name.endogenous, n.endogenous,
                             cluster, n.cluster, ...){
@@ -300,7 +321,6 @@
 
 ## * .getVarCov2.lme
 #' @rdname getVarCov2
-#' @export
 .getVarCov2.lme <- function(object, param, attr.param,
                             endogenous, name.endogenous, n.endogenous,
                             cluster, n.cluster, ...){
@@ -315,8 +335,7 @@
     out$Omega <- out$Omega + ran.coef
 
     ## ** export
-    return(out)
-    
+    return(out)    
 }
 
 

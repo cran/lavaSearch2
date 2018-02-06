@@ -3,9 +3,9 @@
 ## author: Brice Ozenne
 ## created: aug 31 2017 (16:40) 
 ## Version: 
-## last-updated: jan 18 2018 (16:38) 
+## last-updated: feb  5 2018 (15:51) 
 ##           By: Brice Ozenne
-##     Update #: 77
+##     Update #: 87
 #----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -18,17 +18,18 @@
 
 ## * Documentaiton - createGrid
 #' @title Create a Mesh for the Integration
-#' @description Create a mesh for the integration
+#' @description Create a mesh for the integration.
 #' @name createGrid
 #' 
-#' @param n the number of points for the mesh in the x direction.
-#' @param xmin the minimal x value.
-#' @param xmax the maximal x value.
-#' @param d.y the number of dimensions for the triangle.
-#' @param d.z the number of dimensions.
-#' @param zmax the maximal z value (in absolute value).
-#' @param fine should the mesh be displayed
-#' @param double should the grid be just outside the region of interest? Otherwise it will be just inside.
+#' @param n [integer >0] the number of points for the mesh in the x direction.
+#' @param xmin [numeric] the minimal x value.
+#' @param xmax [numeric] the maximal x value.
+#' @param d.y [integer >0] the number of dimensions for the triangle.
+#' @param d.z [integer >0] the number of dimensions.
+#' @param zmax [numeric >0] the maximal z value (in absolute value).
+#' @param fine [logical] should the mesh be displayed?
+#' @param double [logical] should the grid be just outside the region of interest?
+#' Otherwise it will be just inside.
 #'
 #' @details This create a mesh for integrating over a triangular surface using rectangles.
 #' The domain is define by constrains on three types of variables:
@@ -41,9 +42,17 @@
 #' The intersection of these three conditions define the domain.
 #'
 #' The mesh is obtained slicing the triangles using rectangles.
+#'
+#' @return A list containing:
+#' \itemize{
+#' \item grid: a \code{data.frame} where each line corresponds to a point.
+#' \item seqNames.min: a \code{character} giving the name of the x,y variables (min).
+#' \item seqNames.max: a \code{character} giving the name of the x,y variables (max).
+#' }
 #' 
 #' @examples
-#'
+#' createGrid <- lavaSearch2:::createGrid
+#' 
 #' ## no z 
 #' gridInt_2d <- createGrid(5, d.y = 1, xmin = 0, xmax = 4, 
 #'                          d.z = 0, fine = FALSE, double = FALSE)
@@ -69,11 +78,11 @@
 #' gridExtZ2_4d <- createGrid(5, d.y = 3, xmin = 0, xmax = 4, 
 #'                            d.z = 2, zmax = 2, fine = FALSE, double = TRUE)
 #'
-
+#' @concept post-selection inference
+#' @keywords internal
 
 ## * createGrid
 #' @rdname createGrid
-#' @export
 createGrid <- function(n,
                        xmin, xmax, d.y, 
                        d.z, zmax,

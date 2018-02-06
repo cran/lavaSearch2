@@ -7,14 +7,17 @@
 symmetrize(M, update.upper = TRUE)
 }
 \arguments{
-\item{M}{a matrix}
+\item{M}{a matrix.}
 
-\item{update.upper}{should the upper extra diagonal terms be updated using the lower extra diagonal terms?}
+\item{update.upper}{[logical] should the upper extra diagonal terms be updated using the lower extra diagonal terms?}
 }
 \description{
 Complete the upper (or lower) extra-diagonal terms  in order to obtain a symmetric matrix.
 }
 \examples{
+symmetrize <- lavaSearch2:::symmetrize
+
+## example
 M <- matrix(NA, 4, 4)
 M[lower.tri(M)] <- 1:6
 
@@ -23,3 +26,4 @@ symmetrize(M, update.upper = TRUE) # good
 M[upper.tri(M, diag = FALSE)] <- M[lower.tri(M, diag = FALSE)]
 M # wrong
 }
+\keyword{internal}

@@ -3,9 +3,9 @@
 ## author: Brice Ozenne
 ## created: nov  6 2017 (11:40) 
 ## Version: 
-## last-updated: jan 19 2018 (14:45) 
+## last-updated: feb  5 2018 (13:48) 
 ##           By: Brice Ozenne
-##     Update #: 103
+##     Update #: 105
 #----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -24,6 +24,7 @@ if(FALSE){ ## already called in test-all.R
 
 library(nlme)
 lava.options(symbols = c("~","~~"))
+.coef2 <- lavaSearch2:::.coef2
 
 context("iid2-nlme")
 
@@ -52,8 +53,8 @@ test_that("gls equivalent to lvm", {
 })
 
 test_that("score2.gls equivalent to score.lvm", {
-    score.gls <- score2(e.gls, cluster = "Id", adjust.residuals = FALSE, indiv = TRUE)
-    score.lvm <- score2(e.lvm, adjust.residuals = FALSE, indiv = TRUE)
+    score.gls <- score2(e.gls, cluster = "Id", bias.correct = FALSE, indiv = TRUE)
+    score.lvm <- score2(e.lvm, bias.correct = FALSE, indiv = TRUE)
     expect_equal(unname(score.gls),unname(score.lvm))    
 })
 
@@ -72,19 +73,19 @@ test_that("gls equivalent to lvm", {
 })
 
 test_that("score2.gls equivalent to score.lvm", {
-    score.gls <- score2(e.gls, cluster = "Id", adjust.residuals = FALSE, indiv = TRUE)
-    score.gls.p <- score2(e.gls, p = allCoef.gls, cluster = "Id", adjust.residuals = FALSE, indiv = TRUE)
-    score.lvm <- score2(e.lvm, adjust.residuals = FALSE, indiv = TRUE)
+    score.gls <- score2(e.gls, cluster = "Id", bias.correct = FALSE, indiv = TRUE)
+    score.gls.p <- score2(e.gls, p = allCoef.gls, cluster = "Id", bias.correct = FALSE, indiv = TRUE)
+    score.lvm <- score2(e.lvm, bias.correct = FALSE, indiv = TRUE)
     
     expect_equal(unname(score.gls[,1:6]),unname(score.lvm[,1:6]))
     expect_true(all(abs(colSums(score.gls))<1e-7))
     expect_equal(score.gls,score.gls.p)    
 })
 
-test_that("score2.gls equivalent to score.lvm (adjust residuals)", {
-        score.gls <- score2(e.gls, cluster = "Id", adjust.residuals = TRUE, indiv = TRUE)
-        score.gls.p <- score2(e.gls, p = allCoef.gls, cluster = "Id", adjust.residuals = TRUE, indiv = TRUE)
-        score.lvm <- score2(e.lvm, adjust.residuals = TRUE,, indiv = TRUE)
+test_that("score2.gls equivalent to score.lvm (bias.correct)", {
+        score.gls <- score2(e.gls, cluster = "Id", bias.correct = TRUE, indiv = TRUE)
+        score.gls.p <- score2(e.gls, p = allCoef.gls, cluster = "Id", bias.correct = TRUE, indiv = TRUE)
+        score.lvm <- score2(e.lvm, bias.correct = TRUE,, indiv = TRUE)
 
         expect_equal(unname(score.gls[,1:6]),unname(score.lvm[,1:6]))
         expect_equal(score.gls,score.gls.p)
@@ -116,29 +117,29 @@ test_that("lme/gls equivalent to lvm", {
 })
 
 test_that("score2.lme/gls equivalent to score2.lvm - no adjustment", {    
-    score.lme <- score2(e.lme, adjust.residuals = FALSE, indiv = TRUE)
-    score.lme.p <- score2(e.lme, p = allCoef.lme, adjust.residuals = FALSE, indiv = TRUE)
+    score.lme <- score2(e.lme, bias.correct = FALSE, indiv = TRUE)
+    score.lme.p <- score2(e.lme, p = allCoef.lme, bias.correct = FALSE, indiv = TRUE)
     expect_equal(score.lme,score.lme.p)
 
-    score.gls <- score2(e.gls, adjust.residuals = FALSE, indiv = TRUE)
+    score.gls <- score2(e.gls, bias.correct = FALSE, indiv = TRUE)
     expect_true(all(abs(colSums(score.gls))<1e-5))
     expect_equal(score.lme[,attr(allCoef.lme,"mean.coef")],
                  score.gls[,attr(allCoef.lme,"mean.coef")], tol = 1e-7)
 
-    score.lvm <- score2(e.lvm, adjust.residuals = FALSE, indiv = TRUE)
+    score.lvm <- score2(e.lvm, bias.correct = FALSE, indiv = TRUE)
     expect_equal(unname(score.lme),unname(score.lvm), tol = 1e-6) ## needed for CRAN
 })
 
 test_that("score2.lme/gls equivalent to score2.lvm - adjustment", {
-        score.lme <- score2(e.lme, adjust.residuals = TRUE, indiv = TRUE)
-        score.lme.p <- score2(e.lme, p = allCoef.lme, adjust.residuals = TRUE, indiv = TRUE)
+        score.lme <- score2(e.lme, bias.correct = TRUE, indiv = TRUE)
+        score.lme.p <- score2(e.lme, p = allCoef.lme, bias.correct = TRUE, indiv = TRUE)
         expect_equal(score.lme,score.lme.p)
     
-        score.gls <- score2(e.gls, adjust.residuals = TRUE, indiv = TRUE)
+        score.gls <- score2(e.gls, bias.correct = TRUE, indiv = TRUE)
         expect_equal(score.lme[,attr(allCoef.lme,"mean.coef")],
                      score.gls[,attr(allCoef.lme,"mean.coef")], tol = 1e-7)
 
-        score.lvm <- score2(e.lvm, adjust.residuals = TRUE, indiv = TRUE)
+        score.lvm <- score2(e.lvm, bias.correct = TRUE, indiv = TRUE)
         expect_equal(unname(score.lme),unname(score.lvm), tol = 1e-7) ## needed for CRAN    
 })
 
@@ -175,16 +176,16 @@ test_that("lme/gls equivalent to lvm", {
 })
 
 test_that("score2.lme/gls equivalent to score2.lvm - no adjustment", {    
-    score.lme <- score2(e.lme, adjust.residuals = FALSE, indiv = TRUE)
-    score.lme.p <- score2(e.lme, p = allCoef.lme, adjust.residuals = FALSE, indiv = TRUE)
+    score.lme <- score2(e.lme, bias.correct = FALSE, indiv = TRUE)
+    score.lme.p <- score2(e.lme, p = allCoef.lme, bias.correct = FALSE, indiv = TRUE)
     expect_equal(score.lme,score.lme.p)
 
-    score.gls <- score2(e.gls, adjust.residuals = FALSE, indiv = TRUE)
+    score.gls <- score2(e.gls, bias.correct = FALSE, indiv = TRUE)
     expect_true(all(abs(colSums(score.gls))<1e-4))
     ## boxplot(score.gls) ; abline(h=0)
     ## 
 
-    score.lvm <- score2(e.lvm, adjust.residuals = FALSE, indiv = TRUE)
+    score.lvm <- score2(e.lvm, bias.correct = FALSE, indiv = TRUE)
     expect_equal(unname(score.lme)[,1:4],unname(score.lvm[,1:4]), tol = 1e-5)
     expect_equal(unname(score.lme)[,8],unname(score.lvm[,6]), tol = 1e-5)
 
@@ -192,13 +193,13 @@ test_that("score2.lme/gls equivalent to score2.lvm - no adjustment", {
 })
 
 test_that("score2.lme/gls equivalent to score2.lvm - adjustment", {
-        score.lme <- score2(e.lme, adjust.residuals = TRUE, indiv = TRUE)
-        score.lme.p <- score2(e.lme, p = allCoef.lme, adjust.residuals = TRUE, indiv = TRUE)
+        score.lme <- score2(e.lme, bias.correct = TRUE, indiv = TRUE)
+        score.lme.p <- score2(e.lme, p = allCoef.lme, bias.correct = TRUE, indiv = TRUE)
         expect_equal(score.lme,score.lme.p)
 
-        score.gls <- score2(e.gls, adjust.residuals = TRUE, indiv = TRUE)
+        score.gls <- score2(e.gls, bias.correct = TRUE, indiv = TRUE)
 
-        score.lvm <- score2(e.lvm, adjust.residuals = TRUE, indiv = TRUE)
+        score.lvm <- score2(e.lvm, bias.correct = TRUE, indiv = TRUE)
         expect_equal(unname(score.lme)[,1:4],unname(score.lvm[,1:4]), tol = 1e-5)
         expect_equal(unname(score.lme)[,8],unname(score.lvm[,6]), tol = 1e-5)    
 })
@@ -229,15 +230,15 @@ test_that("lme/gls equivalent to lvm", {
 })
 
 test_that("score2.lme/gls equivalent to score2.lvm - no adjustment", {    
-    score.lme <- score2(e.lme, adjust.residuals = FALSE, indiv = TRUE)
-    score.lme.p <- score2(e.lme, p = allCoef.lme, adjust.residuals = FALSE, indiv = TRUE)
+    score.lme <- score2(e.lme, bias.correct = FALSE, indiv = TRUE)
+    score.lme.p <- score2(e.lme, p = allCoef.lme, bias.correct = FALSE, indiv = TRUE)
     expect_equal(score.lme,score.lme.p)
     expect_true(all(abs(colSums(score.lme))<1e-3))
 
-    score.gls <- score2(e.gls, adjust.residuals = FALSE, indiv = TRUE)
+    score.gls <- score2(e.gls, bias.correct = FALSE, indiv = TRUE)
     expect_true(all(abs(colSums(score.gls))<1e-2))
 
-    score.lvm <- score2(e.lvm, adjust.residuals = FALSE, indiv = TRUE)
+    score.lvm <- score2(e.lvm, bias.correct = FALSE, indiv = TRUE)
 
     expect_equal(unname(score.lme[,1:3]),unname(score.gls[,1:3]), tol = 1e-4)
     expect_equal(unname(score.lvm[,1:3]),unname(score.lme[,1:3]), tol = 1e-4)

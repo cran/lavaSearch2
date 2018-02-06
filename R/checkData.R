@@ -3,9 +3,9 @@
 ## author: Brice Ozenne
 ## created: okt 26 2017 (14:25) 
 ## Version: 
-## last-updated: jan 18 2018 (13:29) 
+## last-updated: feb  5 2018 (15:51) 
 ##           By: Brice Ozenne
-##     Update #: 23
+##     Update #: 35
 #----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -17,13 +17,15 @@
 
 ## * documentation - checkData
 #' @title Check that Validity of the Dataset
-#' @description Check the validity of the dataset used to estimate a lvm.
+#' @description Check whether the dataset can be used to fit the \code{lvm} object.
 #' 
 #' @name checkData
 #' 
-#' @param x a lvm model
-#' @param data the dataset containing the variables used to estimate the lvm.
-#' @param trace [logical] should a message be output to indicate the outcome of the check? 
+#' @param object a \code{lvm} object.
+#' @param data [data.frame] the dataset used to obtain the object.
+#' @param trace [logical] when \code{TRUE}, the outcome of the check will be displayed. 
+#'
+#' @return Invisible  \code{TRUE} or \code{FALSE}.
 #' 
 #' @examples 
 #' m <- lvm()
@@ -39,21 +41,22 @@
 #' 
 #' try(checkData(m, d[,-(3:4)])) # return an error
 #'
+#' @concept diagnostic
 #' @export
 `checkData` <-
-  function(x, data, trace) UseMethod("checkData")
+  function(object, data, trace) UseMethod("checkData")
 
 ## * checkData.lvm
 #' @rdname checkData
 #' @export
-checkData.lvm <- function(x, data, trace = TRUE){
+checkData.lvm <- function(object, data, trace = TRUE){
 
     ## ** normalize arguments
     data <- as.data.frame(data)
         
     ## ** check missing names
-    vars <- vars(x)
-    latent <- latent(x)    
+    vars <- vars(object)
+    latent <- latent(object)    
     missingVars <- vars[vars %in% names(data) == FALSE]
 
     if(length(latent) == 0){

@@ -4,17 +4,26 @@
 #' @name modelsearch2
 #' 
 #' @param object a \code{lvmfit} object.
-#' @param link the name of the additional relationships to consider when expanding the model. Should be a vector containing strings like "Y~X". Optional for \code{lvmfit} objects, see details.
-#' @param data [optional] the dataset used to identify the model
-#' @param statistic statistic used to perform the test. Can the likelihood ratio test (\code{"LR"}), the score (\code{"score"}) or the max statistic (\code{"max"}).
-#' @param method.p.adjust the method used to adjust the p.values for multiple comparisons. Ignored when using the max statistic. Can be any method that is valid for the \code{stats::p.adjust} function (e.g. \code{"fdr"}).
-#' @param typeSD [relevant when statistic is Wald] the type of standard error to be used to compute the Wald statistic.
+#' @param link [character, optional for \code{lvmfit} objects] the name of the additional relationships to consider when expanding the model. Should be a vector containing strings like "Y~X". See the details section.
+#' @param data [data.frame, optional] the dataset used to identify the model
+#' @param statistic [character] statistic used to perform the test.
+#' Can the likelihood ratio test (\code{"LR"}),
+#' the score (\code{"score"}),
+#' or the max statistic (\code{"max"}).
+#' @param method.p.adjust [character] the method used to adjust the p.values for multiple comparisons.
+#' Ignored when using the max statistic.
+#' Can be any method that is valid for the \code{stats::p.adjust} function (e.g. \code{"fdr"}).
+#' @param typeSD [character]
+#' the type of standard error to be used to compute the Wald statistic.
 #' Can be \code{"information"}, \code{"robust"} or \code{"jackknife"}.
-#' @param df [relevant when statistic is Wald] small sample correction: should the degree of freedom be computed using the Satterthwaite approximation.
-#' @param adjust.residuals [relevant when statistic is Wald] small sample correction: should the leverage-adjusted residuals be used to compute the influence function? Otherwise the raw residuals will be used.
-#' @param trace should the execution be traced?
+#' @param sCorrect [logical]
+#' should the degree of freedom be computed using the Satterthwaite approximation?
+#' Only relevant when the argument \code{statistic} is set to \code{"Wald"}.
+#' @param bias.correct [logical] should the standard errors of the coefficients be corrected for small sample bias?
+#' Only relevant when the argument \code{statistic} is set to \code{"Wald"}.
+#' @param trace [logical] should the execution be traced?
 #' @param ... additional arguments to be passed to \code{\link{findNewLink}} and \code{.modelsearch2}, see details.
-#'
+#' 
 #' @details
 #' Argument \code{link}:
 #' \itemize{
@@ -39,8 +48,19 @@
 #' \item na.omit: should model leading to NA for the test statistic be ignored. Otherwise this will stop the selection process.
 #' }
 #' 
-#' 
-#' @return a latent variable model
+#' @return A list containing:
+#' \itemize{
+#' \item sequenceTest: the sequence of test that has been performed.
+#' \item sequenceModel: the sequence of models that has been obtained.
+#' \item sequenceQuantile: the sequence of rejection threshold. Optional. 
+#' \item sequenceIID: the influence functions relative to each test. Optional. 
+#' \item sequenceSigma: the covariance matrix relative to each test. Optional. 
+#' \item statistic: the argument \code{statistic}.
+#' \item method.p.adjust: the argument \code{method.p.adjust}.
+#' \item typeSD: the argument \code{typeSD}.
+#' \item alpha: [numeric 0-1] the significance cutoff for the p-values.
+#' \item cv: whether the procedure has converged.
+#' } 
 #' 
 #' @examples
 #'
@@ -97,7 +117,8 @@
 #' resLR <- modelsearch2(e, statistic = "LR", method.p.adjust = "holm")
 #' resMax <- modelsearch2(e, rm.endo_endo = TRUE, statistic = "Wald")
 #' }
-#' 
+#'
+#' @concept modelsearch
 #' @export
 `modelsearch2` <-
   function(object, ...) UseMethod("modelsearch2")
@@ -107,14 +128,14 @@
 #' @export
 modelsearch2.lvmfit <- function(object, link = NULL, data = NULL, 
                                 statistic = "Wald",  method.p.adjust = "max",
-                                typeSD = "information", df = FALSE, adjust.residuals = FALSE,
+                                typeSD = "information", sCorrect = FALSE, bias.correct = FALSE,
                                 trace = TRUE,
                                 ...){
 
     ## ** normalise arguments
     typeSD <- match.arg(typeSD, c("information","robust","jackknife"))
-    if(df == FALSE && adjust.residuals == TRUE){
-        stop("Argument \'df\' must be TRUE when arguemnt \'adjust.residuals\' is TRUE \n")
+    if(sCorrect == FALSE && bias.correct == TRUE){
+        stop("Argument \'sCorrect\' must be TRUE when arguemnt \'bias.correct\' is TRUE \n")
     }
 
     dots <- list(...)
@@ -169,7 +190,7 @@ modelsearch2.lvmfit <- function(object, link = NULL, data = NULL,
             iidJack(x, keep.warnings = FALSE, keep.error = FALSE, trace = FALSE)
         }
         attr(iid.FCT,"method.iid") <- "iidJack"
-    }else if(adjust.residuals == FALSE){
+    }else if(bias.correct == FALSE){
         iid.FCT <- function(x){
             res <- lava::iid(x)
             attr(res, "bread") <- NULL
@@ -178,13 +199,13 @@ modelsearch2.lvmfit <- function(object, link = NULL, data = NULL,
         attr(iid.FCT,"method.iid") <- "iid"
     }else{
         iid.FCT <- function(x){
-            iid2(x, adjust.residuals = TRUE)
+            iid2(x, bias.correct = TRUE)
         }
         attr(iid.FCT,"method.iid") <- "iid2"
     }
     attr(iid.FCT,"typeSD") <- typeSD
-    attr(iid.FCT,"df") <- df
-    attr(iid.FCT,"adjust.residuals") <- adjust.residuals
+    attr(iid.FCT,"sCorrect") <- sCorrect
+    attr(iid.FCT,"bias.correct") <- bias.correct
 
     ## ** run modelsearch
     out <- do.call(.modelsearch2,
@@ -204,14 +225,14 @@ modelsearch2.lvmfit <- function(object, link = NULL, data = NULL,
 #' @export
 modelsearch2.default <- function(object, link, data = NULL,
                                  statistic = "Wald", method.p.adjust = "max", 
-                                 typeSD = "information", df = FALSE, adjust.residuals = FALSE,
+                                 typeSD = "information", sCorrect = FALSE, bias.correct = FALSE,
                                  trace = TRUE,
                                  ...){
     
     ## ** normalise arguments
     typeSD <- match.arg(typeSD, c("information","robust","jackknife"))
-    if(df == FALSE && adjust.residuals == TRUE){
-        stop("Argument \'df\' must be TRUE when arguemnt \'adjust.residuals\' is TRUE \n")
+    if(sCorrect == FALSE && bias.correct == TRUE){
+        stop("Argument \'sCorrect\' must be TRUE when arguemnt \'bias.correct\' is TRUE \n")
     }
 
     if("lvm" %in% class(object)){
@@ -223,11 +244,11 @@ modelsearch2.default <- function(object, link, data = NULL,
              "Consider changing argument \'statistic\' \n")
     }
     if(class(object) %in% c("coxph","cph","phreg")){            
-        if(df == TRUE){
-            stop("argument \'df\' must be FALSE for Cox models \n")
+        if(sCorrect == TRUE){
+            stop("argument \'sCorrect\' must be FALSE for Cox models \n")
         }
-        if(adjust.residuals == TRUE){
-            stop("argument \'adjust.residuals\' must be FALSE for Cox models \n")
+        if(bias.correct == TRUE){
+            stop("argument \'bias.correct\' must be FALSE for Cox models \n")
         }        
     }else if (!any(paste("score", class(object), sep = ".") %in% methods("score"))) {        
         stop("Extraction of the iid decomposition failed \n",
@@ -303,7 +324,7 @@ modelsearch2.default <- function(object, link, data = NULL,
                 attr(iid.FCT, "method.iid") <- "iid"
             }
         }
-    }else if(adjust.residuals == FALSE){
+    }else if(bias.correct == FALSE){
         iid.FCT <- function(x){
             res <- lava::iid(x)
             attr(res, "bread") <- NULL
@@ -312,14 +333,14 @@ modelsearch2.default <- function(object, link, data = NULL,
         attr(iid.FCT, "method.iid") <- "iid"
     }else{
         iid.FCT <- function(x){
-            iid2(x, adjust.residuals = TRUE)
+            iid2(x, bias.correct = TRUE)
         }
         attr(iid.FCT,"method.iid") <- "iid2"        
     }
 
     attr(iid.FCT,"typeSD") <- typeSD
-    attr(iid.FCT,"df") <- df
-    attr(iid.FCT,"adjust.residuals") <- adjust.residuals
+    attr(iid.FCT,"sCorrect") <- sCorrect
+    attr(iid.FCT,"bias.correct") <- bias.correct
     
     ## ** run modelsearch
     out <- .modelsearch2(object, link = link, restricted = restricted, directive = directive,
@@ -386,6 +407,16 @@ modelsearch2.default <- function(object, link, data = NULL,
     ## cpus
     if(is.null(ncpus)){ ncpus <- parallel::detectCores()}
     if(ncpus>1){
+        test.package <- try(requireNamespace("doParallel"), silent = TRUE)
+        if(inherits(test.package,"try-error")){
+            stop("There is no package \'doParallel\' \n",
+                 "This package is necessary when argument \'ncpus\' is greater than 1 \n")
+        }
+        test.package <- try(requireNamespace("foreach"), silent = TRUE)
+        if(inherits(test.package,"try-error")){
+            stop("There is no package \'foreach\' \n",
+                 "This package is necessary when argument \'ncpus\' is greater than 1 \n")
+        }
         cl <- parallel::makeCluster(ncpus)
         doParallel::registerDoParallel(cl)
     }
@@ -454,7 +485,7 @@ modelsearch2.default <- function(object, link, data = NULL,
                                          update.FCT = update.FCT, update.args = update.args, iid.FCT = iid.FCT,
                                          method.p.adjust = method.p.adjust, method.max = method.max,
                                          iid.previous = iid.previous, quantile.previous = quantile.previous,
-                                         export.iid = max(conditional,export.iid), trace = trace-1, ncpus = ncpus, initCpus = FALSE)
+                                         export.iid = max(conditional,export.iid), trace = trace-1, ncpus = ncpus, init.cpus = FALSE)
         }
 
         ## ** update according the most significant p.value
@@ -555,7 +586,7 @@ modelsearch2.default <- function(object, link, data = NULL,
         ##                            mu = c(mu.conditional,newBeta), 
         ##                            conditional = c(mu.conditional,rep(0,length(exposure))),
         ##                            method = method.max,
-        ##                            n.sim = n.sim, ncpus = ncpus, initCpus = FALSE, trace = trace)
+        ##                            n.sim = n.sim, ncpus = ncpus, init.cpus = FALSE, trace = trace)
             
         ##     df.exposure[,`p.value` := resQmax$p.adjust]
         ##     z <- resQmax$z
@@ -719,7 +750,7 @@ modelsearch2.default <- function(object, link, data = NULL,
         }
     }
     
-    return(list(object = object,
+     return(list(object = object,
                 link = link,
                 directive = directive,
                 restricted = restricted))

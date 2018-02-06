@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: jan 22 2018 (11:45) 
 ## Version: 
-## Last-Updated: jan 22 2018 (12:11) 
+## Last-Updated: feb  5 2018 (17:42) 
 ##           By: Brice Ozenne
-##     Update #: 6
+##     Update #: 12
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -50,23 +50,23 @@ test_that("Score 1 link",{
 test_that("Wald 1 link",{
     ## no adjustement
     e.GS <-  estimate(lvm(Y~E+X1), data = df.sim)
-    test.GS <- lTest(e.GS, adjust.residuals = FALSE)
+    test.GS <- compare2(e.GS, par = "Y~X1" , bias.correct = FALSE, as.lava = FALSE)
     
-    test.Wald <- summary(modelsearch2(e.base, link = "Y~X1", df = FALSE, adjust.residuals = FALSE,
+    test.Wald <- summary(modelsearch2(e.base, link = "Y~X1", sCorrect = FALSE, bias.correct = FALSE,
                                        statistic = "Wald", method.p.adjust = "max", trace = 0), display = FALSE)
 
-    expect_equivalent(abs(test.GS["Y~X1","statistic"]), test.Wald$data[1,"statistic"])
-    expect_equal(test.GS["Y~X1","p-value"], test.Wald$data[1,"p.value"], tolerance = 1e-4)
+    expect_equivalent(abs(test.GS[1,"statistic"]), test.Wald$data[1,"statistic"])
+    expect_equal(test.GS[1,"p-value"], test.Wald$data[1,"p.value"], tolerance = 1e-5)
 
     ## with adjustment
     e.GS <-  estimate(lvm(Y~E+X1), data = df.sim)
-    test.GS <- lTest(e.GS, adjust.residuals = TRUE)
+    test.GS <- compare2(e.GS, par  = "Y~X1", bias.correct = TRUE, as.lava = FALSE)
     
-    test.Wald <- summary(modelsearch2(e.base, link = "Y~X1", df = TRUE, adjust.residuals = TRUE,
+    test.Wald <- summary(modelsearch2(e.base, link = "Y~X1", sCorrect = TRUE, bias.correct = TRUE,
                                        statistic = "Wald", method.p.adjust = "max", trace = 0), display = FALSE)
 
-    expect_equivalent(abs(test.GS["Y~X1","statistic"]), test.Wald$data[1,"statistic"])
-    expect_equal(test.GS["Y~X1","p-value"], test.Wald$data[1,"p.value"], tolerance = 1e-4)
+    expect_equivalent(abs(test.GS[1,"statistic"]), test.Wald$data[1,"statistic"])
+    expect_equal(test.GS[1,"p-value"], test.Wald$data[1,"p.value"], tolerance = 1e-5)
 })
 
 ##----------------------------------------------------------------------

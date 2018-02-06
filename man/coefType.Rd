@@ -5,127 +5,42 @@
 \alias{coefType.lvm}
 \alias{coefType.lvmfit}
 \alias{coefType.multigroup}
-\alias{coefCov}
-\alias{coefCov.lvm}
-\alias{coefCov.lvmfit}
-\alias{coefCov.multigroup}
-\alias{coefExtra}
-\alias{coefExtra.lvm}
-\alias{coefExtra.lvmfit}
-\alias{coefExtra.multigroup}
-\alias{coefIndexModel}
-\alias{coefIndexModel.lvm}
-\alias{coefIndexModel.lvmfit}
-\alias{coefIndexModel.multigroup}
-\alias{coefIndexModel.multigroupfit}
-\alias{coefIntercept}
-\alias{coefIntercept.lvm}
-\alias{coefIntercept.lvmfit}
-\alias{coefIntercept.multigroup}
-\alias{coefRef}
-\alias{coefRef.lvmfit}
-\alias{coefReg}
-\alias{coefReg.lvm}
-\alias{coefReg.lvmfit}
-\alias{coefReg.multigroup}
-\alias{coefVar}
-\alias{coefVar.lvm}
-\alias{coefVar.lvmfit}
-\alias{coefVar.multigroup}
-\title{Extract the Specific Coefficient Bames or Positions in a LVM}
+\title{Extract the Type of Each Coefficient}
 \usage{
-coefType(x, ...)
+coefType(object, ...)
 
-\method{coefType}{lvm}(x, data = NULL, as.lava = TRUE, ...)
+\method{coefType}{lvm}(object, data = NULL, as.lava = TRUE, ...)
 
-\method{coefType}{lvmfit}(x, as.lava = TRUE, ...)
+\method{coefType}{lvmfit}(object, as.lava = TRUE, ...)
 
-\method{coefType}{multigroup}(x, as.lava = TRUE, ...)
-
-coefCov(x, ...)
-
-\method{coefCov}{lvm}(x, value = FALSE, keep.var = FALSE, ...)
-
-\method{coefCov}{lvmfit}(x, value = FALSE, keep.var = FALSE, ...)
-
-\method{coefCov}{multigroup}(x, value = FALSE, keep.var = FALSE, ...)
-
-coefExtra(x, ...)
-
-\method{coefExtra}{lvm}(x, value = FALSE, ...)
-
-\method{coefExtra}{lvmfit}(x, value = FALSE, ...)
-
-\method{coefExtra}{multigroup}(x, value = FALSE, ...)
-
-coefIndexModel(x, ...)
-
-\method{coefIndexModel}{lvm}(x, ...)
-
-\method{coefIndexModel}{lvmfit}(x, ...)
-
-\method{coefIndexModel}{multigroup}(x, ...)
-
-\method{coefIndexModel}{multigroupfit}(x, ...)
-
-coefIntercept(x, ...)
-
-\method{coefIntercept}{lvm}(x, value = FALSE, ...)
-
-\method{coefIntercept}{lvmfit}(x, value = FALSE, ...)
-
-\method{coefIntercept}{multigroup}(x, value = FALSE, ...)
-
-coefRef(x, ...)
-
-\method{coefRef}{lvmfit}(x, value = FALSE, ...)
-
-coefReg(x, ...)
-
-\method{coefReg}{lvm}(x, value = FALSE, ...)
-
-\method{coefReg}{lvmfit}(x, value = FALSE, ...)
-
-\method{coefReg}{multigroup}(x, value = FALSE, ...)
-
-coefVar(x, ...)
-
-\method{coefVar}{lvm}(x, value = FALSE, ...)
-
-\method{coefVar}{lvmfit}(x, value = FALSE, ...)
-
-\method{coefVar}{multigroup}(x, value = FALSE, ...)
+\method{coefType}{multigroup}(object, as.lava = TRUE, ...)
 }
 \arguments{
-\item{x}{a lvm model or a fitted lvm model}
+\item{object}{a \code{lvm} or \code{lvmfit} object.}
 
 \item{...}{arguments to be passed to \code{lava::coef}}
 
-\item{data}{[optional] the dataset. Help to identify the categor}
+\item{data}{[data.frame, optional] the dataset. Help to identify the categorical variables.}
 
-\item{as.lava}{export the type of parameters mimicking lava:::coef.}
-
-\item{value}{should the name of the coefficient be returned? Else return the coefficients}
-
-\item{keep.var}{should the variance parameters be returned?}
+\item{as.lava}{[logical] export the type of coefficients mimicking \code{lava:::coef}.}
 }
 \value{
-\code{coefType} either returns a data.frame:
+\code{coefType} returns a \code{data.frame} when \code{as.lava=FALSE}:
 \itemize{
 \item name: name of the link
 \item Y: outcome variable
-\item X: regression variable in the design matrix (could be a transformation of the original variables, e.g. dichotimization).
+\item X: regression variable in the design matrix (could be a transformation of the original variables, e.g. dichotomization).
 \item data: original variable
 \item type: type of link
 \item value: if TRUE, the value of the link is set and not estimated.
 \item marginal: if TRUE, the value of the link does not impact the estimation.
-\item detail: a more detailled decription of the type of link (see the details section)
-\item lava: name of the parameter in lava
+\item detail: a more detailed description of the type of link (see the details section)
+\item lava: name of the coefficient in lava
 }
-or a named vector containing the type of the links.
+When \code{as.lava=TRUE}, \code{coefType} returns a named vector containing the type of each coefficient.
 }
 \description{
-Extract the specific coefficient names or positions in a latent varable model.
+Extract the type of each coefficient of a \code{lvm} object.
 }
 \details{
 A lvm can be written as a measurement model:
@@ -135,7 +50,7 @@ and a structural model:
 where \eqn{\Psi}   is the variance covariance matrix of the residuals \eqn{\zeta} \cr
 and   \eqn{\Sigma} is the variance covariance matrix of the residuals \eqn{\epsilon}. \cr \cr
 
-\code{coefType} either returns the latin/greek letter corresponding to the coefficients
+\code{coefType} either returns the Latin/Greek letter corresponding to the coefficients
 or it groups them:
 \itemize{
 \item intercept: \eqn{\nu} and \eqn{\alpha}.
@@ -143,6 +58,10 @@ or it groups them:
 \item covariance: extra-diagonal terms of \eqn{\Sigma} and \eqn{\Psi}.
 \item variance: diagonal of \eqn{\Sigma} and \eqn{\Psi}.
 }
+
+A link denotes a relationship between two variables.
+The coefficient are used to represent the strength of the association between two variable, i.e. the strength of a link.
+A coefficient may corresponds to the strength of one or several link.
 }
 \examples{
 #### regression ####
@@ -151,21 +70,6 @@ e <- estimate(m, sim(m, 1e2))
 
 coefType(m)
 coefType(e)
-
-coefCov(m)
-coefCov(m, value = TRUE)
-
-coefCov(m, keep.var = TRUE)
-coefCov(m, value = TRUE, keep.var = TRUE)
-
-coefIndexModel(m)
-coefIndexModel(e)
-
-coefIntercept(m)
-coefIntercept(m, value = TRUE)
-
-coefReg(m)
-coefReg(m, value = TRUE)
 
 #### LVM ####
 m <- lvm()
@@ -181,46 +85,26 @@ e <- estimate(m, sim(m.Sim, 1e2))
 coefType(m)
 coefType(e)
 
-coefCov(m)
-coefCov(m, value = TRUE) 
-
-coefCov(m, keep.var = TRUE)
-coefCov(m, value = TRUE, keep.var = TRUE)
-
-coefExtra(m)
-
-coefIndexModel(m)
-coefIndexModel(e)
-
+## additional categorical variables 
 categorical(m, labels = as.character(1:3)) <- "X1"
-coefExtra(m)
-coefExtra(m, value = TRUE)
-
-categorical(m, labels = as.character(1:3)) <- "x1"
 
 coefType(m, as.lava = FALSE)
-
-coefIntercept(m)
-coefIntercept(m, value = TRUE)
-coefIntercept(e)
-
-coefReg(e, value = TRUE)
 
 #### LVM with constrains ####
 m <- lvm(c(Y1~0+1*eta1,Y2~0+1*eta1,Y3~0+1*eta1,
           Z1~0+1*eta2,Z2~0+1*eta2,Z3~0+1*eta2))
 latent(m) <- ~eta1 + eta2
 e <- estimate(m, sim(m,1e2))
+
 coefType(m)
-coef(e, level = 9)
 coefType(e)
 
 #### multigroup ####
 m <- lvm(Y~X1+X2)
 eG <- estimate(list(m,m), list(sim(m, 1e2),sim(m, 1e2)))
 coefType(eG)
-coef(eG)
 
-coefIndexModel(eG)
-
+}
+\concept{
+extractor
 }

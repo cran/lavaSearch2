@@ -15,13 +15,24 @@
 \method{.getGroups2}{lme}(object, ...)
 }
 \arguments{
-\item{object}{a gls or lme object.}
+\item{object}{a \code{gls} or \code{lme} object.}
 
 \item{...}{[internal] Only used by the generic method.}
 
-\item{cluster}{the grouping variable relative to which the observations are iid.}
+\item{cluster}{[vector] the grouping variable relative to which the observations are iid.
+Only required for \code{gls} models with no correlation argument.}
 
-\item{data}{the data set.}
+\item{data}{[data.frame] the data set.}
+}
+\value{
+A list containing:
+\itemize{
+\item cluster: the cluster index for each observation.
+\item n.cluster: the number of clusters.
+\item endogenous: to which endogenous variable each observation corresponds to.
+\item n.endogenous: the number of endogenous variables.
+\item index.obs: a vector to convert observations from the vector format to the matrix format.
+}
 }
 \description{
 Reconstruct the cluster variable from a nlme model.
@@ -30,3 +41,7 @@ Reconstruct the cluster variable from a nlme model.
 The variance coefficients that are exported are the residual variance of each outcome.
 This is \eqn{\sigma^2} for the first one and \eqn{k^2 \sigma^2} for the remaining ones.
 }
+\concept{
+extractor
+}
+\keyword{internal}

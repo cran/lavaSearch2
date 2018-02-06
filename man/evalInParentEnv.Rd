@@ -7,11 +7,14 @@
 evalInParentEnv(name, envir)
 }
 \arguments{
-\item{name}{character string containing the name of the object to get.}
+\item{name}{[character] the name of the object to get.}
 
-\item{envir}{the environment from which to look for the object.}
+\item{envir}{[environments] the environment from which to look for the object.}
 }
 \description{
 Search an object in the parent environments. For internal use.
+}
+\concept{
+extractor
 }
 \keyword{internal}

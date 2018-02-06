@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: nov  8 2017 (09:08) 
 ## Version: 
-## Last-Updated: jan 19 2018 (15:23) 
+## Last-Updated: feb  5 2018 (17:17) 
 ##           By: Brice Ozenne
-##     Update #: 49
+##     Update #: 51
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -49,7 +49,7 @@ test_that("residuals2 match residuals.lm (single lm)", {
     GS <- residuals(lm(Y~X, data = d))
     e <- estimate(lvm(Y~X), d)
     res <- residuals(e)
-    res2 <- residuals2(e, adjust.residuals = FALSE)
+    res2 <- residuals2(e, bias.correct = FALSE)
 
     expect_equal(as.double(res),as.double(GS))
     expect_equal(as.double(res2),as.double(GS))
@@ -64,7 +64,7 @@ test_that("residuals2 match residuals.lm (multiple lm)", {
     GS <- cbind(residuals(lm(Y~1, data = d)),
                 residuals(lm(G~1, data = d)))
     e <- estimate(lvm(Y~1,G~1), d)
-    res2 <- residuals2(e, adjust.residuals = FALSE)
+    res2 <- residuals2(e, bias.correct = FALSE)
     res <- residuals(e)
 
     expect_equal(unname(res),unname(GS))
@@ -74,7 +74,7 @@ test_that("residuals2 match residuals.lm (multiple lm)", {
                 residuals(lm(G~1, data = d)))
     e <- estimate(lvm(Y~G+X,G~1), d)
 
-    res2 <- residuals2(e, adjust.residuals = FALSE)
+    res2 <- residuals2(e, bias.correct = FALSE)
     res <- residuals(e)
 
     
@@ -90,7 +90,7 @@ test_that("residuals2 match residuals.lm (multiple lm)", {
                 residuals(lm(G~X, data = d)))
     e <- estimate(lvm(Y~G+X,G~X), d)
 
-    res2 <- residuals2(e, adjust.residuals = FALSE)
+    res2 <- residuals2(e, bias.correct = FALSE)
     res <- residuals(e)
 
     ## expect_equal(as.double(res),as.double(GS))
@@ -123,11 +123,11 @@ test_that("equivalence residuals2.lvm residuals.lvm", {
     expect_equal(as.double(logLik(e.lvm)),as.double(logLik(e.gls)))
     expect_equal(as.double(logLik(e.lvm)),as.double(logLik(e.lme)))
     
-    test.gls <- residuals2(e.gls, adjust.residuals = FALSE)
-    test.lme <- residuals2(e.lme, adjust.residuals = FALSE)
+    test.gls <- residuals2(e.gls, bias.correct = FALSE)
+    test.lme <- residuals2(e.lme, bias.correct = FALSE)
     expect_equal(unname(test.gls),unname(test.lme))
     
-    test.lvm <- residuals2(e.lvm, adjust.residuals = FALSE)
+    test.lvm <- residuals2(e.lvm, bias.correct = FALSE)
     expect_equal(unname(test.lvm),unname(test.gls))
 
     GS.lme <- as.double(residuals(e.lme, type = "response", level = 0))
@@ -146,15 +146,10 @@ latent(m) <- ~eta1+eta2
 d <- sim(m, 5e1)
 e.lvm <- estimate(m,d)
 
-e.lvm2 <- e.lvm
-prepareScore2(e.lvm2) <- TRUE
-
 test_that("equivalence residuals2.lvm residuals.lvm", {
-    test <- residuals2(e.lvm, adjust.residuals = FALSE)
-    test2 <- residuals2(e.lvm2, adjust.residuals = FALSE)    
+    test <- residuals2(e.lvm, bias.correct = FALSE)
     GS <- residuals(e.lvm)
     expect_equal(GS,test)
-    expect_equal(GS,test2)
 })
 
 ## * adjusted residuals
@@ -172,7 +167,7 @@ test_that("residuals2 match residuals.lm (lm adjusted)", {
     GS1 <- epsilon.lm/diag(iH)^(1/2)
     
     e.lvm <- estimate(lvm(Y~X), d)
-    res2 <- residuals2(e.lvm, adjust.residuals = TRUE)
+    res2 <- residuals2(e.lvm, bias.correct = TRUE)
 
     expect_equal(as.double(res2),as.double(GS1))
 })
@@ -187,7 +182,7 @@ d <- sim(m,n)
 test_that("residuals2 match residuals.lm", {
     ## first model
     e.lm1 <- lm(Y~G+X, data = d)
-    res1 <- residuals2(e.lm1, adjust.residuals = TRUE)
+    res1 <- residuals2(e.lm1, bias.correct = TRUE)
 
     epsilon.lm1 <- residuals(e.lm1)
     X1 <- model.matrix(e.lm1, d)
@@ -198,7 +193,7 @@ test_that("residuals2 match residuals.lm", {
 
     ## second model
     e.lm2 <- lm(G~X, data = d)
-    res2 <- residuals2(e.lm2, adjust.residuals = TRUE)
+    res2 <- residuals2(e.lm2, bias.correct = TRUE)
     epsilon.lm2 <- residuals(e.lm2)
     X2 <- model.matrix(e.lm2, d)
     iH2 <- diag(1,n,n) - X2 %*% solve(t(X2) %*% X2) %*% t(X2)
@@ -208,7 +203,7 @@ test_that("residuals2 match residuals.lm", {
 
     ## global
     e.lvm <- estimate(m, d)    
-    resTest <- residuals2(e.lvm, adjust.residuals = TRUE)
+    resTest <- residuals2(e.lvm, bias.correct = TRUE)
 
     expect_equal(as.double(resTest[,1]),as.double(res1))
     expect_equal(as.double(resTest[,2]),as.double(res2))   

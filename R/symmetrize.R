@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: nov  8 2017 (09:42) 
 ## Version: 
-## Last-Updated: jan 15 2018 (11:46) 
+## Last-Updated: feb  5 2018 (17:31) 
 ##           By: Brice Ozenne
-##     Update #: 12
+##     Update #: 16
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -17,10 +17,13 @@
 
 #' @title Symmetrize a Matrix
 #' @description Complete the upper (or lower) extra-diagonal terms  in order to obtain a symmetric matrix.
-#' @param M a matrix
-#' @param update.upper should the upper extra diagonal terms be updated using the lower extra diagonal terms?
+#' @param M a matrix.
+#' @param update.upper [logical] should the upper extra diagonal terms be updated using the lower extra diagonal terms?
 #' 
 #' @examples
+#' symmetrize <- lavaSearch2:::symmetrize
+#'
+#' ## example
 #' M <- matrix(NA, 4, 4)
 #' M[lower.tri(M)] <- 1:6
 #'
@@ -28,7 +31,7 @@
 #'
 #' M[upper.tri(M, diag = FALSE)] <- M[lower.tri(M, diag = FALSE)]
 #' M # wrong
-#' @export
+#' @keywords internal
 symmetrize <- function(M, update.upper = TRUE){
 
     if(update.upper){

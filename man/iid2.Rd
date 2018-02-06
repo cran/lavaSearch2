@@ -28,10 +28,10 @@ iid2(x, ...)
 
 \item{data}{[optional] the data set.}
 
-\item{adjust.residuals}{Should the leverage-adjusted residuals be used to compute the score? Otherwise the raw residuals will be used.}
+\item{adjust.residuals}{[logical] should the leverage-adjusted residuals be used to compute the score? Otherwise the raw residuals will be used.}
 }
 \value{
-A matrix.
+A matrix with in row the samples and in columns the parameters.
 }
 \description{
 Extract i.i.d. decomposition from linear and latent variable models using leverage adjusted fitted residuals.
@@ -68,4 +68,9 @@ range(iid.tempo-iid(e.lvm))
 \references{
 Bell, R. M., & McCaffrey, D. F. Bias reduction in standard errors for linear regression with multi-stage samples. Survey Methodology, 28(2), 169-181 (2002). \cr
 Kauermann G. and Carroll R. J. A note on the efficiency of sandwich covariance matrix estimation. Journal of the American Statistical Association. Vol. 96, No. 456 (2001).
+}
+\concept{
+small sample inference
+
+iid decomposition
 }

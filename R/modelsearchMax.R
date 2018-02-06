@@ -3,9 +3,9 @@
 ## author: Brice Ozenne
 ## created: maj 30 2017 (18:32) 
 ## Version: 
-## last-updated: jan 22 2018 (11:33) 
+## last-updated: feb  5 2018 (16:51) 
 ##           By: Brice Ozenne
-##     Update #: 671
+##     Update #: 694
 #----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -21,10 +21,11 @@
 #' 
 #' @name modelsearchMax
 #'
-#' @return an object of class lvmfit
+#' @return A \code{lvmfit} object.
 #'
 #' @seealso \code{link{modelsearch2}}
-#' 
+#'
+#' @concept modelsearch
 #' @keywords internal
 #'
 
@@ -35,7 +36,7 @@ modelsearchMax <- function(x, restricted, link, directive, packages,
                            update.FCT, update.args, iid.FCT,                           
                            alpha, method.p.adjust, method.max, n.sim = 1e3, 
                            iid.previous = NULL, quantile.previous = NULL, 
-                           export.iid, trace, ncpus, initCpus){
+                           export.iid, trace, ncpus, init.cpus){
 
     ## WARNING: do not put link as NULL for data.table since it is used as an argument by the function
     
@@ -50,9 +51,8 @@ modelsearchMax <- function(x, restricted, link, directive, packages,
     convergence <- rep(NA,n.link)
 
     typeSD <- attr(iid.FCT, "typeSD")
-    df <- attr(iid.FCT, "df")
-    adjust.residuals <- attr(iid.FCT, "adjust.residuals")
-    prepareScore <- df
+    sCorrect <- attr(iid.FCT, "sCorrect")
+    bias.correct <- attr(iid.FCT, "bias.correct")
     
     ### ** wraper
     warper <- function(iterI){ # iterI <- 2
@@ -82,20 +82,12 @@ modelsearchMax <- function(x, restricted, link, directive, packages,
                 }
 
                 out$df[1, "coefBeta"] <- new.coef[link[iterI]]
-                
                 ## extract degree of freedom and standard error
-                if(df){
-                    dVcov2(newfit, return.score = TRUE) <- adjust.residuals
+                if(sCorrect){
+                    sCorrect(newfit, return.score = TRUE) <- bias.correct
                     out$iid <- (attr(newfit$dVcov, "score") %*% attr(newfit$dVcov, "vcov.param")[,link[iterI],drop=FALSE])
                     
-                    C <- matrix(0,
-                                nrow = 1,
-                                ncol = length(new.coef),
-                                dimnames = list(NULL, names(new.coef)))
-                    C[1,link[iterI]] <- 1
-                    
-                    e.df <- lTest(newfit, C = C, adjust.residuals = adjust.residuals,
-                                  Ftest = FALSE)
+                    e.df <- compare2(newfit, par = link[iterI], as.lava = FALSE)
                     
                     out$df[1, "df"] <- e.df[1, "df"]
 
@@ -109,7 +101,7 @@ modelsearchMax <- function(x, restricted, link, directive, packages,
                 }else{
                     out$iid <- sqrt(nObs)*iid.FCT(newfit)[,link[iterI],drop=FALSE]
                     if(typeSD == "information"){
-                        ## NOTE: it assumes that whenever df is FALSE then adjust.residuals is FALSE
+                        ## NOTE: it assumes that whenever df is FALSE then bias.correct is FALSE
                         sd.coef <- sqrt(stats::vcov(newfit)[link[iterI],link[iterI]])
                         out$iid <- out$iid * sd.coef / sd(out$iid, na.rm = TRUE)
                     }else{
@@ -138,12 +130,28 @@ modelsearchMax <- function(x, restricted, link, directive, packages,
             return(res)
         }
 
-        if(initCpus){
+        if(init.cpus){
+            test.package <- try(requireNamespace("doParallel"), silent = TRUE)
+            if(inherits(test.package,"try-error")){
+                stop("There is no package \'doParallel\' \n",
+                     "This package is necessary when argument \'ncpus\' is greater than 1 \n")
+            }
+            test.package <- try(requireNamespace("foreach"), silent = TRUE)
+            if(inherits(test.package,"try-error")){
+                stop("There is no package \'foreach\' \n",
+                     "This package is necessary when argument \'ncpus\' is greater than 1 \n")
+            
+            }
             cl <- parallel::makeCluster(ncpus)
             doParallel::registerDoParallel(cl)
         }
     
         if(trace > 0){
+            test.package <- try(requireNamespace("tcltk"), silent = TRUE)
+            if(inherits(test.package,"try-error")){
+                stop("There is no package \'tcltk\' \n",
+                     "This package is necessary when argument \'trace\' is TRUE \n")
+            }
             parallel::clusterExport(cl, varlist = "trace")
         }
 
@@ -163,14 +171,19 @@ modelsearchMax <- function(x, restricted, link, directive, packages,
                                 return(warper(i))
                             })
 
-        if(initCpus){
+        if(init.cpus){
             parallel::stopCluster(cl)
         }
         
     }else{
         if(trace>0){
-            requireNamespace("pbapply")
+            test.package <- try(requireNamespace("pbapply"), silent = TRUE)
+            if(inherits(test.package,"try-error")){
+                stop("There is no package \'pbapply\' \n",
+                     "This package is necessary when argument \'trace\' is TRUE \n")
+            }                
             resApply <- pbapply::pblapply(1:n.link, warper)
+            
         }else{
             resApply <- lapply(1:n.link, warper)
         }
@@ -189,7 +202,7 @@ modelsearchMax <- function(x, restricted, link, directive, packages,
     ### ** p.value
     indexCV <- which(df.test$convergence==0)
     df.test[indexCV, "p.value"] <- as.numeric(NA)
-    if(df){
+    if(sCorrect){
         df.test[indexCV, "p.value"] <- 2*(1-stats::pt(abs(df.test[indexCV,"statistic"]),
                                                       df = df.test[indexCV,"df"]))
     }else{
@@ -213,7 +226,7 @@ modelsearchMax <- function(x, restricted, link, directive, packages,
         nameN0 <- df.test[indexCV, "link"]
         statisticN0 <- setNames(subset(df.test, subset = convergence==0, select = "statistic", drop = TRUE),
                                 nameN0)
-        if(df){
+        if(sCorrect){
             dfN0.all <- subset(df.test, subset = convergence==0, select = "df", drop = TRUE)
             dfN0 <- round(stats::median(dfN0.all))
         }else {
@@ -221,12 +234,12 @@ modelsearchMax <- function(x, restricted, link, directive, packages,
         }
         resQmax <- calcDistMaxIntegral(statistic = statisticN0[1], iid = iid.link[,1,drop=FALSE], df = dfN0,
                                        iid.previous = iid.previous, quantile.previous = quantile.previous, 
-                                       alpha = alpha, ncpus = ncpus, initCpus = FALSE, trace = trace)
+                                       alpha = alpha, ncpus = ncpus, init.cpus = FALSE, trace = trace)
         
         if(method.max=="integration"){
             resQmax <- calcDistMaxIntegral(statistic = statisticN0, iid = iid.link, df = dfN0,
                                            iid.previous = iid.previous, quantile.previous = quantile.previous, 
-                                           alpha = alpha, ncpus = ncpus, initCpus = FALSE, trace = trace)
+                                           alpha = alpha, ncpus = ncpus, init.cpus = FALSE, trace = trace)
             resQmax$p.adjust
         }else{
             method.boot <- switch(method.max,
@@ -236,7 +249,7 @@ modelsearchMax <- function(x, restricted, link, directive, packages,
             
             resQmax <- calcDistMaxBootstrap(statistic = statisticN0, iid = iid.link, method = method.boot, n.sim = n.sim,
                                             iid.previous = iid.previous, quantile.previous = quantile.previous, 
-                                            alpha = alpha, ncpus = ncpus, initCpus = FALSE, trace = trace)
+                                            alpha = alpha, ncpus = ncpus, init.cpus = FALSE, trace = trace)
         }
         df.test[indexCV, "corrected.level"] <- resQmax$correctedLevel
         df.test[indexCV, "adjusted.p.value"] <- resQmax$p.adjust
@@ -245,7 +258,7 @@ modelsearchMax <- function(x, restricted, link, directive, packages,
         rownames(Sigma) <- df.test[indexCV, "link"]
         colnames(Sigma) <- df.test[indexCV, "link"]
         
-        if(initCpus){
+        if(init.cpus){
             parallel::stopCluster(cl)
         }
         

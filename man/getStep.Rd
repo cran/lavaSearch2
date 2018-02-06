@@ -11,13 +11,13 @@ getStep(object, ...)
   ...)
 }
 \arguments{
-\item{object}{a modelsearch2 object}
+\item{object}{a \code{modelsearch2} object}
 
-\item{...}{not used.}
+\item{...}{[internal] only used by the generic method.}
 
-\item{step}{which test should be extracted?}
+\item{step}{[integer >0] which test should be extracted?}
 
-\item{slot}{the element from the modelsearch2 object that should be extracted.}
+\item{slot}{[character] the element from the modelsearch2 object that should be extracted.}
 }
 \description{
 Extract one step from the sequential procedure.
@@ -36,4 +36,9 @@ getStep(res, slot = "sequenceTest")
 getStep(res, slot = "sequenceQuantile")
 getStep(res, step = 1)
 
+}
+\concept{
+modelsearch
+
+extractor
 }

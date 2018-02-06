@@ -33,9 +33,13 @@ extractData(object, design.matrix, as.data.frame)
 \arguments{
 \item{object}{the fitted model.}
 
-\item{design.matrix}{should the data be extracted after transformation (e.g. conversion of categorical variables to dummy variables)? Otherwise the original data will be returned.}
+\item{design.matrix}{[logical] should the data be extracted after transformation (e.g. conversion of categorical variables to dummy variables)?
+Otherwise the original data will be returned.}
 
-\item{as.data.frame}{should the output be converted into a dataa.frame object?}
+\item{as.data.frame}{[logical] should the output be converted into a \code{data.frame} object?}
+}
+\value{
+a dataset.
 }
 \description{
 Extract data from a model using \code{nlme::getData}, \code{riskRegression::coxDesign} or \code{model.frame}.. 
@@ -72,7 +76,6 @@ library(survival)
 
 \dontrun{
   library(riskRegression) ## needs version >=1.4.3
-  library(data.table)
   dt.surv <- sampleData(n, outcome = "survival")
   m.cox <- coxph(Surv(time, event) ~ X1 + X2, data = dt.surv, x = TRUE, y = TRUE)
   f <- extractData(m.cox, design.matrix = FALSE)
@@ -89,4 +92,7 @@ fct2 <- function(m){
    extractData(m)
 }
 g <- fct1(m.gls)
+}
+\concept{
+extractor
 }

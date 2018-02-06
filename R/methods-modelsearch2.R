@@ -3,9 +3,9 @@
 ## author: Brice Ozenne
 ## created: sep 22 2017 (16:43) 
 ## Version: 
-## last-updated: jan 18 2018 (15:38) 
+## last-updated: feb  5 2018 (18:03) 
 ##           By: Brice Ozenne
-##     Update #: 127
+##     Update #: 149
 #----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -18,10 +18,13 @@
 ## * nStep
 ## ** documentation - nStep
 #' @title Find the Number of Steps Performed During the Sequential Testing
-#' @description Find the number of steps performed during the sequential testing
+#' @description Find the number of steps performed during the sequential testing.
 #' @name nStep
 #' 
-#' @param object a modelsearch2 object
+#' @param object a \code{modelsearch2} object.
+#' 
+#' @return an integer.
+#' 
 #' @examples
 #' mSim <- lvm(Y~G+X1+X2)
 #' addvar(mSim) <- ~Z1+Z2+Z3+Z4+Z5+Z6
@@ -33,6 +36,8 @@
 #' res <- modelsearch2(e.lvm, statistic = "score", method.p.adjust = "holm")
 #' nStep(res)
 #'
+#' @concept modelsearch
+#' @concept extractor
 #' @export
 `nStep` <-
   function(object) UseMethod("nStep")
@@ -52,10 +57,11 @@ nStep.modelsearch2 <- function(object){
 #' @description Extract one step from the sequential procedure.
 #' @name getStep
 #' 
-#' @param object a modelsearch2 object
-#' @param step which test should be extracted?
-#' @param slot the element from the modelsearch2 object that should be extracted.
-#' @param ... not used.
+#' @param object a \code{modelsearch2} object
+#' @param step [integer >0] which test should be extracted?
+#' @param slot [character] the element from the modelsearch2 object that should be extracted.
+#' @param ... [internal] only used by the generic method.
+#'
 #' @examples
 #' mSim <- lvm(Y~G+X1+X2)
 #' addvar(mSim) <- ~Z1+Z2+Z3+Z4+Z5+Z6
@@ -70,6 +76,8 @@ nStep.modelsearch2 <- function(object){
 #' getStep(res, slot = "sequenceQuantile")
 #' getStep(res, step = 1)
 #'
+#' @concept modelsearch
+#' @concept extractor
 #' @export
 `getStep` <-
   function(object, ...) UseMethod("getStep")
@@ -112,13 +120,15 @@ getStep.modelsearch2 <- function(object, step = nStep(object), slot = NULL, ...)
 
 ## * getNewLink
 ## ** documentation - getNewLink
-#' @title Find the Links that Should be Added Accroding to the Sequential Testing
-#' @description Find the links that should be added accroding to the sequential testing
+#' @title Extract the Links that Have Been Found by the modelsearch2.
+#' @description Extract the links that have been found relevant by modelsearch2.
 #' @name getNewLink
 #' 
-#' @param object a modelsearch2 object
-#' @param step which test should be extracted?
-#' @param ... not used
+#' @param object a \code{modelsearch2} object.
+#' @param step [logical] which test should be extracted?
+#' @param ... [internal] only used by the generic method.
+#'
+#' @return A character vector.
 #' 
 #' @examples
 #' mSim <- lvm(Y~G+X1+X2)
@@ -131,6 +141,9 @@ getStep.modelsearch2 <- function(object, step = nStep(object), slot = NULL, ...)
 #' res <- modelsearch2(e.lvm, statistic = "score", method.p.adjust = "holm")
 #' getNewLink(res)
 #'
+#' @concept modelsearch
+#' @concept extractor
+#' 
 #' @export
 `getNewLink` <-
   function(object, ...) UseMethod("getNewLink")
@@ -163,9 +176,10 @@ getNewLink.modelsearch2 <- function(object, step = 1:nStep(object), ...){
 #' @description Merge two modelsearch objects. Does not check for meaningful result.
 #' @name merge
 #' 
-#' @param x a modelsearch2 object.
-#' @param y a modelsearch2 object that will be added to x.
-#' @param ... not used.
+#' @param x,y a \code{modelsearch2} object.
+#' @param ... [internal] only used by the generic method.
+#'
+#' @return a \code{modelsearch2} object.
 #' 
 #' @examples
 #' mSim <- lvm(Y~G+X1+X2)
@@ -181,6 +195,8 @@ getNewLink.modelsearch2 <- function(object, step = 1:nStep(object), ...){
 #' res.xy <- merge(res.x,res.y)
 #'
 #' modelsearch2(e.lvm, statistic = "score", method.p.adjust = "holm")
+#'
+#' @keywords internal
 
 ## ** function - merge
 #' @rdname merge

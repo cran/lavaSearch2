@@ -8,11 +8,12 @@
 \method{merge}{modelsearch2}(x, y, ...)
 }
 \arguments{
-\item{x}{a modelsearch2 object.}
+\item{x, y}{a \code{modelsearch2} object.}
 
-\item{y}{a modelsearch2 object that will be added to x.}
-
-\item{...}{not used.}
+\item{...}{[internal] only used by the generic method.}
+}
+\value{
+a \code{modelsearch2} object.
 }
 \description{
 Merge two modelsearch objects. Does not check for meaningful result.
@@ -31,4 +32,6 @@ res.y <- modelsearch2(getStep(res.x, slot = "sequenceModel"),
 res.xy <- merge(res.x,res.y)
 
 modelsearch2(e.lvm, statistic = "score", method.p.adjust = "holm")
+
 }
+\keyword{internal}

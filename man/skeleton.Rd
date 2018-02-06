@@ -36,42 +36,41 @@ skeletonDtheta2(object, ...)
   param2originalLink, name.endogenous, name.latent, B, Lambda, Psi, ...)
 }
 \arguments{
-\item{object}{a latent variable model}
+\item{object}{a \code{lvm} object.}
 
-\item{...}{[internal] Only used by the generic method.}
+\item{...}{[internal] only used by the generic method.}
 
-\item{as.lava}{should the name of the links be used to name the parameters?
-Otherwise uses the labels (when defined) of each parameter.}
+\item{as.lava}{[logical] should the name of the links be used to name the coefficient?
+Otherwise uses the labels (when defined) of each coefficient.}
 
-\item{name.endogenous}{name of the endogenous variables}
+\item{name.endogenous}{[character vector] name of the endogenous variables}
 
-\item{name.latent}{name of the latent variables}
+\item{name.latent}{[character vector] name of the latent variables}
 
-\item{p}{[optional] vector of parameters at which to evaluate the score.}
+\item{p}{[numeric vector, optional] vector of coefficients at which to evaluate the score.}
 
-\item{data}{[optional] data set.}
+\item{data}{[data.frame, optional] data set.}
 
-\item{df.param.all}{a \code{data.table} object containing detailing the type of each parameter.}
+\item{df.param.all}{[data.frame] output of \code{\link{coefType}} containing the type of each coefficient.}
 
-\item{param2originalLink}{matching between the name of the parameter in lava and their label.}
+\item{param2originalLink}{[named character vector] matching between the name of the coefficient in lava and their label.}
 
-\item{B}{pre-computed matrix.}
+\item{B, alpha.XGamma, Lambda, Psi}{[matrix] pre-computed matrix.}
 
-\item{alpha.XGamma}{pre-computed matrix.}
-
-\item{Lambda}{pre-computed matrix.}
-
-\item{Psi}{pre-computed matrix.}
-
-\item{OD}{list containing the pre-computed quantities for the second derivatives.}
+\item{OD}{[list] the pre-computed quantities for the second derivatives.}
 }
 \description{
 Pre-compute quantities that are necessary to compute the score of a lvm model.
 }
 \details{
-When the use specify names for the parameters (e.g. Y1[mu:sigma]) or uses constrains (Y1~beta*X1), \code{as.lava=FALSE} will use the names specified by the user (e.g. mu, sigma, beta) while \code{as.lava=TRUE} will use the name of the first link defining the parameter.
+When the use specify names for the coefficients (e.g. Y1[mu:sigma]) or uses constrains (Y1~beta*X1), \code{as.lava=FALSE} will use the names specified by the user (e.g. mu, sigma, beta) while \code{as.lava=TRUE} will use the name of the first link defining the coefficient.
 }
 \examples{
+\dontrun{
+skeleton <- lavaSearch2::skeleton
+skeleton.lvm <- lavaSearch2::skeleton.lvm
+skeleton.lvmfit <- lavaSearch2::skeleton.lvmfit
+
 ## without constrain
 m <- lvm(Y1~X1+X2+eta,Y2~X3+eta,Y3~eta)
 latent(m) <- ~eta
@@ -104,3 +103,10 @@ skeleton(e, data = M.data, p = pars(e), as.lava = FALSE,
          update.value = FALSE)$skeleton
 
 }
+}
+\concept{
+small sample inference
+
+derivative of the score equation
+}
+\keyword{internal}
