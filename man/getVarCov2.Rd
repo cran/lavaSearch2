@@ -2,48 +2,31 @@
 % Please edit documentation in R/Utils-nlme.R
 \name{getVarCov2}
 \alias{getVarCov2}
-\alias{.getVarCov2}
-\alias{.getVarCov2.gls}
-\alias{.getVarCov2.lme}
+\alias{getVarCov2.gls}
+\alias{getVarCov2.lme}
 \title{Reconstruct the Marginal Variance Covariance Matrix from a nlme Model}
 \usage{
-.getVarCov2(object, ...)
+getVarCov2(object, ...)
 
-\method{.getVarCov2}{gls}(object, param, attr.param, endogenous,
-  name.endogenous, n.endogenous, cluster, n.cluster, ...)
+\method{getVarCov2}{gls}(object, data = NULL, cluster, ...)
 
-\method{.getVarCov2}{lme}(object, param, attr.param, endogenous,
-  name.endogenous, n.endogenous, cluster, n.cluster, ...)
+\method{getVarCov2}{lme}(object, data = NULL, cluster, ...)
 }
 \arguments{
 \item{object}{a \code{gls} or \code{lme} object}
 
-\item{...}{[internal] Only used by the generic method.}
+\item{...}{[internal] only used by the generic method.}
 
-\item{param}{[numeric vector] the mean and variance coefficients.}
+\item{data}{[data.frame] the data set.}
 
-\item{attr.param}{[character vector] the type of each coefficients (mean or variance).}
-
-\item{endogenous}{[integer vector] the endogenous variable to which each observation corresponds.}
-
-\item{name.endogenous}{[character vector] the name of the endogenous variables.}
-
-\item{n.endogenous}{[integer >0] the number of endogenous variables.}
-
-\item{cluster}{[vector] the grouping variable relative to which the observations are iid.
-Only required for \code{gls} models with no correlation argument.}
-
-\item{n.cluster}{[integer >0] the number of groups.}
+\item{cluster}{[integer vector] the grouping variable relative to which the observations are iid.}
 }
 \value{
-A list containing:
-\itemize{
-\item Omega: the marginal variance covariance matrix for a full sample.
-\item ls.indexOmega: a list containing for each sample the subset of endogenous variables available.
-}
+A list containing the residual variance-covariance matrix in the element Omega.
 }
 \description{
 Reconstruct the marginal variance covariance matrix from a nlme model.
+Only compatible with specific correlation and variance structure. #'
 }
 \details{
 The marginal variance covariance matrix for gls model is of the form:
@@ -53,10 +36,54 @@ The marginal variance covariance matrix for gls model is of the form:
 \tab . \tab \eqn{\sigma^2 \sigma_2^2} \tab \eqn{\sigma^2 \sigma_3 \rho_{1,3}} \cr
 \tab . \tab . \tab \eqn{\sigma^2 \sigma_3^2}
 }
+}
+\examples{
 
-The marginal variance covariance matrix for lme model is of the form:
+## simulate data 
+library(nlme)
+n <- 5e1
+mSim <- lvm(c(Y1~1*eta,Y2~1*eta,Y3~1*eta,eta~G))
+latent(mSim) <- ~eta
+transform(mSim,Id~Y1) <- function(x){1:NROW(x)}
+set.seed(10)
+dW <- lava::sim(mSim,n,latent = FALSE)
+dW <- dW[order(dW$Id),,drop=FALSE]
+dL <- reshape2::melt(dW,id.vars = c("G","Id"), variable.name = "time")
+dL <- dL[order(dL$Id),,drop=FALSE]
+dL$Z1 <- rnorm(NROW(dL))
+dL$time.num <- as.numeric(as.factor(dL$time))
+
+#### iid model #### 
+e1.gls <- nlme::gls(Y1 ~ G, data = dW, method = "ML")
+getVarCov2(e1.gls, cluster = 1:n)$Omega
+
+#### heteroschedasticity ####
+dW$group <- rbinom(n, size = 1, prob = 1/2)
+dW$repetition <- as.numeric(as.factor(dW$group))
+e2a.gls <- nlme::gls(Y1 ~ G, data = dW, method = "ML",
+                    weights = varIdent(form =~ repetition|group))
+getVarCov2(e2a.gls, cluster = 1:n)$Omega
+
+
+e2b.gls <- nlme::gls(value ~ 0+time + time:G,
+                   weight = varIdent(form = ~ time.num|time),
+                   data = dL, method = "ML")
+getVarCov2(e2b.gls, cluster = "Id")$Omega
+
+#### compound symmetry ####
+e3.gls <- nlme::gls(value ~ time + G,
+                   correlation = corCompSymm(form = ~1| Id),
+                   data = dL, method = "ML")
+getVarCov2(e3.gls)$Omega
+
+#### unstructured ####
+e4.gls <- nlme::gls(value ~ time,
+                    correlation = corSymm(form = ~time.num| Id),
+                    weight = varIdent(form = ~ 1|time),
+                    data = dL, method = "ML")
+getVarCov2(e4.gls)$Omega
+
 }
 \concept{
 extractor
 }
-\keyword{internal}

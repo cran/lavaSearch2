@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: jan 30 2018 (14:33) 
 ## Version: 
-## Last-Updated: feb  6 2018 (09:41) 
+## Last-Updated: mar 15 2018 (12:21) 
 ##           By: Brice Ozenne
-##     Update #: 246
+##     Update #: 312
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -17,21 +17,18 @@
 
 ## * Documentation - compare2
 #' @title Test Linear Hypotheses with small sample correction
-#' @description Test Linear Hypotheses using a Wald or an F statistic.
+#' @description Test Linear Hypotheses using a multivariate Wald statistic.
 #' Similar to \code{lava::compare} but with small sample correction.
 #' @name compare2
 #'
 #' @param object an object that inherits from lm/gls/lme/lvmfit.
 #' @param bias.correct [logical] should the standard errors of the coefficients be corrected for small sample bias? Argument passed to \code{sCorrect}.
-#' @param numeric.derivative [logical] should a numerical derivative be used to compute the first derivative of the information matrix?
-#' Otherwise an analytic formula is used.
-#' Argument passed to \code{sCorrect}.
-#' @param cluster [vector] the grouping variable relative to which the observations are iid.
-#' Only required for \code{gls} models with no correlation argument.
-#' Argument passed to \code{sCorrect}.
+#' @param cluster [integer vector] the grouping variable relative to which the observations are iid.
+#' Only required for \code{gls} models without correlation structure.
 #' @param par [vector of characters] expression defining the linear hypotheses to be tested.
 #' See the examples section. 
 #' @param contrast [matrix] a contrast matrix defining the left hand side of the linear hypotheses to be tested.
+#' @param robust [logical] should the robust standard errors be used instead of the model based standard errors?
 #' @param null [vector] the right hand side of the linear hypotheses to be tested.
 #' @param as.lava [logical] should the output be similar to the one return by \code{lava::compare}?
 #' @param level [numeric 0-1] the confidence level of the confidence interval.
@@ -71,7 +68,7 @@
 #' e.lm <- lm(Y~X1+X2, data = df.data)
 #' anova(e.lm)
 #' compare2(e.lm, par = c("X1b=0","X1c=0"))
-#'
+#' 
 #' ## or first compute the derivative of the information matrix
 #' sCorrect(e.lm) <- TRUE
 #' 
@@ -103,16 +100,16 @@
 ## * compare2.lm
 #' @rdname compare2
 #' @export
-compare2.lm <- function(object, bias.correct = TRUE, numeric.derivative = FALSE, ...){
-    object$dVcov  <- sCorrect(object, bias.correct = bias.correct, numeric.derivative = numeric.derivative)
+compare2.lm <- function(object, bias.correct = TRUE, ...){
+    sCorrect(object) <- bias.correct
     return(.compare2(object, ...))
 }
 
 ## * compare2.gls
 #' @rdname compare2
 #' @export
-compare2.gls <- function(object, bias.correct = TRUE, numeric.derivative = FALSE, cluster = NULL, ...){
-    object$dVcov  <- sCorrect(object, bias.correct = bias.correct, numeric.derivative = numeric.derivative, cluster = cluster)
+compare2.gls <- function(object, bias.correct = TRUE, cluster = NULL, ...){
+    sCorrect(object, cluster = cluster) <- bias.correct
     return(.compare2(object, ...))
 }
 
@@ -132,36 +129,50 @@ compare2.lvmfit <- compare2.lm
 compare2.lm2 <- function(object, ...){
     return(.compare2(object, ...))
 }
+
 ## * compare2.gls2
 #' @rdname compare2
 #' @export
-compare2.gls2 <- compare2.lm2
+compare2.gls2 <- function(object, ...){
+    return(.compare2(object, ...))
+}
+
 ## * compare2.lme2
 #' @rdname compare2
 #' @export
-compare2.lme2 <- compare2.lm2
+compare2.lme2 <- function(object, ...){
+    return(.compare2(object, ...))
+}
+
 ## * compare2.lvmfit2
 #' @rdname compare2
 #' @export
-compare2.lvmfit2 <- compare2.lm2
+compare2.lvmfit2 <- function(object, ...){
+    return(.compare2(object, ...))
+}
 
 ## * .compare2
 #' @rdname compare2
 .compare2 <- function(object, par = NULL, contrast = NULL, null = NULL,
+                      robust = FALSE,
                       as.lava = TRUE, level = 0.95){
 
     ## ** extract information
-    dVcov.dtheta <- object$dVcov
-    
-    p <- attr(dVcov.dtheta, "param")
-    vcov.param <- attr(dVcov.dtheta, "vcov.param")
-    warn <- attr(vcov.param, "warning")
-    attr(dVcov.dtheta, "vcov.param") <- NULL
-    keep.param <- dimnames(dVcov.dtheta)[[3]]
+    dVcov.param <- object$sCorrect$dVcov.param
 
-    n.param <- length(p)
-    name.param <- names(p)
-        
+    param <- object$sCorrect$param
+    if(robust){
+        vcov.param <- crossprod(iid2(object))
+    }else{
+        vcov.param <- object$sCorrect$vcov.param
+        attr(vcov.param, "warning") <- NULL
+    }
+    warn <- attr(object$sCorrect$vcov.param, "warning")
+    keep.param <- dimnames(dVcov.param)[[3]]
+
+    n.param <- length(param)
+    name.param <- names(param)
+
     ### ** normalize linear hypotheses
     if(!is.null(par)){
         
@@ -210,28 +221,50 @@ compare2.lvmfit2 <- compare2.lm2
                                                      c("estimate","std","statistic","df","p-value"))
                                      ))
 
-    ### ** Compute degrees of freedom
-    calcDF <- function(M.C){ # M.C <- C
-        C.vcov.C <- rowSums(M.C %*% vcov.param * M.C)
+### ** Compute degrees of freedom
+
+    if(is.null(dVcov.param)){
+        df.Wald <- rep(Inf, n.hypo)
+        df.F <- Inf
+    }else{
+        vcov.tempo <- object$sCorrect$vcov.param
+        attr(vcov.tempo, "warning") <- NULL
+
+        calcDF <- function(M.C){ # M.C <- C
+            C.vcov.C <- rowSums(M.C %*% vcov.tempo * M.C)
     
-        C.dVcov.C <- sapply(keep.param, function(x){
-            rowSums(M.C %*% dVcov.dtheta[,,x] * M.C)
-        })
-        numerator <- 2 *(C.vcov.C)^2
-        denom <- rowSums(C.dVcov.C %*% vcov.param[keep.param,keep.param,drop=FALSE] * C.dVcov.C)
-        df <- numerator/denom
-        return(df)
+            C.dVcov.C <- sapply(keep.param, function(x){
+                rowSums(M.C %*% dVcov.param[,,x] * M.C)
+            })
+            numerator <- 2 *(C.vcov.C)^2
+            denom <- rowSums(C.dVcov.C %*% vcov.tempo[keep.param,keep.param,drop=FALSE] * C.dVcov.C)
+            df <- numerator/denom
+            return(df)
+        }
+
+        ## univariate
+        df.Wald  <- calcDF(contrast)
+
+        ## multivariate
+        svd.tempo <- eigen(solve(contrast %*% vcov.tempo %*% t(contrast)))
+        D.svd <- diag(svd.tempo$values, nrow = n.hypo, ncol = n.hypo)
+        P.svd <- svd.tempo$vectors
+     
+        C.anova <- sqrt(D.svd) %*% t(P.svd) %*% contrast
+        ## Fstat - crossprod(C.anova %*% p)/n.hypo
+        nu_m <- calcDF(C.anova) ## degree of freedom of the independent t statistics
+    
+        EQ <- sum(nu_m/(nu_m-2))
+        df.F <- 2*EQ / (EQ - n.hypo)
+
     }
 
-    ### *** Wald test
+### ** Wald test
     ## statistic
-    C.p <- (contrast %*% p) - null
+    C.p <- (contrast %*% param) - null
     C.vcov.C <- contrast %*% vcov.param %*% t(contrast)
     sd.C.p <- sqrt(diag(C.vcov.C))
     stat.Wald <- C.p/sd.C.p
-    
-    ## df
-    df.Wald  <- calcDF(contrast)
     
     ## store
     df.table$estimate <- as.numeric(C.p)
@@ -239,31 +272,24 @@ compare2.lvmfit2 <- compare2.lm2
     df.table$statistic <- as.numeric(stat.Wald)
     df.table$df <- as.numeric(df.Wald)
     df.table$`p-value` <- as.numeric(2*(1-stats::pt(abs(df.table$statistic), df = df.table$df)))
-
-    ### *** F test
-    i.C.vcov.C <- solve(C.vcov.C)
-    stat.F <- t(C.p) %*% i.C.vcov.C %*% (C.p) / n.hypo
-
-    ## df
-    svd.tempo <- eigen(i.C.vcov.C)
-    D.svd <- diag(svd.tempo$values, nrow = n.hypo, ncol = n.hypo)
-    P.svd <- svd.tempo$vectors
-     
-    C.anova <- sqrt(D.svd) %*% t(P.svd) %*% contrast
-    ## Fstat - crossprod(C.anova %*% p)/n.hypo
-    nu_m <- calcDF(C.anova) ## degree of freedom of the independent t statistics
     
-    EQ <- sum(nu_m/(nu_m-2))
-    df.F <- 2*EQ / (EQ - n.hypo)
-
+### ** multivariate F test
+    ## statistic
+    stat.F <- try(t(C.p) %*% solve(C.vcov.C)%*% (C.p) / n.hypo, silent = TRUE)
+     
     ## store
     df.table <- rbind(df.table, global = rep(NA,5))
-    df.table["global", "statistic"] <- as.numeric(stat.F)
-    df.table["global", "df"] <- df.F
-    df.table["global", "p-value"] <- 1 - stats::pf(df.table["global", "statistic"],
-                                                   df1 = n.hypo,
-                                                   df2 = df.table["global", "df"])
-
+    if(!inherits(stat.F,"try-error")){
+        df.table["global", "statistic"] <- as.numeric(stat.F)
+        df.table["global", "df"] <- df.F
+        df.table["global", "p-value"] <- 1 - stats::pf(df.table["global", "statistic"],
+                                                       df1 = n.hypo,
+                                                       df2 = df.table["global", "df"])
+        error <- NULL
+    }else{
+        error <- df.table
+    }
+    
     ## ** export
     if(as.lava == TRUE){
         level.inf <- (1-level)/2
@@ -297,6 +323,8 @@ compare2.lvmfit2 <- compare2.lm2
         attr(out, "warning") <- warn
         attr(out, "contrast") <- contrast
     }
+
+    attr(out,"error") <- error
     return(out)
 }
 

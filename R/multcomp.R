@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: nov 29 2017 (12:56) 
 ## Version: 
-## Last-Updated: feb  5 2018 (18:16) 
+## Last-Updated: mar 12 2018 (16:59) 
 ##           By: Brice Ozenne
-##     Update #: 342
+##     Update #: 358
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -148,12 +148,12 @@ glht2.lvmfit <- function(model, linfct, rhs = 0,
         }
     }
 
-    ### ** pre-compute quantities for the small sample correction
-    if(is.null(model$dVcov)){
-        sCorrect(model, return.score = bias.correct) <- bias.correct
+### ** pre-compute quantities for the small sample correction
+    if(!inherits(model,"lvmfit2")){
+        sCorrect(model, score = robust) <- bias.correct
     }
 
-    ### ** Wald test with small sample correction
+### ** Wald test with small sample correction
     name.param <- colnames(linfct)
     n.param <- NCOL(linfct)
     n.hypo <- NROW(linfct)
@@ -167,12 +167,12 @@ glht2.lvmfit <- function(model, linfct, rhs = 0,
     
     ### ** compute variance-covariance matrix
     if(robust){
-        vcov.model <- crossprod(attr(model$dVcov, "score") %*% attr(model$dVcov, "vcov.param"))
+        vcov.model <- crossprod(iid2(model))
     }else{
-        vcov.model <- attr(model$dVcov,"vcov.param")
+        vcov.model <- model$sCorrect$vcov.param
     }
-        
-    ### ** convert to the appropriate format
+
+### ** convert to the appropriate format
     out <- list(model = model,
                 linfct = linfct,
                 rhs = unname(rhs),
@@ -235,17 +235,17 @@ glht2.mmm <- function (model, linfct, rhs = 0, bias.correct = TRUE, robust = FAL
 
     ## ** Extract influence functions from all models    
     ls.res <- lapply(1:n.model, function(iM){ ## iM <- 1
-   
-        ### *** Pre-compute quantities
-        if(is.null(model[[iM]]$dVcov)){
-            sCorrect(model[[iM]], return.score = TRUE) <- bias.correct
+
+### *** Pre-compute quantities
+        if(!inherits(model[[iM]],"lm2") && !inherits(model[[iM]],"gls2") && !inherits(model[[iM]],"lme2") && !inherits(model[[iM]],"lvmfit2")){
+            sCorrect(model[[iM]], score = TRUE) <- bias.correct
         }
-        out$param <- attr(model[[iM]]$dVcov, "param")                              
+        out$param <- model[[iM]]$sCorrect$param
         name.param <- names(out$param)
         name.object.param <- paste0(name.model[iM],": ",name.param)
         out$param <- setNames(out$param, name.object.param)
         
-        ### *** Compute df for each test
+### *** Compute df for each test
         ## here null does not matter since we only extract the degrees of freedom
         iContrast <- ls.contrast[[iM]]
         colnames(iContrast) <- name.param
@@ -253,13 +253,8 @@ glht2.mmm <- function (model, linfct, rhs = 0, bias.correct = TRUE, robust = FAL
         iWald <- compare2(model[[iM]], contrast = iContrast, as.lava = FALSE)
         out$df <- iWald[1:(NROW(iWald)-1),"df"]
 
-        ### *** get iid decomposition
-        out$iid <- attr(model[[iM]]$dVcov, "score") %*% attr(model[[iM]]$dVcov, "vcov.param")
-        if(robust == FALSE){
-            iVec.sigma <- sqrt(diag(attr(model[[iM]]$dVcov, "vcov.param")))
-            iVec.sigma.robust <- sqrt(apply(out$iid^2,2,sum))
-            out$iid <- sweep(out$iid, MARGIN = 2, FUN = "*", STATS = iVec.sigma/iVec.sigma.robust)
-        }
+### *** get iid decomposition
+        out$iid <- iid2(model[[iM]], robust = robust)
         colnames(out$iid) <- name.object.param
             
         return(out)

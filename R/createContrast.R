@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: jan 31 2018 (12:05) 
 ## Version: 
-## Last-Updated: feb  5 2018 (15:51) 
+## Last-Updated: mar 12 2018 (18:01) 
 ##           By: Brice Ozenne
-##     Update #: 195
+##     Update #: 200
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -28,6 +28,7 @@
 #' @param var.test [character] a regular expression that is used to identify the coefficients to be tested using \code{grep}. Each coefficient will be tested in a separate hypothesis. When this argument is used, the argument \code{par} is disregarded.
 #' @param name.param [internal] the names of all the model coefficients.
 #' @param add.rowname [internal] should a name be defined for each hypothesis.
+#' @param rowname.rhs should the right hand side of the null hypothesis be added to the name.
 #' @param ... [internal] Only used by the generic method.
 #'
 #' @details
@@ -82,7 +83,8 @@
 ## * createContrast.character
 #' @rdname createContrast
 #' @export
-createContrast.character <- function(object, name.param, add.rowname = TRUE,
+createContrast.character <- function(object, name.param,
+                                     add.rowname = TRUE, rowname.rhs = TRUE,
                                      ...){
 
     n.param <- length(name.param)
@@ -133,13 +135,13 @@ createContrast.character <- function(object, name.param, add.rowname = TRUE,
                     stop(txt.message)                    
                 }
 
-                test.sign <- length(grep("-",strsplit(names(iRh)[iCoef], split = iName)[[1]][1]))>0
+                test.sign <- length(grep("-",strsplit(iRh[iCoef], split = iName)[[1]][1]))>0
                 contrast[iH,iName] <- c(1,-1)[test.sign+1] * iFactor
             }
         }
     
         if(add.rowname){
-            name.hypo <- .contrast2name(contrast, null = null)
+            name.hypo <- .contrast2name(contrast, null = if(rowname.rhs){null}else{NULL})
             rownames(contrast) <- name.hypo
             null <- setNames(null, name.hypo)
         }
@@ -249,7 +251,7 @@ createContrast.list <- function(object, par = NULL, add.variance, var.test = NUL
     }
 
     ## ** create contrast matrix relative to each model
-    out$mlf <- lapply(name.model, function(iModel){ ## x <- name.model[1]        
+    out$mlf <- lapply(name.model, function(iModel){ ## iModel <- name.model[1]        
         ## only keep columns corresponding to coefficients belonging the the current model
         iContrast <- out$contrast[,ls.object.coefname[[iModel]],drop=FALSE]
 
@@ -257,9 +259,12 @@ createContrast.list <- function(object, par = NULL, add.variance, var.test = NUL
         colnames(iContrast) <- ls.coefname[[iModel]]
 
         ## remove lines in the contrast matrix containing only 0
-        index.n0 <- which(rowSums(iContrast!=0)!=0)
-        return(iContrast[index.n0,,drop=FALSE])
-        ## return(iContrast)
+        if(NROW(iContrast)>0){
+          index.n0 <- which(rowSums(iContrast!=0)!=0)
+          return(iContrast[index.n0,,drop=FALSE])
+        }else{
+          return(iContrast)
+        }
     })
     names(out$mlf) <- name.model    
     class(out$mlf) <- "mlf"

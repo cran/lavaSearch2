@@ -8,6 +8,7 @@
 #' @param design.matrix [logical] should the data be extracted after transformation (e.g. conversion of categorical variables to dummy variables)?
 #' Otherwise the original data will be returned.
 #' @param as.data.frame [logical] should the output be converted into a \code{data.frame} object?
+#' @param envir [environment] the environment from which to search the data.
 #'
 #' @return a dataset.
 #' 
@@ -61,14 +62,15 @@
 #' @concept extractor
 #' @export
 `extractData` <-
-    function(object, design.matrix, as.data.frame){
+    function(object, design.matrix, as.data.frame, envir){
         UseMethod("extractData", object)
     }
 
 ## * method extractData.lm
 #' @rdname extractData
 #' @export
-extractData.lm <- function(object, design.matrix = FALSE, as.data.frame = TRUE){
+extractData.lm <- function(object, design.matrix = FALSE, as.data.frame = TRUE,
+                           envir = environment()){
     ## ** check arguments
     validLogical(design.matrix, valid.length = 1)
     validLogical(as.data.frame, valid.length = 1)
@@ -81,7 +83,7 @@ extractData.lm <- function(object, design.matrix = FALSE, as.data.frame = TRUE){
         ## this is not enougth for modelsearch2
         ## data <- try(model.frame(object), silent = TRUE)
         ## data <- object$model
-        data <- evalInParentEnv(object$call$data, environment())
+        data <- evalInParentEnv(object$call$data, envir = envir)
         if("function" %in% class(data)){
             stop("data has the same name as a function \n",
                  "consider renaming data before generating object \n")
@@ -103,7 +105,8 @@ extractData.lm <- function(object, design.matrix = FALSE, as.data.frame = TRUE){
 ## * method extractData.coxph
 #' @rdname extractData
 #' @export
-extractData.coxph <- function(object, design.matrix = FALSE, as.data.frame = TRUE){
+extractData.coxph <- function(object, design.matrix = FALSE, as.data.frame = TRUE,
+                              envir = environment()){
     ## ** check arguments
     validLogical(design.matrix, valid.length = 1)
     validLogical(as.data.frame, valid.length = 1)
@@ -129,12 +132,12 @@ extractData.coxph <- function(object, design.matrix = FALSE, as.data.frame = TRU
         } 
       
         if(length(strataVar)>0){         
-            data2 <- evalInParentEnv(object$call$data, environment())
+            data2 <- evalInParentEnv(object$call$data, envir)
             data <- cbind(as.data.frame(data),
                           as.data.frame(data2)[,strataVar,drop=FALSE])        
         }
     }else{
-        data <- evalInParentEnv(object$call$data, environment())
+        data <- evalInParentEnv(object$call$data, envir = environment())
         
         if("function" %in% class(data)){
             stop("data has the same name as a function \n",
@@ -163,7 +166,8 @@ extractData.cph <- extractData.coxph
 ## * method extractData.lvmfit
 #' @rdname extractData
 #' @export
-extractData.lvmfit <- function(object, design.matrix = FALSE, as.data.frame = TRUE){
+extractData.lvmfit <- function(object, design.matrix = FALSE, as.data.frame = TRUE,
+                               envir = environment()){
     ## ** check arguments
     validLogical(design.matrix, valid.length = 1)
     validLogical(as.data.frame, valid.length = 1)
@@ -174,7 +178,7 @@ extractData.lvmfit <- function(object, design.matrix = FALSE, as.data.frame = TR
         keep.cols <- intersect(c("(Intercept)",vars(object)), names(data))
         data <- data[,keep.cols,drop=FALSE]
     }else{
-        data <- evalInParentEnv(object$call$data, environment())
+        data <- evalInParentEnv(object$call$data, envir = envir)
         
         if("function" %in% class(data)){
             stop("data has the same name as a function \n",
@@ -199,7 +203,8 @@ extractData.lvmfit <- function(object, design.matrix = FALSE, as.data.frame = TR
 ## * method extractData.gls
 #' @rdname extractData
 #' @export
-extractData.gls <- function(object, design.matrix = FALSE, as.data.frame = TRUE){
+extractData.gls <- function(object, design.matrix = FALSE, as.data.frame = TRUE,
+                            envir = environment()){
     ## ** check arguments
     validLogical(design.matrix, valid.length = 1)
     validLogical(as.data.frame, valid.length = 1)
@@ -216,7 +221,7 @@ extractData.gls <- function(object, design.matrix = FALSE, as.data.frame = TRUE)
         data <- try(nlme::getData(object), silent = TRUE)
 
     }else{
-        data <- evalInParentEnv(object$call$data, environment())
+        data <- evalInParentEnv(object$call$data, envir = envir)
         
         if("function" %in% class(data)){
             stop("data has the same name as a function \n",

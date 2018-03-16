@@ -14,7 +14,7 @@
 createContrast(object, ...)
 
 \method{createContrast}{character}(object, name.param, add.rowname = TRUE,
-  ...)
+  rowname.rhs = TRUE, ...)
 
 \method{createContrast}{lm}(object, par, add.variance, ...)
 
@@ -38,6 +38,8 @@ createContrast(object, ...)
 \item{name.param}{[internal] the names of all the model coefficients.}
 
 \item{add.rowname}{[internal] should a name be defined for each hypothesis.}
+
+\item{rowname.rhs}{should the right hand side of the null hypothesis be added to the name.}
 
 \item{par}{[vector of characters] expression defining the linear hypotheses to be tested. See the examples section.}
 

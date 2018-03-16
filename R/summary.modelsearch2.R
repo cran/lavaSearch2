@@ -3,9 +3,9 @@
 ## author: Brice Ozenne
 ## created: aug 30 2017 (10:46) 
 ## Version: 
-## last-updated: jan 18 2018 (17:35) 
+## last-updated: mar 13 2018 (09:43) 
 ##           By: Brice Ozenne
-##     Update #: 68
+##     Update #: 71
 #----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -16,6 +16,13 @@
 ### Code:
 
 ## * method summary.modelsearch2
+#' @title summary Method for modelsearch2 Objects
+#' @description summary method for modelsearch2 objects.
+#'
+#' @param object output of the \code{modelsearch2} function.
+#' @param display should the summary be printed in the terminal.
+#' @param ... [internal] only used by the generic method.
+#' 
 #' @method summary modelsearch2
 #' @export
 summary.modelsearch2 <- function(object, display = TRUE, ...){

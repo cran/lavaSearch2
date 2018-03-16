@@ -3,9 +3,9 @@
 ## author: Brice Ozenne
 ## created: sep 22 2017 (11:57) 
 ## Version: 
-## last-updated: feb  5 2018 (18:09) 
+## last-updated: mar 13 2018 (09:48) 
 ##           By: Brice Ozenne
-##     Update #: 278
+##     Update #: 279
 #----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -31,7 +31,7 @@
 #' @param method.p.adjust [character] the method used to adjust the p.values for multiple comparisons.
 #' Can be any method that is valid for the \code{stats::p.adjust} function (e.g. \code{"fdr"}).
 #' Ignored when using the max statistic.
-#' @param trace [logical] should the execution be traced?
+#' @param trace [logical] should the execution of the function be traced?
 #' @param ... arguments passed to \code{\link{modelsearch2}}.
 #'
 #' @details This function calls the \code{\link{modelsearch2}} function

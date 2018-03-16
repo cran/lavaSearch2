@@ -3,9 +3,9 @@
 ## author: Brice Ozenne
 ## created: jun 23 2017 (09:15) 
 ## Version: 
-## last-updated: feb  5 2018 (18:15) 
+## last-updated: mar 13 2018 (14:34) 
 ##           By: Brice Ozenne
-##     Update #: 303
+##     Update #: 304
 #----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -119,7 +119,8 @@ iidJack.default <- function(object,data=NULL,grouping=NULL,ncpus=1,
 
     ## ** extract data
     if(is.null(data)){
-        myData <- extractData(object, design.matrix = FALSE, as.data.frame = TRUE)
+        myData <- extractData(object, design.matrix = FALSE, as.data.frame = TRUE,
+                              envir = parent.env(environment()))
     }else{ 
         myData <-  as.data.frame(data)
     }

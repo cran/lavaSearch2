@@ -2,66 +2,64 @@
 % Please edit documentation in R/residuals2.R
 \name{residuals2}
 \alias{residuals2}
-\alias{residuals2.lm}
-\alias{residuals2.gls}
-\alias{residuals2.lme}
-\alias{residuals2.lvmfit}
-\title{Compute the Residuals from a lvmfit Object}
+\alias{residuals2.lm2}
+\alias{residuals2.gls2}
+\alias{residuals2.lme2}
+\alias{residuals2.lvmfit2}
+\title{Extract Corrected Residuals}
 \usage{
 residuals2(object, ...)
 
-\method{residuals2}{lm}(object, bias.correct = TRUE,
-  return.vcov.param = FALSE, ...)
+\method{residuals2}{lm2}(object, param = NULL, data = NULL, ...)
 
-\method{residuals2}{gls}(object, cluster = NULL, p = NULL, data = NULL,
-  bias.correct = TRUE, as.clubSandwich = TRUE, second.order = FALSE,
-  return.vcov.param = FALSE, return.prepareScore2 = FALSE, ...)
+\method{residuals2}{gls2}(object, param = NULL, data = NULL, ...)
 
-\method{residuals2}{lme}(object, cluster = NULL, p = NULL, data = NULL,
-  bias.correct = TRUE, as.clubSandwich = TRUE, second.order = FALSE,
-  return.vcov.param = FALSE, return.prepareScore2 = FALSE, ...)
+\method{residuals2}{lme2}(object, param = NULL, data = NULL, ...)
 
-\method{residuals2}{lvmfit}(object, p = NULL, data = NULL,
-  bias.correct = TRUE, as.clubSandwich = TRUE, second.order = FALSE,
-  return.vcov.param = FALSE, return.prepareScore2 = FALSE, ...)
+\method{residuals2}{lvmfit2}(object, param = NULL, data = NULL, ...)
 }
 \arguments{
-\item{object}{a \code{lvmfit} object.}
+\item{object}{a \code{lm2}, \code{gls2}, \code{lme2}, or \code{lvmfit2} object.}
 
-\item{...}{[internal] only used by the generic method.}
+\item{...}{arguments to be passed to \code{sCorrect}.}
 
-\item{bias.correct}{[logical] should the leverage-adjusted residuals be used to compute the score?
-Otherwise the raw residuals will be used.}
+\item{param}{[optional] the fitted parameters.}
 
-\item{return.vcov.param}{[logical]should the variance covariance matrix of the coefficients be included in the output?}
-
-\item{cluster}{[vector] the grouping variable relative to which the observations are iid.
-Only required for \code{gls} models with no correlation argument.}
-
-\item{p}{[numeric vector, optional] vector of coefficients at which to evaluate the score.}
-
-\item{data}{[data.frame, optional] data set.}
-
-\item{as.clubSandwich}{[logical] method to take the square root of a non symmetric matrix. If \code{TRUE} use a method implemented in the \code{clubSandwich} package.}
-
-\item{second.order}{[logical] should the terms relative to the third derivative of the likelihood be be pre-computed?}
-
-\item{return.prepareScore2}{[logical] should the quantities that have been pre-computed be returned?}
+\item{data}{[optional] the data set.}
 }
 \value{
 a matrix containing the residuals relative to each sample (in rows)
 and each endogenous variable (in column).
-Can also contain attributes like \code{prepareScore2} or \code{vcov.param}.
 }
 \description{
-Compute the residuals from a lvmfit object.
+Extract correct residuals from a gaussian linear model.
+}
+\details{
+If argument \code{p} or \code{data} is not null, then the small sample size correction is recomputed to correct the residuals.
 }
 \examples{
+## simulate data
+set.seed(10)
 m <- lvm(Y1~eta,Y2~eta,Y3~eta)
 latent(m) <- ~eta
+d <- sim(m,20, latent = FALSE)
 
-e <- estimate(m,sim(m,1e2))
-residuals2(e)
+## standard linear model
+e.lm <- lm(Y1~Y2, data = d)
+sCorrect(e.lm) <- TRUE
+
+sigma(e.lm)^2
+mean(residuals(e.lm)^2)
+mean(residuals2(e.lm)^2)
+
+## latent variable model
+e.lvm <- estimate(m, data = d)
+sCorrect(e.lvm) <- TRUE
+mean(residuals2(e.lvm)^2)
+
+}
+\seealso{
+\code{\link{sCorrect}} to obtain \code{lm2}, \code{gls2}, \code{lme2}, or \code{lvmfit2} objects.
 }
 \concept{
 small sample inference

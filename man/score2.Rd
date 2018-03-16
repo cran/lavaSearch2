@@ -6,77 +6,80 @@
 \alias{score2.gls}
 \alias{score2.lme}
 \alias{score2.lvmfit}
-\title{Compute the Score Directly from the Gaussian Density}
+\alias{score2.lm2}
+\alias{score2.gls2}
+\alias{score2.lme2}
+\alias{score2.lvmfit2}
+\title{Extract The Individual Score}
 \usage{
 score2(object, ...)
 
-\method{score2}{lm}(object, indiv = TRUE, return.vcov.param = FALSE, ...)
+\method{score2}{lm}(object, param = NULL, data = NULL,
+  bias.correct = TRUE, ...)
 
-\method{score2}{gls}(object, cluster, p = NULL, data = NULL, indiv = TRUE,
-  return.vcov.param = FALSE, ...)
+\method{score2}{gls}(object, param = NULL, data = NULL,
+  bias.correct = TRUE, ...)
 
-\method{score2}{lme}(object, cluster, p = NULL, data = NULL, indiv = TRUE,
-  return.vcov.param = FALSE, ...)
+\method{score2}{lme}(object, param = NULL, data = NULL,
+  bias.correct = TRUE, ...)
 
-\method{score2}{lvmfit}(object, p = NULL, data = NULL, indiv = TRUE,
-  return.vcov.param = FALSE, ...)
+\method{score2}{lvmfit}(object, param = NULL, data = NULL,
+  bias.correct = TRUE, ...)
+
+\method{score2}{lm2}(object, param = NULL, data = NULL, ...)
+
+\method{score2}{gls2}(object, param = NULL, data = NULL, ...)
+
+\method{score2}{lme2}(object, param = NULL, data = NULL, ...)
+
+\method{score2}{lvmfit2}(object, param = NULL, data = NULL, ...)
 }
 \arguments{
-\item{object}{a linear model or a latent variable model.}
+\item{object}{a linear model or a latent variable model}
 
-\item{...}{arguments to be passed to \code{\link{residuals2}}}
+\item{...}{arguments to be passed to \code{sCorrect}.}
 
-\item{indiv}{[logical] should the score relative to each observation be exported?
-Otherwise the total score (i.e. sum over all observations) will be exported.}
+\item{param}{[optional] the fitted parameters.}
 
-\item{return.vcov.param}{[logical] should the variance covariance matrix of the coefficients be included in the output?}
+\item{data}{[optional] the data set.}
 
-\item{cluster}{[vector] the grouping variable relative to which the observations are iid.
-Only required for \code{gls} models with no correlation argument.}
-
-\item{p}{[numeric vector, optional] vector of coefficients at which to evaluate the score.}
-
-\item{data}{[data.frame, optional] data set.}
+\item{bias.correct}{[logical] should the standard errors of the coefficients be corrected for small sample bias? Only relevant if the \code{sCorrect} function has not yet be applied to the object.}
 }
 \value{
-A matrix.
+A matrix containing the score relative to each sample (in rows)
+and each model coefficient (in columns).
 }
 \description{
-Compute the score directly from the gaussian density.
+Extract The Individual Score from a gaussian linear model.
 }
 \details{
-The log-likelihood of a lvm can written:
-\deqn{
-  l(\theta|Y,X) = \sum_{i=1}^{n} - \frac{p}{2} log(2\pi) - \frac{1}{2} log|\Omega(\theta))| - \frac{1}{2} (Y_i-\mu_i(\theta)) \Omega^{-1} (Y_i-\mu_i(\theta))^t
-}
-So the score is:
-\deqn{
-  s(\theta|Y,X) = \sum_{i=1}^{n}
-- \frac{1}{2} tr(\Omega(\theta)^{-1} \frac{\partial \Omega(\theta)}{\partial \theta})
-+  \frac{\partial \mu_i(\theta)}{\partial \theta} \Omega^{-1} (Y_i-\mu_i(\theta))^t 
-+ \frac{1}{2} (Y_i-\mu_i(\theta)) \Omega^{-1} \frac{\partial \Omega(\theta)}{\partial \theta} \Omega^{-1} (Y_i-\mu_i(\theta))^t
-}
-with:
-\deqn{ \frac{\partial \mu_i(\beta)}{\partial \nu} = 1 }
-\deqn{ \frac{\partial \mu_i(\beta)}{\partial K} = X_i }
-\deqn{ \frac{\partial \mu_i(\beta)}{\partial \alpha} = (1-B)^{-1}\Lambda }
-\deqn{ \frac{\partial \mu_i(\beta)}{\partial \Gamma} = X_i(1-B)^{-1}\Lambda }
-\deqn{ \frac{\partial \mu_i(\beta)}{\partial \lambda} = (\alpha + X_i \Gamma)(1-B)^{-1}\delta_{\lambda \in \Lambda} }
-\deqn{ \frac{\partial \mu_i(\beta)}{\partial b} = (\alpha + X_i \Gamma)(1-B)^{-1}\delta_{b \in B}(1-B)^{-1}\Lambda }
-and:
-\deqn{ \frac{\partial \Omega(\beta)}{\partial \psi} = \Lambda^t (1-B)^{-t} \delta_{\psi \in \Psi} (1-B) \Lambda }
-\deqn{ \frac{\partial \Omega(\beta)}{\partial \sigma} = \delta_{\sigma \in \Sigma} }
-\deqn{ \frac{\partial \Omega(\beta)}{\partial \lambda} = \delta_{\lambda \in \Lambda} (1-B)^{-t} \Psi (1-B)^{-1} \Lambda + \Lambda^t (1-B)^{-t} \Psi (1-B)^{-1} \delta_{\lambda \in \Lambda} }
-\deqn{ \frac{\partial \Omega(\beta)}{\partial b} = \Lambda^t (1-B)^{-t} \delta_{b \in B} (1-B)^{-t} \Psi (1-B)^{-1} \Lambda - \Lambda^t (1-B)^{-t} \Psi (1-B)^{-1} \delta_{b \in B} (1-B)^{-1} \Lambda}
+If argument \code{p} or \code{data} is not null, then the small sample size correction is recomputed to correct the influence function.
 }
 \examples{
+n <- 5e1
+p <- 3
+X.name <- paste0("X",1:p)
+link.lvm <- paste0("Y~",X.name)
+formula.lvm <- as.formula(paste0("Y~",paste0(X.name,collapse="+")))
 
-m <- lvm(Y1~eta,Y2~eta,Y3~eta)
-latent(m) <- ~eta
+m <- lvm(formula.lvm)
+distribution(m,~Id) <- sequence.lvm(0)
+set.seed(10)
+d <- sim(m,n)
 
-e <- estimate(m,sim(m,1e2))
-score2(e)
+## linear model
+e.lm <- lm(formula.lvm,data=d)
+score.tempo <- score2(e.lm, bias.correct = FALSE)
+colMeans(score.tempo)
 
+## latent variable model
+e.lvm <- estimate(lvm(formula.lvm),data=d)
+score.tempo <- score2(e.lvm, bias.correct = FALSE)
+range(score.tempo-score(e.lvm, indiv = TRUE))
+
+}
+\seealso{
+\code{\link{sCorrect}} to obtain \code{lm2}, \code{gls2}, \code{lme2}, or \code{lvmfit2} objects.
 }
 \concept{
 small sample inference

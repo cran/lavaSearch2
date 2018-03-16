@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: nov 16 2017 (10:36) 
 ## Version: 
-## Last-Updated: feb  5 2018 (13:49) 
+## Last-Updated: mar 13 2018 (13:25) 
 ##           By: Brice Ozenne
-##     Update #: 37
+##     Update #: 44
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -16,21 +16,19 @@
 ### Code:
 
 ## * header
+rm(list = ls())
 if(FALSE){ ## already called in test-all.R
-    rm(list = ls())
     library(testthat)
     library(lavaSearch2)
 }
 
 library(nlme)
 lava.options(symbols = c("~","~~"))
-.coef2 <- lavaSearch2:::.coef2
-.getGroups2 <- lavaSearch2:::.getGroups2
 
 context("Utils-nlme")
-n <- 5e1
 
-## * data
+## * simulation
+n <- 5e1
 mSim <- lvm(c(Y1~1*eta,Y2~1*eta,Y3~1*eta,Y4~1*eta,eta~G+Gender))
 latent(mSim) <- ~eta
 categorical(mSim, labels = c("M","F")) <- ~Gender
@@ -40,6 +38,17 @@ dW <- lava::sim(mSim,n,latent = FALSE)
 dW <- dW[order(dW$Id),,drop=FALSE]
 dL <- reshape2::melt(dW,id.vars = c("G","Id","Gender"), variable.name = "time")
 dL <- dL[order(dL$Id),,drop=FALSE]
+dL$time.num <- as.numeric(dL$time)
+
+## * Heteroschedasticity
+e.gls <- nlme::gls(value ~ time + G + Gender,
+                   weights = varIdent(form =~ 1|time),
+                   data = dL, method = "ML")
+test_that("Heteroschedasticity", {
+    vec.sigma <- c(1,coef(e.gls$modelStruct$varStruct, unconstrained = FALSE))
+    expect_equal(diag(vec.sigma^2 * sigma(e.gls)^2),
+                 unname(getVarCov2(e.gls, cluster = "Id")$Omega))
+})
 
 ## * Compound symmetry
 e.lme <- nlme::lme(value ~ time + G + Gender,
@@ -55,136 +64,54 @@ e.gls <- nlme::gls(value ~ time + G + Gender,
                    correlation = corCompSymm(form=~ 1|Id),
                    data = dL, method = "ML")
 
-vecCoef.lme <- .coef2(e.lme)
-vecCoef.lme.bis <- .coef2(e.lme.bis)
-vecCoef.gls <- .coef2(e.gls)
-
-groups.lme <- .getGroups2(e.lme)
-groups.lme.bis <- .getGroups2(e.lme.bis)
-groups.gls <- .getGroups2(e.gls)
-
 test_that("Compound symmetry", {
-    lsVcov.gls <- .getVarCov2(e.gls,
-                              param = vecCoef.gls,
-                              attr.param = attributes(vecCoef.gls),
-                              endogenous = groups.gls$endogenous,
-                              name.endogenous = groups.gls$name.endogenous,
-                              n.endogenous = groups.gls$n.endogenous,
-                              cluster = groups.gls$cluster,
-                              n.cluster = groups.gls$n.cluster)
-
     expect_equal(unclass(getVarCov(e.gls)),
-                 unname(lsVcov.gls$Omega))
-
-    lsVcov.lme <- .getVarCov2(e.lme,
-                              param = vecCoef.lme,
-                              attr.param = attributes(vecCoef.lme),
-                              endogenous = groups.lme$endogenous,
-                              name.endogenous = groups.lme$name.endogenous,
-                              n.endogenous = groups.lme$n.endogenous,
-                              cluster = groups.lme$cluster,
-                              n.cluster = groups.lme$n.cluster)
+                 unname(getVarCov2(e.gls)$Omega))
 
     expect_equal(unname(getVarCov(e.lme, type = "marginal", individuals = 1)[[1]]),
-                 unname(lsVcov.lme$Omega))
-
-    lsVcov.lme.bis <- .getVarCov2(e.lme.bis,
-                                  param = vecCoef.lme.bis,
-                                  attr.param = attributes(vecCoef.lme.bis),
-                                  endogenous = groups.lme.bis$endogenous,
-                                  name.endogenous = groups.lme.bis$name.endogenous,
-                                  n.endogenous = groups.lme.bis$n.endogenous,
-                                  cluster = groups.lme.bis$cluster,
-                                  n.cluster = groups.lme.bis$n.cluster)
+                 unname(getVarCov2(e.lme)$Omega))
 
     expect_equal(unname(getVarCov(e.lme.bis, type = "marginal", individuals = 1)[[1]]),
-                 unname(lsVcov.lme.bis$Omega))
+                 unname(getVarCov2(e.lme.bis)$Omega))
 })
 
 ## * Unstructured 
 e.lme <- nlme::lme(value ~ time + G + Gender,
                    random = ~ 1|Id,
-                   correlation = corSymm(),
+                   correlation = corSymm(form =~ time.num|Id),
                    data = dL,
                    method = "ML")
 e.gls <- nlme::gls(value ~ time + G + Gender,
-                   correlation = corSymm(form=~ 1|Id),
+                   correlation = corSymm(form=~ time.num|Id),
                    data = dL, method = "ML")
 
-vecCoef.lme <- .coef2(e.lme)
-vecCoef.gls <- .coef2(e.gls)
-
-groups.lme <- .getGroups2(e.lme)
-groups.gls <- .getGroups2(e.gls)
 
 test_that("Unstructured ", {
-    lsVcov.gls <- .getVarCov2(e.gls,
-                              param = vecCoef.gls,
-                              attr.param = attributes(vecCoef.gls),
-                              endogenous = groups.gls$endogenous,
-                              name.endogenous = groups.gls$name.endogenous,
-                              n.endogenous = groups.gls$n.endogenous,
-                              cluster = groups.gls$cluster,
-                              n.cluster = groups.gls$n.cluster)
-
     expect_equal(unclass(getVarCov(e.gls)),
-                 unname(lsVcov.gls$Omega))
-
-    lsVcov.lme <- .getVarCov2(e.lme,
-                              param = vecCoef.lme,
-                              attr.param = attributes(vecCoef.lme),
-                              endogenous = groups.lme$endogenous,
-                              name.endogenous = groups.lme$name.endogenous,
-                              n.endogenous = groups.lme$n.endogenous,
-                              cluster = groups.lme$cluster,
-                              n.cluster = groups.lme$n.cluster)
+                 unname(getVarCov2(e.gls)$Omega))
 
     expect_equal(unname(getVarCov(e.lme, type = "marginal", individuals = 1)[[1]]),
-                 unname(lsVcov.lme$Omega))
+                 unname(getVarCov2(e.lme)$Omega))
 })
 
-## * Unstructured with weight
+## * Unstructured with weights
 e.lme <- nlme::lme(value ~ time + G + Gender,
                    random = ~ 1|Id,
-                   correlation = corSymm(),
+                   correlation = corSymm(form =~ time.num|Id),
                    weight = varIdent(form = ~ 1|time),
                    data = dL,
                    method = "ML")
 e.gls <- nlme::gls(value ~ time + G + Gender,
-                   correlation = corSymm(form=~ 1|Id),
+                   correlation = corSymm(form =~ time.num|Id),
                    weight = varIdent(form = ~ 1|time),
                    data = dL, method = "ML")
 
-vecCoef.lme <- .coef2(e.lme)
-vecCoef.gls <- .coef2(e.gls)
-
-groups.lme <- .getGroups2(e.lme)
-groups.gls <- .getGroups2(e.gls)
-
-test_that("Unstructured ", {
-    lsVcov.gls <- .getVarCov2(e.gls,
-                              param = vecCoef.gls,
-                              attr.param = attributes(vecCoef.gls),
-                              endogenous = groups.gls$endogenous,
-                              name.endogenous = groups.gls$name.endogenous,
-                              n.endogenous = groups.gls$n.endogenous,
-                              cluster = groups.gls$cluster,
-                              n.cluster = groups.gls$n.cluster)
-
+test_that("Unstructured with weights", {
     expect_equal(unclass(getVarCov(e.gls)),
-                 unname(lsVcov.gls$Omega))
-
-    lsVcov.lme <- .getVarCov2(e.lme,
-                              param = vecCoef.lme,
-                              attr.param = attributes(vecCoef.lme),
-                              endogenous = groups.lme$endogenous,
-                              name.endogenous = groups.lme$name.endogenous,
-                              n.endogenous = groups.lme$n.endogenous,
-                              cluster = groups.lme$cluster,
-                              n.cluster = groups.lme$n.cluster)
+                 unname(getVarCov2(e.gls)$Omega))
 
     expect_equal(unname(getVarCov(e.lme, type = "marginal", individuals = 1)[[1]]),
-                 unname(lsVcov.lme$Omega))
+                 unname(getVarCov2(e.lme)$Omega))
 })
 
 ## * 2 random effect model (error)
@@ -193,14 +120,7 @@ e.lme <- nlme::lme(value ~ time + G + Gender,
                    data = dL,
                    method = "ML")
 
-expect_error(.getGroups2(e.lme))
-
-## e.lme <- nlme::lme(value ~ time + G + Gender,
-##              random=~1|Id,
-##              correlation=corCompSymm(form = ~1|Gender),
-##              data = dL,
-##              method = "ML")
-## incompatible
+expect_error(getVarCov2(e.lme))
 
 ##----------------------------------------------------------------------
 ### test-Utils-nlme.R ends here

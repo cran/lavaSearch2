@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: jan 22 2018 (11:45) 
 ## Version: 
-## Last-Updated: feb  5 2018 (17:42) 
+## Last-Updated: mar 13 2018 (16:41) 
 ##           By: Brice Ozenne
-##     Update #: 12
+##     Update #: 14
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -16,8 +16,8 @@
 ### Code:
 
 ## * header
+rm(list = ls())
 if(FALSE){ ## already called in test-all.R
-    rm(list = ls())
     library(testthat)
     library(lavaSearch2)
 }
@@ -52,7 +52,7 @@ test_that("Wald 1 link",{
     e.GS <-  estimate(lvm(Y~E+X1), data = df.sim)
     test.GS <- compare2(e.GS, par = "Y~X1" , bias.correct = FALSE, as.lava = FALSE)
     
-    test.Wald <- summary(modelsearch2(e.base, link = "Y~X1", sCorrect = FALSE, bias.correct = FALSE,
+    test.Wald <- summary(modelsearch2(e.base, link = "Y~X1", df = FALSE, bias.correct = FALSE,
                                        statistic = "Wald", method.p.adjust = "max", trace = 0), display = FALSE)
 
     expect_equivalent(abs(test.GS[1,"statistic"]), test.Wald$data[1,"statistic"])
@@ -62,7 +62,7 @@ test_that("Wald 1 link",{
     e.GS <-  estimate(lvm(Y~E+X1), data = df.sim)
     test.GS <- compare2(e.GS, par  = "Y~X1", bias.correct = TRUE, as.lava = FALSE)
     
-    test.Wald <- summary(modelsearch2(e.base, link = "Y~X1", sCorrect = TRUE, bias.correct = TRUE,
+    test.Wald <- summary(modelsearch2(e.base, link = "Y~X1", df = TRUE, bias.correct = TRUE,
                                        statistic = "Wald", method.p.adjust = "max", trace = 0), display = FALSE)
 
     expect_equivalent(abs(test.GS[1,"statistic"]), test.Wald$data[1,"statistic"])

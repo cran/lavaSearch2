@@ -16,12 +16,12 @@
 #' @param typeSD [character]
 #' the type of standard error to be used to compute the Wald statistic.
 #' Can be \code{"information"}, \code{"robust"} or \code{"jackknife"}.
-#' @param sCorrect [logical]
+#' @param df [logical]
 #' should the degree of freedom be computed using the Satterthwaite approximation?
 #' Only relevant when the argument \code{statistic} is set to \code{"Wald"}.
 #' @param bias.correct [logical] should the standard errors of the coefficients be corrected for small sample bias?
 #' Only relevant when the argument \code{statistic} is set to \code{"Wald"}.
-#' @param trace [logical] should the execution be traced?
+#' @param trace [logical] should the execution of the function be traced?
 #' @param ... additional arguments to be passed to \code{\link{findNewLink}} and \code{.modelsearch2}, see details.
 #' 
 #' @details
@@ -128,14 +128,14 @@
 #' @export
 modelsearch2.lvmfit <- function(object, link = NULL, data = NULL, 
                                 statistic = "Wald",  method.p.adjust = "max",
-                                typeSD = "information", sCorrect = FALSE, bias.correct = FALSE,
+                                typeSD = "information", df = TRUE, bias.correct = TRUE,
                                 trace = TRUE,
                                 ...){
 
     ## ** normalise arguments
     typeSD <- match.arg(typeSD, c("information","robust","jackknife"))
-    if(sCorrect == FALSE && bias.correct == TRUE){
-        stop("Argument \'sCorrect\' must be TRUE when arguemnt \'bias.correct\' is TRUE \n")
+    if(df == FALSE && bias.correct == TRUE){
+        stop("Argument \'df\' must be TRUE when arguemnt \'bias.correct\' is TRUE \n")
     }
 
     dots <- list(...)
@@ -204,7 +204,7 @@ modelsearch2.lvmfit <- function(object, link = NULL, data = NULL,
         attr(iid.FCT,"method.iid") <- "iid2"
     }
     attr(iid.FCT,"typeSD") <- typeSD
-    attr(iid.FCT,"sCorrect") <- sCorrect
+    attr(iid.FCT,"df") <- df
     attr(iid.FCT,"bias.correct") <- bias.correct
 
     ## ** run modelsearch
@@ -225,14 +225,14 @@ modelsearch2.lvmfit <- function(object, link = NULL, data = NULL,
 #' @export
 modelsearch2.default <- function(object, link, data = NULL,
                                  statistic = "Wald", method.p.adjust = "max", 
-                                 typeSD = "information", sCorrect = FALSE, bias.correct = FALSE,
+                                 typeSD = "information", df = TRUE, bias.correct = TRUE,
                                  trace = TRUE,
                                  ...){
     
     ## ** normalise arguments
     typeSD <- match.arg(typeSD, c("information","robust","jackknife"))
-    if(sCorrect == FALSE && bias.correct == TRUE){
-        stop("Argument \'sCorrect\' must be TRUE when arguemnt \'bias.correct\' is TRUE \n")
+    if(df == FALSE && bias.correct == TRUE){
+        stop("Argument \'df\' must be TRUE when arguemnt \'bias.correct\' is TRUE \n")
     }
 
     if("lvm" %in% class(object)){
@@ -244,8 +244,8 @@ modelsearch2.default <- function(object, link, data = NULL,
              "Consider changing argument \'statistic\' \n")
     }
     if(class(object) %in% c("coxph","cph","phreg")){            
-        if(sCorrect == TRUE){
-            stop("argument \'sCorrect\' must be FALSE for Cox models \n")
+        if(df == TRUE){
+            stop("argument \'df\' must be FALSE for Cox models \n")
         }
         if(bias.correct == TRUE){
             stop("argument \'bias.correct\' must be FALSE for Cox models \n")
@@ -260,7 +260,8 @@ modelsearch2.default <- function(object, link, data = NULL,
 
     ## ** get data
     if(is.null(data)){
-        data <- extractData(object, design.matrix = FALSE, as.data.frame = TRUE)        
+        data <- extractData(object, design.matrix = FALSE, as.data.frame = TRUE,
+                            envir = parent.env(environment()))        
     }
    
     ## ** normalize the links
@@ -339,7 +340,7 @@ modelsearch2.default <- function(object, link, data = NULL,
     }
 
     attr(iid.FCT,"typeSD") <- typeSD
-    attr(iid.FCT,"sCorrect") <- sCorrect
+    attr(iid.FCT,"df") <- df
     attr(iid.FCT,"bias.correct") <- bias.correct
     
     ## ** run modelsearch

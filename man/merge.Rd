@@ -19,6 +19,7 @@ a \code{modelsearch2} object.
 Merge two modelsearch objects. Does not check for meaningful result.
 }
 \examples{
+\dontrun{
 mSim <- lvm(Y~G+X1+X2)
 addvar(mSim) <- ~Z1+Z2+Z3+Z4+Z5+Z6
 df.data <- lava::sim(mSim, 1e2)
@@ -32,6 +33,6 @@ res.y <- modelsearch2(getStep(res.x, slot = "sequenceModel"),
 res.xy <- merge(res.x,res.y)
 
 modelsearch2(e.lvm, statistic = "score", method.p.adjust = "holm")
-
+}
 }
 \keyword{internal}

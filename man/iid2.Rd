@@ -6,40 +6,60 @@
 \alias{iid2.gls}
 \alias{iid2.lme}
 \alias{iid2.lvmfit}
-\title{Extract i.i.d. decomposition from linear and latent variable models}
+\alias{iid2.lm2}
+\alias{iid2.gls2}
+\alias{iid2.lme2}
+\alias{iid2.lvmfit2}
+\title{Extract corrected i.i.d. decomposition}
 \usage{
-iid2(x, ...)
+iid2(object, ...)
 
-\method{iid2}{lm}(x, p = NULL, data = NULL, adjust.residuals = TRUE, ...)
+\method{iid2}{lm}(object, param = NULL, data = NULL, bias.correct = TRUE,
+  ...)
 
-\method{iid2}{gls}(x, p = NULL, data = NULL, adjust.residuals = TRUE, ...)
+\method{iid2}{gls}(object, cluster, param = NULL, data = NULL,
+  bias.correct = TRUE, ...)
 
-\method{iid2}{lme}(x, p = NULL, data = NULL, adjust.residuals = TRUE, ...)
+\method{iid2}{lme}(object, param = NULL, data = NULL, bias.correct = TRUE,
+  ...)
 
-\method{iid2}{lvmfit}(x, p = NULL, data = NULL, adjust.residuals = TRUE,
+\method{iid2}{lvmfit}(object, param = NULL, data = NULL,
+  bias.correct = TRUE, ...)
+
+\method{iid2}{lm2}(object, param = NULL, data = NULL, robust = TRUE, ...)
+
+\method{iid2}{gls2}(object, param = NULL, data = NULL, robust = TRUE, ...)
+
+\method{iid2}{lme2}(object, param = NULL, data = NULL, robust = TRUE, ...)
+
+\method{iid2}{lvmfit2}(object, param = NULL, data = NULL, robust = TRUE,
   ...)
 }
 \arguments{
-\item{x}{a linear model or a latent variable model}
+\item{object}{a linear model or a latent variable model}
 
-\item{...}{arguments to be passed to \code{score2}.}
+\item{...}{arguments to be passed to \code{sCorrect}.}
 
-\item{p}{[optional] the fitted parameters.}
+\item{param}{[optional] the fitted parameters.}
 
 \item{data}{[optional] the data set.}
 
-\item{adjust.residuals}{[logical] should the leverage-adjusted residuals be used to compute the score? Otherwise the raw residuals will be used.}
+\item{bias.correct}{[logical] should the standard errors of the coefficients be corrected for small sample bias? Only relevant if the \code{sCorrect} function has not yet be applied to the object.}
+
+\item{cluster}{[integer vector] the grouping variable relative to which the observations are iid.
+Only required for \code{gls} models without correlation structure.}
+
+\item{robust}{[logical] if \code{FALSE}, the i.i.d. decomposition is rescaled such its the squared sum equals the model-based standard error (instead of the robust standard error).}
 }
 \value{
-A matrix with in row the samples and in columns the parameters.
+A matrix containing the 1st order influence function relative to each sample (in rows)
+and each model coefficient (in columns).
 }
 \description{
-Extract i.i.d. decomposition from linear and latent variable models using leverage adjusted fitted residuals.
+Extract corrected i.i.d. decomposition from a gaussian linear model.
 }
 \details{
-Leverage-adjusted residuals have been shown to improve the coverage of robust standard errors in small samples.
-They are computed according to the formula:
-\eqn{e_adj = \frac{e}{(1-h_{ii})^(1/2)}}
+If argument \code{p} or \code{data} is not null, then the small sample size correction is recomputed to correct the influence function.
 }
 \examples{
 n <- 5e1
@@ -55,19 +75,23 @@ d <- sim(m,n)
 
 ## linear model
 e.lm <- lm(formula.lvm,data=d)
-iid.tempo <- iid2(e.lm, adjust.residuals = FALSE)
+iid.tempo <- iid2(e.lm, bias.correct = FALSE)
 range(iid.tempo[,1:4]-iid(e.lm))
+
 
 ## latent variable model
 e.lvm <- estimate(lvm(formula.lvm),data=d)
-iid.tempo <- iid2(e.lvm, adjust.residuals = FALSE)
+iid.tempo <- iid2(e.lvm, bias.correct = FALSE)
 range(iid.tempo-iid(e.lvm))
 ## difference due to the use of the observed info matrix vs. the expected one.
 
+## rescale i.i.d using model-based standard error
+iid.tempo <- iid2(e.lvm, robust = FALSE, bias.correct = FALSE)
+diag(crossprod(iid.tempo))-diag(vcov(e.lvm))
+
 }
-\references{
-Bell, R. M., & McCaffrey, D. F. Bias reduction in standard errors for linear regression with multi-stage samples. Survey Methodology, 28(2), 169-181 (2002). \cr
-Kauermann G. and Carroll R. J. A note on the efficiency of sandwich covariance matrix estimation. Journal of the American Statistical Association. Vol. 96, No. 456 (2001).
+\seealso{
+\code{\link{sCorrect}} to obtain \code{lm2}, \code{gls2}, \code{lme2}, or \code{lvmfit2} objects.
 }
 \concept{
 small sample inference

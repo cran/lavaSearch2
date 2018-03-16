@@ -10,25 +10,25 @@
 \alias{extractData.lme}
 \title{Extract Data From a Model}
 \usage{
-extractData(object, design.matrix, as.data.frame)
+extractData(object, design.matrix, as.data.frame, envir)
 
 \method{extractData}{lm}(object, design.matrix = FALSE,
-  as.data.frame = TRUE)
+  as.data.frame = TRUE, envir = environment())
 
 \method{extractData}{coxph}(object, design.matrix = FALSE,
-  as.data.frame = TRUE)
+  as.data.frame = TRUE, envir = environment())
 
 \method{extractData}{cph}(object, design.matrix = FALSE,
-  as.data.frame = TRUE)
+  as.data.frame = TRUE, envir = environment())
 
 \method{extractData}{lvmfit}(object, design.matrix = FALSE,
-  as.data.frame = TRUE)
+  as.data.frame = TRUE, envir = environment())
 
 \method{extractData}{gls}(object, design.matrix = FALSE,
-  as.data.frame = TRUE)
+  as.data.frame = TRUE, envir = environment())
 
 \method{extractData}{lme}(object, design.matrix = FALSE,
-  as.data.frame = TRUE)
+  as.data.frame = TRUE, envir = environment())
 }
 \arguments{
 \item{object}{the fitted model.}
@@ -37,6 +37,8 @@ extractData(object, design.matrix, as.data.frame)
 Otherwise the original data will be returned.}
 
 \item{as.data.frame}{[logical] should the output be converted into a \code{data.frame} object?}
+
+\item{envir}{[environment] the environment from which to search the data.}
 }
 \value{
 a dataset.

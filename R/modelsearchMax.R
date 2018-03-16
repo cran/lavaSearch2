@@ -3,9 +3,9 @@
 ## author: Brice Ozenne
 ## created: maj 30 2017 (18:32) 
 ## Version: 
-## last-updated: feb  5 2018 (16:51) 
+## last-updated: mar 12 2018 (17:18) 
 ##           By: Brice Ozenne
-##     Update #: 694
+##     Update #: 701
 #----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -51,7 +51,7 @@ modelsearchMax <- function(x, restricted, link, directive, packages,
     convergence <- rep(NA,n.link)
 
     typeSD <- attr(iid.FCT, "typeSD")
-    sCorrect <- attr(iid.FCT, "sCorrect")
+    df <- attr(iid.FCT, "df")
     bias.correct <- attr(iid.FCT, "bias.correct")
     
     ### ** wraper
@@ -83,21 +83,14 @@ modelsearchMax <- function(x, restricted, link, directive, packages,
 
                 out$df[1, "coefBeta"] <- new.coef[link[iterI]]
                 ## extract degree of freedom and standard error
-                if(sCorrect){
-                    sCorrect(newfit, return.score = TRUE) <- bias.correct
-                    out$iid <- (attr(newfit$dVcov, "score") %*% attr(newfit$dVcov, "vcov.param")[,link[iterI],drop=FALSE])
-                    
-                    e.df <- compare2(newfit, par = link[iterI], as.lava = FALSE)
-                    
-                    out$df[1, "df"] <- e.df[1, "df"]
-
-                    if(typeSD == "information"){
-                        sd.coef <- e.df[1, "std"]
-                        out$iid <- out$iid * sd.coef / sd(out$iid, na.rm = TRUE)
-                    }else{
-                        sd.coef <- sqrt(sum(out$iid^2, na.rm = TRUE))
+                if(df || bias.correct){
+                    sCorrect(newfit, df = df, score = TRUE) <- bias.correct
+                    out$iid <- iid2(newfit, robust = (typeSD != "information") )[,link[iterI],drop=FALSE]
+                    if(df){
+                        e.df <- compare2(newfit, par = link[iterI], as.lava = FALSE)
+                        out$df[1, "df"] <- e.df[1, "df"]
                     }
-                    
+                    sd.coef <- sqrt(sum(out$iid^2, na.rm = TRUE))                    
                 }else{
                     out$iid <- sqrt(nObs)*iid.FCT(newfit)[,link[iterI],drop=FALSE]
                     if(typeSD == "information"){
@@ -202,7 +195,7 @@ modelsearchMax <- function(x, restricted, link, directive, packages,
     ### ** p.value
     indexCV <- which(df.test$convergence==0)
     df.test[indexCV, "p.value"] <- as.numeric(NA)
-    if(sCorrect){
+    if(df){
         df.test[indexCV, "p.value"] <- 2*(1-stats::pt(abs(df.test[indexCV,"statistic"]),
                                                       df = df.test[indexCV,"df"]))
     }else{
@@ -226,7 +219,7 @@ modelsearchMax <- function(x, restricted, link, directive, packages,
         nameN0 <- df.test[indexCV, "link"]
         statisticN0 <- setNames(subset(df.test, subset = convergence==0, select = "statistic", drop = TRUE),
                                 nameN0)
-        if(sCorrect){
+        if(df){
             dfN0.all <- subset(df.test, subset = convergence==0, select = "df", drop = TRUE)
             dfN0 <- round(stats::median(dfN0.all))
         }else {
@@ -237,9 +230,15 @@ modelsearchMax <- function(x, restricted, link, directive, packages,
                                        alpha = alpha, ncpus = ncpus, init.cpus = FALSE, trace = trace)
         
         if(method.max=="integration"){
-            resQmax <- calcDistMaxIntegral(statistic = statisticN0, iid = iid.link, df = dfN0,
-                                           iid.previous = iid.previous, quantile.previous = quantile.previous, 
-                                           alpha = alpha, ncpus = ncpus, init.cpus = FALSE, trace = trace)
+            resQmax <- calcDistMaxIntegral(statistic = statisticN0,
+                                           iid = iid.link,
+                                           df = dfN0,
+                                           iid.previous = iid.previous,
+                                           quantile.previous = quantile.previous, 
+                                           alpha = alpha,
+                                           ncpus = ncpus,
+                                           init.cpus = FALSE,
+                                           trace = trace)
             resQmax$p.adjust
         }else{
             method.boot <- switch(method.max,

@@ -3,9 +3,9 @@
 ## author: Brice Ozenne
 ## created: okt 23 2017 (16:52) 
 ## Version: 
-## last-updated: feb  5 2018 (16:45) 
+## last-updated: mar  7 2018 (12:17) 
 ##           By: Brice Ozenne
-##     Update #: 33
+##     Update #: 48
 #----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -27,26 +27,48 @@
 ##' 
 ##' @examples
 ##' matrixPower <- lavaSearch2:::matrixPower
-##' 
-##' M <- matrix(rnorm(2e2),20,10)
+##'
+##' ## symmetric matrix
+##' set.seed(10)
+##' M <- matrix(rnorm(20*6),20,6)
 ##' Sigma <- var(M)
-##' Sigma.half <- matrixPower(Sigma, power = 1/2, symmetric = FALSE)
-##' round(crossprod(Sigma.half)-Sigma,5)
+##' Sigma.half <- matrixPower(Sigma, power = 1/2, symmetric = TRUE)
+##' round(Sigma.half %*% Sigma.half - Sigma,5)
 ##' 
-##' Sigma.m1 <- matrixPower(Sigma, power = -1, symmetric = FALSE)
-##' round(Sigma.m1 %*% Sigma,5)
+##' iSigma <- matrixPower(Sigma, power = -1, symmetric = TRUE)
+##' round(iSigma %*% Sigma,5)
+##' 
+##' iSigma.half <- matrixPower(Sigma, power = -1/2, symmetric = TRUE)
+##' round(iSigma.half %*% iSigma.half - iSigma,5)
+##' 
+##' ## non symmetric matrix
+##' set.seed(10)
+##' M <- matrix(abs(rnorm(9)), 3, 3) + diag(1,3,3)
+##' M-t(M)
+##' 
+##' iM <- matrixPower(M, power = -1, symmetric = FALSE)
+##' round(iM %*% M,5)
+##' 
+##' iM.half <- matrixPower(M, power = -1/2, symmetric = FALSE)
+##' round(iM.half %*% iM.half %*% M,5)
 ##' 
 ##' @keywords internal
 matrixPower <- function(object, power, symmetric, tol = 1e-12){
     object.eigen <- eigen(object, symmetric = symmetric)
-    object.eigen$values[abs(object.eigen$values) < tol] <- 0 ## abs is not really necessary since the eigenvalues are positives
-    object.eigen$values <- object.eigen$values^power
-    
-    return(object.eigen$vectors %*% sweep(t(object.eigen$vectors),
-                                     MARGIN = 1,
-                                     FUN = "*",
-                                     STATS = object.eigen$values)
-           )
+
+    if(power<0 && any(object.eigen$values<tol)){
+        warning("negative eigenvalues are set to ",tol,"\n")
+        object.eigen$values[object.eigen$values < tol] <- tol
+    }
+    nRow <- length(object.eigen$values)
+    D <- diag(object.eigen$values^power, nrow = nRow, ncol = nRow)
+
+    if(symmetric){
+        return(object.eigen$vectors %*% D %*% t(object.eigen$vectors))
+    }else{
+        return(object.eigen$vectors %*% D %*% solve(object.eigen$vectors))
+    }
+
 }
 
 #----------------------------------------------------------------------

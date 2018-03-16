@@ -1,5 +1,28 @@
 # -*- mode: org -*-
 
+* Version 1.2.0 <2018-03-16 Fri>
+** User visible changes
+- a function =leverage2= has been added. It enables to extract the
+  leverage values from a =lvmfit= object.
+- =sCorrect= can handle missing values.
+- =sCorrect= now uses an iterative procedure to correct the residual
+  variance-covariance matrix. This enables to match the results of
+  =lm= and =t.test= with a =gls= or =lvmfit= object.
+- The names of the methods for extracting the results after small
+  sample correction all ends with a 2. This is suppose to avoid
+  confusion for the user between the non-corrected results
+  (e.g. obtained with =summary=) and the corrected resutls
+  (e.g. obtained with =summary2=).
+
+** Internal changes
+- Reorganization of the small sample correction: now =sCorrect= is
+now independent of =iid2=, =residuals2=, and =score2=. The correction
+of the residual variance-covariance matrix is made in a separate
+function =adjustEstimate= called by =sCorrect=. Then the corrected
+score is computed by =.score2= and the first derivative of the
+expected information matrix is computed by =dInformation2=.
+- The test batterie has been re-organized
+
 * Version 1.1.0 <2018-02-01 Thu>
 ** User visible changes
  - The argument =numericDerivative= has been renamed =numeric.derivative=.

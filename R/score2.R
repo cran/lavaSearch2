@@ -3,9 +3,9 @@
 ## author: Brice Ozenne
 ## created: okt 12 2017 (16:43) 
 ## Version: 
-## last-updated: feb  5 2018 (17:26) 
+## last-updated: mar 16 2018 (11:46) 
 ##           By: Brice Ozenne
-##     Update #: 2201
+##     Update #: 2251
 #----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -15,228 +15,178 @@
 ## 
 ### Code:
 
-## * documentation - score2
-#' @title Compute the Score Directly from the Gaussian Density
-#' @description Compute the score directly from the gaussian density.
+## * Documentation - score2
+#' @title  Extract The Individual Score
+#' @description  Extract The Individual Score from a gaussian linear model.
 #' @name score2
-#' 
-#' @param object a linear model or a latent variable model.
-#' @param p [numeric vector, optional] vector of coefficients at which to evaluate the score.
-#' @param data [data.frame, optional] data set.
-#' @param cluster [vector] the grouping variable relative to which the observations are iid.
-#' Only required for \code{gls} models with no correlation argument.
-#' @param indiv [logical] should the score relative to each observation be exported?
-#' Otherwise the total score (i.e. sum over all observations) will be exported.
-#' @param return.vcov.param [logical] should the variance covariance matrix of the coefficients be included in the output?
-#' @param ... arguments to be passed to \code{\link{residuals2}}
 #'
-#' @return A matrix.
-#' 
-#' @details The log-likelihood of a lvm can written:
-#' \deqn{
-#'   l(\theta|Y,X) = \sum_{i=1}^{n} - \frac{p}{2} log(2\pi) - \frac{1}{2} log|\Omega(\theta))| - \frac{1}{2} (Y_i-\mu_i(\theta)) \Omega^{-1} (Y_i-\mu_i(\theta))^t
-#' }
-#' So the score is:
-#' \deqn{
-#'   s(\theta|Y,X) = \sum_{i=1}^{n}
-#' - \frac{1}{2} tr(\Omega(\theta)^{-1} \frac{\partial \Omega(\theta)}{\partial \theta})
-#' +  \frac{\partial \mu_i(\theta)}{\partial \theta} \Omega^{-1} (Y_i-\mu_i(\theta))^t 
-#' + \frac{1}{2} (Y_i-\mu_i(\theta)) \Omega^{-1} \frac{\partial \Omega(\theta)}{\partial \theta} \Omega^{-1} (Y_i-\mu_i(\theta))^t
-#' }
-#' with:
-#' \deqn{ \frac{\partial \mu_i(\beta)}{\partial \nu} = 1 }
-#' \deqn{ \frac{\partial \mu_i(\beta)}{\partial K} = X_i }
-#' \deqn{ \frac{\partial \mu_i(\beta)}{\partial \alpha} = (1-B)^{-1}\Lambda }
-#' \deqn{ \frac{\partial \mu_i(\beta)}{\partial \Gamma} = X_i(1-B)^{-1}\Lambda }
-#' \deqn{ \frac{\partial \mu_i(\beta)}{\partial \lambda} = (\alpha + X_i \Gamma)(1-B)^{-1}\delta_{\lambda \in \Lambda} }
-#' \deqn{ \frac{\partial \mu_i(\beta)}{\partial b} = (\alpha + X_i \Gamma)(1-B)^{-1}\delta_{b \in B}(1-B)^{-1}\Lambda }
-#' and:
-#' \deqn{ \frac{\partial \Omega(\beta)}{\partial \psi} = \Lambda^t (1-B)^{-t} \delta_{\psi \in \Psi} (1-B) \Lambda }
-#' \deqn{ \frac{\partial \Omega(\beta)}{\partial \sigma} = \delta_{\sigma \in \Sigma} }
-#' \deqn{ \frac{\partial \Omega(\beta)}{\partial \lambda} = \delta_{\lambda \in \Lambda} (1-B)^{-t} \Psi (1-B)^{-1} \Lambda + \Lambda^t (1-B)^{-t} \Psi (1-B)^{-1} \delta_{\lambda \in \Lambda} }
-#' \deqn{ \frac{\partial \Omega(\beta)}{\partial b} = \Lambda^t (1-B)^{-t} \delta_{b \in B} (1-B)^{-t} \Psi (1-B)^{-1} \Lambda - \Lambda^t (1-B)^{-t} \Psi (1-B)^{-1} \delta_{b \in B} (1-B)^{-1} \Lambda}
+#' @param object a linear model or a latent variable model
+#' @param param [optional] the fitted parameters.
+#' @param data [optional] the data set.
+#' @param bias.correct [logical] should the standard errors of the coefficients be corrected for small sample bias? Only relevant if the \code{sCorrect} function has not yet be applied to the object.
+#' @param ... arguments to be passed to \code{sCorrect}.
 #'
+#' @details If argument \code{p} or \code{data} is not null, then the small sample size correction is recomputed to correct the influence function.
+#'
+#' @seealso \code{\link{sCorrect}} to obtain \code{lm2}, \code{gls2}, \code{lme2}, or \code{lvmfit2} objects.
+#'
+#' @return A matrix containing the score relative to each sample (in rows)
+#' and each model coefficient (in columns).
+#' 
 #' @examples
+#' n <- 5e1
+#' p <- 3
+#' X.name <- paste0("X",1:p)
+#' link.lvm <- paste0("Y~",X.name)
+#' formula.lvm <- as.formula(paste0("Y~",paste0(X.name,collapse="+")))
 #'
-#' m <- lvm(Y1~eta,Y2~eta,Y3~eta)
-#' latent(m) <- ~eta
+#' m <- lvm(formula.lvm)
+#' distribution(m,~Id) <- sequence.lvm(0)
+#' set.seed(10)
+#' d <- sim(m,n)
 #'
-#' e <- estimate(m,sim(m,1e2))
-#' score2(e)
+#' ## linear model
+#' e.lm <- lm(formula.lvm,data=d)
+#' score.tempo <- score2(e.lm, bias.correct = FALSE)
+#' colMeans(score.tempo)
+#'
+#' ## latent variable model
+#' e.lvm <- estimate(lvm(formula.lvm),data=d)
+#' score.tempo <- score2(e.lvm, bias.correct = FALSE)
+#' range(score.tempo-score(e.lvm, indiv = TRUE))
 #'
 #' @concept small sample inference
 #' @export
 `score2` <-
   function(object, ...) UseMethod("score2")
 
-
 ## * score2.lm
 #' @rdname score2
 #' @export
-score2.lm <- function(object,
-                      indiv = TRUE, return.vcov.param = FALSE,
-                      ...){
-  
-    epsilon <- residuals2(object, return.vcov.param = TRUE, ...)
-    vcov.param <- attr(epsilon, "vcov.param")
-    sigma2 <- attr(epsilon, "sigma2") 
-    attr(epsilon, "vcov.param") <- NULL
-    attr(epsilon, "sigma2") <- NULL
+score2.lm <- function(object, param = NULL, data = NULL, bias.correct = TRUE, ...){
 
-    ## ** compute score
-    X <- stats::model.matrix(object)
-    out.score <- cbind(sweep(X, MARGIN = 1, FUN = "*",  STATS = epsilon) / sigma2,
-                       sigma2 = -1/(2*sigma2) + 1/(2*sigma2^2) * epsilon^2)
+    sCorrect(object, param = param, data = data,
+             score = TRUE, df = FALSE, ...) <- bias.correct
 
-    if(indiv == FALSE){
-        out.score <- colSums(out.score)
-    }
-
-    if(return.vcov.param){
-        attr(out.score,"vcov.param") <- vcov.param
-    }
-    return(out.score)
-
+    ### ** export
+    return(object$sCorrect$score)
 }
-
 
 ## * score2.gls
 #' @rdname score2
 #' @export
-score2.gls <- function(object, cluster, p = NULL, data = NULL,
-                       indiv = TRUE, return.vcov.param = FALSE,
-                       ...){
-
-### ** Compute residuals and partial derivatives
-    epsilon <- residuals2(object, cluster = cluster, p = p, data = data,
-                          return.vcov.param = return.vcov.param,
-                          return.prepareScore2 = TRUE, ...)
-
-    OPS2 <- attr(epsilon, "prepareScore2")
-    vcov.param <- attr(epsilon, "vcov.param")
-    attr(epsilon, "prepareScore2") <- NULL
-    attr(epsilon, "vcov.param") <- NULL
-
-### ** Compute score
-    out.score <- .score2(dmu.dtheta = OPS2$dmu.dtheta,
-                         dOmega.dtheta = OPS2$dOmega.dtheta,
-                         epsilon = epsilon,
-                         Omega = OPS2$Omega,                         
-                         ls.indexOmega = OPS2$ls.indexOmega,
-                         indiv = indiv,
-                         name.param = OPS2$name.param,
-                         n.param = OPS2$n.param,
-                         n.cluster = OPS2$n.cluster)     
-    
-### ** Export
-    if(return.vcov.param){
-        attr(out.score,"vcov.param") <- vcov.param
-    }
-    return(out.score)
-}
+score2.gls <- score2.lm
 
 ## * score2.lme
 #' @rdname score2
 #' @export
-score2.lme <- score2.gls
+score2.lme <- score2.lm
 
 ## * score2.lvmfit
 #' @rdname score2
 #' @export
-score2.lvmfit <- function(object, p = NULL, data = NULL, 
-                          indiv = TRUE, return.vcov.param = FALSE,
-                          ...){
+score2.lvmfit <- score2.lm
 
-### ** Compute residuals
-    epsilon <- residuals2(object,
-                          p = p,
-                          data = data,
-                          return.vcov.param = return.vcov.param,
-                          return.prepareScore2 = TRUE, ...)
+## * score2.lm2
+#' @rdname score2
+#' @export
+score2.lm2 <- function(object, param = NULL, data = NULL, ...){
 
-    OPS2 <- attr(epsilon, "prepareScore2")
-    vcov.param <- attr(epsilon, "vcov.param")
-    attr(epsilon, "prepareScore2") <- NULL
-    attr(epsilon, "vcov.param") <- NULL
-
-### ** Compute score
-    out.score <- .score2(dmu.dtheta = OPS2$dtheta$dmu.dtheta,
-                         dOmega.dtheta = OPS2$dtheta$dOmega.dtheta,
-                         epsilon = epsilon,
-                         Omega = OPS2$Omega,
-                         ls.indexOmega = NULL,
-                         indiv = indiv,                         
-                         name.param = OPS2$name.param,
-                         n.param = OPS2$n.param,
-                         n.cluster = OPS2$n.cluster)     
-    
-### ** Export
-    if(return.vcov.param){
-        attr(out.score,"vcov.param") <- vcov.param[OPS2$name.param, OPS2$name.param, drop=FALSE]
+    ### ** compute the score
+    if(!is.null(param) || !is.null(data)){
+        args <- object$sCorrect$args
+        args$df <- FALSE
+        args$score <- TRUE
+        object$sCorrect <- do.call(sCorrect,
+                                   args = c(list(object, param = param, data = data),
+                                            args))
     }
-    return(out.score)
+
+    ### ** export
+    return(object$sCorrect$score)
+
 }
 
+## * score2.gls
+#' @rdname score2
+#' @export
+score2.gls2 <- score2.lm2
 
+## * score2.lme
+#' @rdname score2
+#' @export
+score2.lme2 <- score2.lm2
 
+## * score2.lvmfit
+#' @rdname score2
+#' @export
+score2.lvmfit2 <- score2.lm2
 
 ## * .score2
-.score2 <- function(dmu.dtheta, dOmega.dtheta, epsilon,
-                    Omega, ls.indexOmega,
-                    indiv, 
-                    name.param, n.param, n.cluster){
+#' @title Compute the Corrected Score.
+#' @description Compute the corrected score when there is no missing value.
+#' @name score2-internal
+#' 
+#' @param n.cluster [integer >0] the number of observations.
+#' 
+#' @keywords internal
+.score2 <- function(epsilon, Omega, OmegaM1, dmu, dOmega,                    
+                    name.param, name.meanparam, name.varparam,
+                    index.Omega, n.cluster, indiv){
 
-    clusterSpecific <- !is.null(ls.indexOmega)
-    name.meanparam <- names(dmu.dtheta)
-    name.vcovparam <- names(dOmega.dtheta)
-    out.score <- matrix(0, nrow = n.cluster, ncol = n.param,
+### ** Prepare
+    test.global <- is.null(index.Omega)
+    out.score <- matrix(0, nrow = n.cluster, ncol = length(name.param),
                         dimnames = list(NULL,name.param))
-
-### ** Individual specific Omega (e.g. presence of missing values)
-    if(clusterSpecific){
-        for(iC in 1:n.cluster){
-            iOmega.tempo <- chol2inv(chol(Omega[ls.indexOmega[[iC]],ls.indexOmega[[iC]],drop=FALSE]))
-            epsilon.iOmega.tempo <- iOmega.tempo %*% cbind(epsilon[iC,ls.indexOmega[[iC]]])
-
-            ## *** Compute score relative to the mean coefficients
-            for(iP in name.meanparam){ # iP <- name.meanparam[1]
-                out.score[iC,iP] <- out.score[iC,iP] + dmu.dtheta[[iP]][iC,ls.indexOmega[[iC]]] %*% epsilon.iOmega.tempo
-            }
-
-            ## *** Compute score relative to the variance-covariance coefficients
-            for(iP in name.vcovparam){ # iP <- name.vcovparam[1]
-                dOmega.dtheta.tempo <-  dOmega.dtheta[[iP]][ls.indexOmega[[iC]],ls.indexOmega[[iC]],drop=FALSE]
-                                                            
-                term2 <- - 1/2 * tr(iOmega.tempo %*% dOmega.dtheta.tempo)
-                term3 <- 1/2 * sum(epsilon.iOmega.tempo * dOmega.dtheta.tempo %*% epsilon.iOmega.tempo)
-                out.score[iC,iP] <- out.score[iC,iP] + as.double(term2) + term3 
-            }
-        }
-    }
             
-    ### ** Same for all individuals
-    if(clusterSpecific == FALSE){
-        iOmega <- chol2inv(chol(Omega))
-        epsilon.iOmega <- epsilon %*% iOmega
+### ** global
+    if(test.global){
+        epsilon.OmegaM1 <- epsilon %*% OmegaM1
 
         ## *** Compute score relative to the mean coefficients
         for(iP in name.meanparam){ # iP <- 1
-            out.score[,iP] <- out.score[,iP] + rowSums(dmu.dtheta[[iP]] * epsilon.iOmega)            
+            out.score[,iP] <- out.score[,iP] + rowSums(dmu[[iP]] * epsilon.OmegaM1)
         }
+        
         ## *** Compute score relative to the variance-covariance coefficients
-        for(iP in name.vcovparam){ # iP <- 1
-            term2 <- - 1/2 * tr(iOmega %*% dOmega.dtheta[[iP]])            
-            term3 <- 1/2 * rowSums(epsilon.iOmega %*% dOmega.dtheta[[iP]] * epsilon.iOmega)
-            out.score[,iP] <- out.score[,iP] + as.double(term2) + term3 
+        for(iP in name.varparam){ # iP <- 1
+            term2 <- - 1/2 * tr(OmegaM1 %*% dOmega[[iP]])            
+            term3 <- 1/2 * rowSums(epsilon.OmegaM1 %*% dOmega[[iP]] * epsilon.OmegaM1)
+            out.score[,iP] <- out.score[,iP] + as.double(term2) + term3
         }        
     }
 
-### ** export
+
+### ** individual specific
+    if(!test.global){
+
+        for(iC in 1:n.cluster){
+            iIndex <- index.Omega[[iC]]
+            iEpsilon.OmegaM1 <- OmegaM1[[iC]] %*% cbind(epsilon[iC,iIndex])
+
+
+            ## *** Compute score relative to the mean coefficients
+            for(iP in name.meanparam){ # iP <- name.meanparam[1]
+                out.score[iC,iP] <- out.score[iC,iP] + dmu[[iP]][iC,iIndex] %*% iEpsilon.OmegaM1
+            }
+
+            ## *** Compute score relative to the variance-covariance coefficients
+            for(iP in name.varparam){ # iP <- name.varparam[1]
+                term2 <- - 1/2 * tr(OmegaM1[[iC]] %*% dOmega[[iP]][iIndex,iIndex,drop=FALSE])
+                term3 <- 1/2 * sum(iEpsilon.OmegaM1 * dOmega[[iP]][iIndex,iIndex,drop=FALSE] %*% iEpsilon.OmegaM1)
+                out.score[iC,iP] <- out.score[iC,iP] + as.double(term2) + term3 
+            }
+        }
+        
+    }
+
+    ### ** export
     if(indiv==FALSE){
         out.score <- colSums(out.score)
     }
     return(out.score)
 }
+
 
 #----------------------------------------------------------------------
 ### score2.R ends her

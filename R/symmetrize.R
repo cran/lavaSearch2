@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: nov  8 2017 (09:42) 
 ## Version: 
-## Last-Updated: feb  5 2018 (17:31) 
+## Last-Updated: feb 19 2018 (09:33) 
 ##           By: Brice Ozenne
-##     Update #: 16
+##     Update #: 19
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -34,7 +34,10 @@
 #' @keywords internal
 symmetrize <- function(M, update.upper = TRUE){
 
-    if(update.upper){
+    if(is.null(update.upper)){
+        M <- (M+t(M))
+        diag(M) <- diag(M)/2
+    }else if(update.upper){
         M[upper.tri(M, diag = FALSE)] <- t(M)[upper.tri(M, diag = FALSE)]
     }else{
         M[lower.tri(M, diag = FALSE)] <- t(M)[lower.tri(M, diag = FALSE)]

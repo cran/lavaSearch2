@@ -23,7 +23,7 @@ Can the likelihood ratio test (\code{"LR"}),
 the score (\code{"score"}),
 or the max statistic (\code{"max"}).}
 
-\item{trace}{[logical] should the execution be traced?}
+\item{trace}{[logical] should the execution of the function be traced?}
 
 \item{...}{arguments passed to \code{\link{modelsearch2}}.}
 }

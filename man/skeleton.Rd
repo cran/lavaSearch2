@@ -16,7 +16,7 @@ skeleton(object, ...)
 
 \method{skeleton}{lvm}(object, as.lava, name.endogenous, name.latent, ...)
 
-\method{skeleton}{lvmfit}(object, as.lava, p, data, name.endogenous,
+\method{skeleton}{lvmfit}(object, skeleton, param, data, name.endogenous,
   name.latent, ...)
 
 skeletonDtheta(object, ...)
@@ -24,16 +24,16 @@ skeletonDtheta(object, ...)
 \method{skeletonDtheta}{lvm}(object, data, df.param.all, param2originalLink,
   name.endogenous, name.latent, ...)
 
-\method{skeletonDtheta}{lvmfit}(object, data, df.param.all, param2originalLink,
-  name.endogenous, name.latent, B, alpha.XGamma, Lambda, Psi, ...)
+\method{skeletonDtheta}{lvmfit}(object, dtheta, name.endogenous, name.latent, B,
+  alpha.XGamma, Lambda, Psi, ...)
 
 skeletonDtheta2(object, ...)
 
 \method{skeletonDtheta2}{lvm}(object, data, df.param.all, param2originalLink,
   name.latent, ...)
 
-\method{skeletonDtheta2}{lvmfit}(object, data, OD, df.param.all,
-  param2originalLink, name.endogenous, name.latent, B, Lambda, Psi, ...)
+\method{skeletonDtheta2}{lvmfit}(object, dtheta, d2theta, name.endogenous,
+  name.latent, B, Lambda, Psi, ...)
 }
 \arguments{
 \item{object}{a \code{lvm} object.}
@@ -47,8 +47,6 @@ Otherwise uses the labels (when defined) of each coefficient.}
 
 \item{name.latent}{[character vector] name of the latent variables}
 
-\item{p}{[numeric vector, optional] vector of coefficients at which to evaluate the score.}
-
 \item{data}{[data.frame, optional] data set.}
 
 \item{df.param.all}{[data.frame] output of \code{\link{coefType}} containing the type of each coefficient.}
@@ -58,6 +56,8 @@ Otherwise uses the labels (when defined) of each coefficient.}
 \item{B, alpha.XGamma, Lambda, Psi}{[matrix] pre-computed matrix.}
 
 \item{OD}{[list] the pre-computed quantities for the second derivatives.}
+
+\item{p}{[numeric vector, optional] vector of coefficients at which to evaluate the score.}
 }
 \description{
 Pre-compute quantities that are necessary to compute the score of a lvm model.

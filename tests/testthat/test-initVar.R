@@ -1,6 +1,6 @@
 ## * header
+rm(list = ls())
 if(TRUE){ ## already called in test-all.R
-    rm(list = ls())
     library(testthat)
     library(lavaSearch2)
 }

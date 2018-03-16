@@ -15,17 +15,13 @@
 \usage{
 compare2(object, ...)
 
-\method{compare2}{lm}(object, bias.correct = TRUE,
-  numeric.derivative = FALSE, ...)
+\method{compare2}{lm}(object, bias.correct = TRUE, ...)
 
-\method{compare2}{gls}(object, bias.correct = TRUE,
-  numeric.derivative = FALSE, cluster = NULL, ...)
+\method{compare2}{gls}(object, bias.correct = TRUE, cluster = NULL, ...)
 
-\method{compare2}{lme}(object, bias.correct = TRUE,
-  numeric.derivative = FALSE, ...)
+\method{compare2}{lme}(object, bias.correct = TRUE, ...)
 
-\method{compare2}{lvmfit}(object, bias.correct = TRUE,
-  numeric.derivative = FALSE, ...)
+\method{compare2}{lvmfit}(object, bias.correct = TRUE, ...)
 
 \method{compare2}{lm2}(object, ...)
 
@@ -36,7 +32,7 @@ compare2(object, ...)
 \method{compare2}{lvmfit2}(object, ...)
 
 .compare2(object, par = NULL, contrast = NULL, null = NULL,
-  as.lava = TRUE, level = 0.95)
+  robust = FALSE, as.lava = TRUE, level = 0.95)
 }
 \arguments{
 \item{object}{an object that inherits from lm/gls/lme/lvmfit.}
@@ -45,13 +41,8 @@ compare2(object, ...)
 
 \item{bias.correct}{[logical] should the standard errors of the coefficients be corrected for small sample bias? Argument passed to \code{sCorrect}.}
 
-\item{numeric.derivative}{[logical] should a numerical derivative be used to compute the first derivative of the information matrix?
-Otherwise an analytic formula is used.
-Argument passed to \code{sCorrect}.}
-
-\item{cluster}{[vector] the grouping variable relative to which the observations are iid.
-Only required for \code{gls} models with no correlation argument.
-Argument passed to \code{sCorrect}.}
+\item{cluster}{[integer vector] the grouping variable relative to which the observations are iid.
+Only required for \code{gls} models without correlation structure.}
 
 \item{par}{[vector of characters] expression defining the linear hypotheses to be tested.
 See the examples section.}
@@ -59,6 +50,8 @@ See the examples section.}
 \item{contrast}{[matrix] a contrast matrix defining the left hand side of the linear hypotheses to be tested.}
 
 \item{null}{[vector] the right hand side of the linear hypotheses to be tested.}
+
+\item{robust}{[logical] should the robust standard errors be used instead of the model based standard errors?}
 
 \item{as.lava}{[logical] should the output be similar to the one return by \code{lava::compare}?}
 
@@ -69,7 +62,7 @@ If \code{as.lava=TRUE} an object of class \code{htest}.
 Otherwise a \code{data.frame} object.
 }
 \description{
-Test Linear Hypotheses using a Wald or an F statistic.
+Test Linear Hypotheses using a multivariate Wald statistic.
 Similar to \code{lava::compare} but with small sample correction.
 }
 \details{
