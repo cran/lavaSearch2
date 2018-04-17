@@ -1,27 +1,39 @@
 # -*- mode: org -*-
 
-* Version 1.2.0 <2018-03-16 Fri>
-** User visible changes
-- a function =leverage2= has been added. It enables to extract the
-  leverage values from a =lvmfit= object.
-- =sCorrect= can handle missing values.
-- =sCorrect= now uses an iterative procedure to correct the residual
-  variance-covariance matrix. This enables to match the results of
-  =lm= and =t.test= with a =gls= or =lvmfit= object.
-- The names of the methods for extracting the results after small
-  sample correction all ends with a 2. This is suppose to avoid
-  confusion for the user between the non-corrected results
-  (e.g. obtained with =summary=) and the corrected resutls
-  (e.g. obtained with =summary2=).
+* Version 1.3.3
+** User visble changes 
+- add option Ftest to =calibrateType1=.
+
+* Version 1.3.2
+** Internal changes
+- fix bugs
+
+* Version 1.3.1
+** User visble changes 
+- New feature: =calibrateType1= to perform simulation studies of the
+  type 1 error rate for Wald test in LVM.
+
+
+* Version 1.3.0 <2018-04-04 Wed>
+** User visble changes 
+- =summary2= can be called directly.
 
 ** Internal changes
-- Reorganization of the small sample correction: now =sCorrect= is
-now independent of =iid2=, =residuals2=, and =score2=. The correction
-of the residual variance-covariance matrix is made in a separate
-function =adjustEstimate= called by =sCorrect=. Then the corrected
-score is computed by =.score2= and the first derivative of the
-expected information matrix is computed by =dInformation2=.
-- The test batterie has been re-organized
+- identification of the small sample bias of the variance-covariance
+  parameters. This enable to correct the derivatives and not only the
+  estimation of the conditional variance.
+- =sCorrect= is able to handle missing values
+- reorganisation of the structure of the functions in =sCorrect=.
+  Only =sCorrect= do real computations and all the results are stored
+  in the object (slot sCorrect). The other functions (=summary2=,
+  =compare2=, =iid2=, =score2=, =residuals2=) only extract and combine
+  information from the object.
+
+
+* Version 1.2.0 <2018-16-03 Fri>
+
+** Internal changes
+- iterative estimation of the small sample bias 
 
 * Version 1.1.0 <2018-02-01 Thu>
 ** User visible changes

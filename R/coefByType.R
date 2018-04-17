@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: feb  5 2018 (11:37) 
 ## Version: 
-## Last-Updated: feb  5 2018 (15:51) 
+## Last-Updated: mar 26 2018 (17:11) 
 ##           By: Brice Ozenne
-##     Update #: 23
+##     Update #: 24
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -38,7 +38,7 @@
 #' @examples 
 #' #### regression ####
 #' m <- lvm(Y~X1+X2)
-#' e <- estimate(m, sim(m, 1e2))
+#' e <- estimate(m, lava::sim(m, 1e2))
 #' 
 #' coefCov(m)
 #' coefCov(m, value = TRUE)
@@ -64,7 +64,7 @@
 #'
 #' m.Sim <- m
 #' categorical(m.Sim, labels = c("a","b","c")) <- ~x2
-#' e <- estimate(m, sim(m.Sim, 1e2))
+#' e <- estimate(m, lava::sim(m.Sim, 1e2))
 #'
 #' coefCov(m)
 #' coefCov(m, value = TRUE) 
@@ -94,7 +94,7 @@
 #' 
 #' #### multigroup ####
 #' m <- lvm(Y~X1+X2)
-#' eG <- estimate(list(m,m), list(sim(m, 1e2),sim(m, 1e2)))
+#' eG <- estimate(list(m,m), list(lava::sim(m, 1e2), lava::sim(m, 1e2)))
 #' 
 #' coefIndexModel(eG)
 #'

@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: mar  7 2018 (13:39) 
 ## Version: 
-## Last-Updated: mar 15 2018 (18:17) 
+## Last-Updated: apr  4 2018 (14:20) 
 ##           By: Brice Ozenne
-##     Update #: 16
+##     Update #: 32
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -25,7 +25,7 @@ if(FALSE){ ## already called in test-all.R
 lava.options(symbols = c("~","~~"))
 .coef2 <- lavaSearch2:::.coef2
 library(nlme)
-context("sCorrect: dealing with missing values")
+context("sCorrect (dealing with missing values)")
 
 ## * simulation
 n <- 2e1
@@ -36,7 +36,7 @@ latent(mSim) <- ~eta1+eta2
 categorical(mSim, labels = c("Male","Female")) <- ~Gender
 transform(mSim, Id~Y1) <- function(x){1:NROW(x)}
 set.seed(10)
-d <- sim(mSim, n = n, latent = FALSE)
+d <- lava::sim(mSim, n = n, latent = FALSE)
 dL <- reshape2::melt(d, id.vars = c("Id","X1","X2","X3","Gender"),
            measure.vars = c("Y1","Y2","Y3","Z1","Z2","Z3"))
 dLred <- dL[dL$variable %in% c("Y1","Y2","Y3"),]
@@ -63,15 +63,16 @@ df-e.ttest$parameter
 e.gls <- gls(value ~ variable, data = dLred2,
              weights = varIdent(form = ~1|variable),
              method = "ML")
-coef(e.gls)[2]-diff(e.ttest$estimate)
-sCorrect(e.gls, cluster = "Id") <- TRUE
+
+expect_equal(as.double(coef(e.gls)[2]),
+             as.double(diff(e.ttest$estimate)))
 
 test_that("t test (full data)", {
     expect_equal(unname(e.ttest$parameter),
-                 summary2(e.gls)$tTable["variableY2","df"],
+                 summary2(e.gls, cluster = "Id")$tTable["variableY2","df"],
                  tol = 1e-3)
     expect_equal(unname(e.ttest$p.value),
-                 summary2(e.gls)$tTable["variableY2","p-value"],
+                 summary2(e.gls, cluster = "Id")$tTable["variableY2","p-value"],
                  tol = 1e-5)
 })
 
@@ -79,16 +80,17 @@ test_that("t test (full data)", {
 eNA.gls <- gls(value ~ variable, data = dLred3,
                weights = varIdent(form = ~1|variable),
                method = "ML")
-coef(eNA.gls)[2]-diff(e.ttest$estimate)
 
-sCorrect(eNA.gls, cluster = "Id") <- TRUE
+expect_equal(as.double(coef(eNA.gls)[2]),
+             as.double(diff(e.ttest$estimate)))
+## getVarCov2(eNA.gls, cluster = "Id")
 
 test_that("t test (missing data)", {
     expect_equal(unname(e.ttest$parameter),
-                 summary2(eNA.gls)$tTable["variableY2","df"],
+                 summary2(eNA.gls, cluster = "Id")$tTable["variableY2","df"],
                  tol = 1e-3)
     expect_equal(unname(e.ttest$p.value),
-                 summary2(eNA.gls)$tTable["variableY2","p-value"],
+                 summary2(eNA.gls, cluster = "Id")$tTable["variableY2","p-value"],
                  tol = 1e-5)
 })
 

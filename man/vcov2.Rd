@@ -64,7 +64,7 @@ formula.lvm <- as.formula(paste0("Y~",paste0(X.name,collapse="+")))
 m <- lvm(formula.lvm)
 distribution(m,~Id) <- sequence.lvm(0)
 set.seed(10)
-d <- sim(m,n)
+d <- lava::sim(m,n)
 
 ## linear model
 e.lm <- lm(formula.lvm,data=d)

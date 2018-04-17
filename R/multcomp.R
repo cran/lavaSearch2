@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: nov 29 2017 (12:56) 
 ## Version: 
-## Last-Updated: mar 12 2018 (16:59) 
+## Last-Updated: mar 26 2018 (17:11) 
 ##           By: Brice Ozenne
-##     Update #: 358
+##     Update #: 359
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -42,7 +42,7 @@
 #' #### simulate data ####
 #' n <- 5e1
 #' set.seed(10)
-#' df.data <- sim(mSim, n = n, latent = FALSE)
+#' df.data <- lava::sim(mSim, n = n, latent = FALSE)
 #'
 #' #### fit separate models ####
 #' lmX <- lm(X ~ Age + Treatment, data = df.data)
@@ -105,7 +105,7 @@ estfun.lvmfit <- function(x, ...){
 #' set.seed(10)
 #' n <- 1e2
 #'
-#' df.data <- sim(mSim, n, latent = FALSE, p = c(beta = 1))
+#' df.data <- lava::sim(mSim, n, latent = FALSE, p = c(beta = 1))
 #'
 #' #### Inference on a single model ####
 #' e.lvm <- estimate(lvm(Y1~E), data = df.data)

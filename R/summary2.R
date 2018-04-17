@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: nov 10 2017 (10:57) 
 ## Version: 
-## Last-Updated: mar 15 2018 (12:23) 
+## Last-Updated: apr 10 2018 (14:33) 
 ##           By: Brice Ozenne
-##     Update #: 241
+##     Update #: 266
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -22,6 +22,8 @@
 #'
 #' @param object a \code{gls}, \code{lme} or \code{lvm} object.
 #' @param digit [integer > 0] the number of digit to keep when displaying the summary.
+#' @param df [logical] should the degree of freedoms of the Wald statistic be computed using the Satterthwaite correction?
+#' Otherwise the degree of freedoms are set to \code{Inf}, i.e. a normal distribution is used instead of a Student's t distribution when computing the p-values.
 #' @param bias.correct [logical] should the standard errors of the coefficients be corrected for small sample bias?
 #' See \code{\link{sCorrect}} for more details.
 #' @param robust [logical] should the robust standard errors be used instead of the model based standard errors?
@@ -40,7 +42,7 @@
 #' @examples
 #' m <- lvm(Y~X1+X2)
 #' set.seed(10)
-#' d <- sim(m, 2e1)
+#' d <- lava::sim(m, 2e1)
 #'
 #' ## Gold standard
 #' summary(lm(Y~X1+X2, d))$coef
@@ -73,15 +75,15 @@
 ## * summary2.lm
 #' @rdname summary
 #' @export
-summary2.lm <- function(object, bias.correct = TRUE, ...){
-    sCorrect(object) <- bias.correct
+summary2.lm <- function(object, df = TRUE, bias.correct = TRUE, ...){
+    sCorrect(object, df = df) <- bias.correct
     return(summary2(object, ...))
 }
 ## * summary2.gls
 #' @rdname summary2
 #' @export
-summary2.gls <- function(object, bias.correct = TRUE, cluster = NULL, ...){
-    sCorrect(object, cluster = cluster) <- bias.correct
+summary2.gls <- function(object, df = TRUE, bias.correct = TRUE, cluster = NULL, ...){
+    sCorrect(object, df = df, cluster = cluster) <- bias.correct
     return(summary2(object, ...))
 }
 
@@ -95,6 +97,37 @@ summary2.lme <- summary2.lm
 #' @export
 summary2.lvmfit <- summary2.lm
 
+## * summary2.lm2
+#' @rdname summary2
+#' @method summary2 lm2
+#' @export
+summary2.lm2 <- function(object, 
+                         digit = max(3, getOption("digit")),
+                         robust = FALSE,
+                         df = TRUE,
+                         ...){
+
+### ** perform Wald test
+    name.param <- names(coef(object))
+    n.param <- length(name.param)
+
+    tTable.all <- compare2(object, par = name.param, robust = robust, df = df, F.test = FALSE, as.lava = FALSE)
+    tTable <- tTable.all[1:n.param,c("estimate","std","statistic","p-value","df")]
+    dimnames(tTable) <- list(name.param,
+                             c("Value","Std.Error","t-value","p-value","df")
+                             )
+
+### ** get summary
+    class(object) <- setdiff(class(object),c("lm2"))
+    object.summary <- summary(object, digits = digit, ...)
+    
+### ** update summary
+    object.summary$coefficients <- tTable
+
+### ** export
+    return(object.summary)
+
+}
 ## * summary2.gls2
 #' @rdname summary2
 #' @method summary2 gls2
@@ -102,13 +135,14 @@ summary2.lvmfit <- summary2.lm
 summary2.gls2 <- function(object, 
                           digit = max(3, getOption("digit")),
                           robust = FALSE,
+                          df = TRUE,
                           ...){
     
     ### ** perform Wald test
     name.param <- names(coef(object))
     n.param <- length(name.param)
 
-    tTable.all <- compare2(object, par = name.param, robust = robust, as.lava = FALSE)
+    tTable.all <- compare2(object, par = name.param, robust = robust, df = df, F.test = FALSE, as.lava = FALSE)
     tTable <- tTable.all[1:n.param,c("estimate","std","statistic","p-value","df")]
     dimnames(tTable) <- list(name.param,
                              c("Value","Std.Error","t-value","p-value","df")
@@ -135,19 +169,18 @@ summary2.lme2 <- summary2.gls2
 #' @rdname summary2
 #' @method summary2 lvmfit2
 #' @export
-summary2.lvmfit2 <- function(object, robust = FALSE, ...){
+summary2.lvmfit2 <- function(object, robust = FALSE, df = TRUE, ...){
 
-    ### ** perform Wald test
+### ** perform Wald test
     param <- lava::pars(object)
     name.param <- names(param)
     n.param <- length(param)
 
-    table.all <- compare2(object, par = name.param, robust = robust, as.lava = FALSE)
+    table.all <- compare2(object, par = name.param, robust = robust, df = df, F.test = FALSE, as.lava = FALSE)
     table.coef <- table.all[1:n.param,c("estimate","std","statistic","p-value","df")]
     dimnames(table.coef) <- list(name.param,
                                  c("Estimate", "Std. Error", "t-value", "P-value", "df")
                                  )
-    
     ### ** get summary
     class(object) <- setdiff(class(object),"lvmfit2")
     object.summary <- summary(object, ...)
@@ -165,7 +198,7 @@ summary2.lvmfit2 <- function(object, robust = FALSE, ...){
     ## add rows corresponding to reference parameters
     missing.rows <- setdiff(lava.rownames,rownames(table.coef))
     if(length(missing.rows)>0){
-        addon <- object.summary$coef[missing.rows,c("Estimate","Std. Error","Z-value","P-value")]
+        addon <- object.summary$coef[missing.rows,c("Estimate","Std. Error","Z-value","P-value"),drop=FALSE]
         colnames(addon)[3] <- "t-value"
         table.coef <- rbind(table.coef, cbind(addon,df=NA))
     }

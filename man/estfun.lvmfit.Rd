@@ -34,7 +34,7 @@ categorical(mSim, labels = c("male","female")) <- ~Gender
 #### simulate data ####
 n <- 5e1
 set.seed(10)
-df.data <- sim(mSim, n = n, latent = FALSE)
+df.data <- lava::sim(mSim, n = n, latent = FALSE)
 
 #### fit separate models ####
 lmX <- lm(X ~ Age + Treatment, data = df.data)

@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: jan 22 2018 (11:45) 
 ## Version: 
-## Last-Updated: mar 13 2018 (16:41) 
+## Last-Updated: mar 26 2018 (17:34) 
 ##           By: Brice Ozenne
-##     Update #: 14
+##     Update #: 15
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -33,7 +33,7 @@ m <- lvm(Y~E)
 addvar(m) <- ~X1
 
 set.seed(10)
-df.sim <- sim(m.sim, n=100, latent = FALSE)
+df.sim <- lava::sim(m.sim, n=100, latent = FALSE)
 e.base <- estimate(m, data = df.sim)
 
 test_that("Score 1 link",{

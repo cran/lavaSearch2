@@ -3,9 +3,9 @@
 ## author: Brice Ozenne
 ## created: sep 22 2017 (11:57) 
 ## Version: 
-## last-updated: mar 13 2018 (09:48) 
+## last-updated: mar 22 2018 (17:26) 
 ##           By: Brice Ozenne
-##     Update #: 279
+##     Update #: 304
 #----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -66,7 +66,7 @@
 compareSearch <- function(object, alpha = 0.05,
                           method.p.adjust, statistic,
                           trace = 1, ...){
-
+    
     p.value <- link <- NULL
     
     ### ** normalize arguments
@@ -110,16 +110,24 @@ compareSearch <- function(object, alpha = 0.05,
         if(trace){
             cat("modelsearch with the robust Wald statistic")
         }
-        if("max" %in% method.p.adjust){
-            ls.search$Wald <- try(modelsearch2(object, statistic = "Wald", method.p.adjust = "max",
-                                               trace = trace-1, ...), silent = TRUE)
+        if(any(c("fastmax","max") %in% method.p.adjust)){
+            if("fastmax" %in% method.p.adjust){
+                ls.search$Wald <- try(modelsearch2(object, statistic = "Wald", method.p.adjust = "fastmax",
+                                                   trace = trace-1, ...), silent = TRUE)
+               method.p.adjust[method.p.adjust == "fastmax"] <- "max"
+            }else{
+                ls.search$Wald <- try(modelsearch2(object, statistic = "Wald", method.p.adjust = "max",
+                                                   trace = trace-1, ...), silent = TRUE)
+            }
+            
 
             ## *** check whether further steps are needed for other type 1 error adjustment
+            ## i.e. it could be that after max adjustement the p.value is >0.05 but if we don't adjust we should continue
             if("try-error" %in% class(ls.search$Wald) == FALSE){
                 currentStep <- nStep(ls.search$Wald)
                 vec.tempo <- getStep(ls.search$Wald, step = currentStep, slot = "sequenceTest")
                 maxStep <- list(...)$nStep
-                vec.p.adjust <- sapply(setdiff(method.p.adjust,"max"), function(iAdj){
+                vec.p.adjust <- sapply(setdiff(method.p.adjust,c("fastmax","max")), function(iAdj){
                     min(stats::p.adjust(vec.tempo$p.value, method = iAdj))
                 })
                 if(is.null(maxStep)){maxStep <- Inf}
@@ -185,12 +193,12 @@ compareSearch <- function(object, alpha = 0.05,
                )
     }
 
-    ### ** Adjust p.values
+### ** Adjust p.values
     ls.searchAll <- list()    
     for(iStatistic in statistic){ # iStatistic <- statistic[1]
         ##  print(iStatistic)
         for(iAdjust in method.p.adjust){ # iAdjust <- method.p.adjust[1]
-            ##    print(iAdjust)
+            ## print(iAdjust)
             if(iAdjust == "max" && iStatistic != "Wald"){next}
             list.tempo <- list(.adjustModelSearch(ls.search[[iStatistic]],
                                                   model0 = object,
@@ -229,14 +237,17 @@ compareSearch <- function(object, alpha = 0.05,
 ## * adjustModelSearch
 .adjustModelSearch <- function(object, model0,  method.p.adjust, alpha){
 
+    n.Test <- length(object$sequenceTest)
+    
     ## ** adjust p.value
-    seqP.value <- sapply(object$sequenceTest, function(iTest){        
+    seqP.value <- rep(NA, n.Test)
+    for(iTest in 1:n.Test){
         if(method.p.adjust!="max"){            
-            iTest$adjusted.p.value <- stats::p.adjust(iTest$p.value,
-                                                      method = method.p.adjust)
+            object$sequenceTest[[iTest]]$adjusted.p.value <- stats::p.adjust(object$sequenceTest[[iTest]]$p.value,
+                                                                             method = method.p.adjust)
         }
-        return(min(iTest$adjusted.p.value))
-    })
+        seqP.value[iTest] <- min(object$sequenceTest[[iTest]]$adjusted.p.value)
+    }
 
     ## ** stop search when necessary
     index.keepTest <- union(1, which(seqP.value<alpha)+1)
@@ -262,7 +273,7 @@ compareSearch <- function(object, alpha = 0.05,
         object$sequenceModel[[length(object$sequenceModel)]] <- object$sequenceModel[[index.finalModel]]
     }
     
-    ## ** update adjustement
+    ## ** update adjustment
     object$method.p.adjust <- method.p.adjust
     
     ## ** export

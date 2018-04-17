@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: mar  6 2018 (10:40) 
 ## Version: 
-## Last-Updated: mar 13 2018 (23:04) 
+## Last-Updated: apr  4 2018 (14:20) 
 ##           By: Brice Ozenne
-##     Update #: 120
+##     Update #: 137
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -27,7 +27,7 @@ if(FALSE){ ## already called in test-all.R
 lava.options(symbols = c("~","~~"))
 .coef2 <- lavaSearch2:::.coef2
 library(nlme)
-context("sCorrect: replicate lava results")
+context("sCorrect (replicate lava results)")
 
 ## * simulation
 n <- 5e1
@@ -38,7 +38,7 @@ latent(mSim) <- ~eta1+eta2
 categorical(mSim, labels = c("Male","Female")) <- ~Gender
 transform(mSim, Id~Y1) <- function(x){1:NROW(x)}
 set.seed(10)
-d <- sim(mSim, n = n, latent = FALSE)
+d <- lava::sim(mSim, n = n, latent = FALSE)
 dL <- reshape2::melt(d, id.vars = c("Id","X1","X2","X3","Gender"),
            measure.vars = c("Y1","Y2","Y3","Z1","Z2","Z3"))
 dLred <- dL[dL$variable %in% c("Y1","Y2","Y3"),]
@@ -86,14 +86,14 @@ test_that("linear regression (at ML) compare to lava",{
     expect_equivalent(e2.lvm$sCorrect$vcov.param, vcov(e.lvm))
     expect_true(all(e2.lvm$sCorrect$leverage==0))
     expect_true(e2.lvm$sCorrect$n.corrected==e.lvm$data$n)
-    expect_equivalent(e2.lvm$sCorrect$epsilon, residuals(e.lvm))
+    expect_equivalent(e2.lvm$sCorrect$residuals, residuals(e.lvm))
     expect_equal(e2.lvm$sCorrect$param, coef(e.lvm))
     expect_equal(e2.lvm$sCorrect$score, score(e.lvm, indiv = TRUE))
     expect_equal(score2(e.lvm, bias.correct = FALSE), score(e.lvm, indiv = TRUE))
 
     GS <- iid(e.lm)
     expect_equivalent(iid2(e2.lvm)[,1:length(colnames(GS))], GS)
-    expect_equal(e2.lvm$sCorrect$epsilon, residuals2(e2.lvm))
+    expect_equal(e2.lvm$sCorrect$residuals, residuals2(e2.lvm))
 
     ## NOTE: iid in lava uses numerical derivative to compute the information matrix
     ## this is why there is not a perfect matching between iid2.lvm and iid.lvm
@@ -185,7 +185,7 @@ test_that("linear regression: constrains",{
     expect_equivalent(e2.lvm$sCorrect$vcov.param, vcov(e.lvm))
     expect_true(all(e2.lvm$sCorrect$leverage==0))
     expect_true(e2.lvm$sCorrect$n.corrected==e.lvm$data$n)
-    expect_equivalent(e2.lvm$sCorrect$epsilon, residuals(e.lvm))
+    expect_equivalent(e2.lvm$sCorrect$residuals, residuals(e.lvm))
     expect_equal(e2.lvm$sCorrect$param, coef(e.lvm))
     expect_equal(e2.lvm$sCorrect$score, score(e.lvm, indiv = TRUE))
     expect_equal(score2(e.lvm, bias.correct = FALSE), score(e.lvm, indiv = TRUE))
@@ -230,20 +230,23 @@ test_that("multiple linear regression (at ML) internal consistency",{
     expect_equal(unname(e2.lvm2$sCorrect$Omega),
                  unname(e2.gls$sCorrect$Omega),
                  tolerance = 1e-5)
-    expect_equal(unname(e2.lvm2$sCorrect$epsilon),
-                 unname(e2.gls$sCorrect$epsilon),
+    expect_equal(unname(e2.lvm2$sCorrect$residuals),
+                 unname(e2.gls$sCorrect$residuals),
                  tolerance = 1e-5)
     expect_equal(unname(e2.lvm2$sCorrect$score[,c("Y1","Y1~X1","Y1~X2")]),
                  unname(e2.gls$sCorrect$score[,c("(Intercept)","X1","X2")]),
                  tolerance = 1e-5)
 })
 
+e2.lvm2$sCorrect$residuals[1:5,]
+e2.gls$sCorrect$residuals[1:5,]
+
 test_that("multiple linear regression (at ML) compare to lava",{
 
     expect_equivalent(e2.lvm$sCorrect$vcov.param, vcov(e.lvm))
     expect_true(all(e2.lvm$sCorrect$leverage==0))
     expect_true(all(e2.lvm$sCorrect$n.corrected==e.lvm$data$n))
-    expect_equal(e2.lvm$sCorrect$epsilon, residuals(e.lvm))
+    expect_equal(e2.lvm$sCorrect$residuals, residuals(e.lvm))
     expect_equal(e2.lvm$sCorrect$param, coef(e.lvm))
     expect_equal(e2.lvm$sCorrect$score, score(e.lvm, indiv = TRUE))
 
@@ -252,7 +255,7 @@ test_that("multiple linear regression (at ML) compare to lava",{
     expect_equivalent(test[,grep("^Y1$|^Y1~X",colnames(test))], GS[[1]])
     expect_equivalent(test[,grep("^Y2$|^Y2~X",colnames(test))], GS[[2]])
     expect_equivalent(test[,grep("^Y3$|^Y3~X",colnames(test))], GS[[3]])
-    expect_equal(e2.lvm$sCorrect$epsilon, residuals2(e2.lvm))
+    expect_equal(e2.lvm$sCorrect$residuals, residuals2(e2.lvm))
     expect_true(all(leverage2(e2.lvm) == 0))
 
     C1 <- compare2(e2.lvm, par = c("Y1~X1","Y2~X2","Y3~X1"))
@@ -296,11 +299,11 @@ test_that("multiple linear regressions: constrains",{
     expect_equivalent(e2.lvm$sCorrect$vcov.param, vcov(e.lvm))
     expect_true(all(e2.lvm$sCorrect$leverage==0))
     expect_true(all(e2.lvm$sCorrect$n.corrected==e.lvm$data$n))
-    expect_equal(e2.lvm$sCorrect$epsilon, residuals(e.lvm))
+    expect_equal(e2.lvm$sCorrect$residuals, residuals(e.lvm))
     expect_equal(e2.lvm$sCorrect$param, coef(e.lvm))
     expect_equal(e2.lvm$sCorrect$score, score(e.lvm, indiv = TRUE))
 
-    expect_equal(e2.lvm$sCorrect$epsilon, residuals2(e2.lvm))
+    expect_equal(e2.lvm$sCorrect$residuals, residuals2(e2.lvm))
     expect_true(all(leverage2(e2.lvm) == 0))
 
     C1 <- compare2(e2.lvm, par = c("Y1~X1"))
@@ -321,13 +324,13 @@ test_that("multiple linear regression, covariance link (at ML)",{
     expect_equivalent(e2.lvm$sCorrect$vcov.param, vcov(e.lvm))
     expect_true(all(e2.lvm$sCorrect$leverage==0))
     expect_true(all(e2.lvm$sCorrect$n.corrected==e.lvm$data$n))
-    expect_equal(e2.lvm$sCorrect$epsilon, residuals(e.lvm))
+    expect_equal(e2.lvm$sCorrect$residuals, residuals(e.lvm))
     expect_equal(e2.lvm$sCorrect$param, coef(e.lvm))
     expect_equal(e2.lvm$sCorrect$score, score(e.lvm, indiv = TRUE))
     expect_equal(score2(e.lvm, bias.correct = FALSE),
                  score(e.lvm, indiv=TRUE))
     
-    expect_equal(e2.lvm$sCorrect$epsilon, residuals2(e2.lvm))
+    expect_equal(e2.lvm$sCorrect$residuals, residuals2(e2.lvm))
     expect_true(all(leverage2(e2.lvm) == 0))
 })
 
@@ -394,8 +397,8 @@ test_that("compound symmetry (at ML) internal consistency",{
     expect_equal(unname(e2.gls$sCorrect$score[,param.nlme]),
                  unname(e2.lme$sCorrect$score[,param.nlme]), tol = 1e-5)
 
-    expect_equivalent(e2.lvm$sCorrect$epsilon,e2.lme$sCorrect$epsilon)
-    expect_equivalent(e2.gls$sCorrect$epsilon,e2.lme$sCorrect$epsilon)
+    expect_equivalent(e2.lvm$sCorrect$residuals,e2.lme$sCorrect$residuals)
+    expect_equivalent(e2.gls$sCorrect$residuals,e2.lme$sCorrect$residuals)
 
     expect_equivalent(e2.lvm$sCorrect$dVcov.param[param.lava,param.lava,"Y1~~Y1"],
                       e2.lme$sCorrect$dVcov.param[param.nlme,param.nlme,"sigma2"])
@@ -408,13 +411,13 @@ test_that("compound symmetry (at ML) compare to lava",{
     expect_equivalent(e2.lvm$sCorrect$vcov.param, vcov(e.lvm))
     expect_true(all(e2.lvm$sCorrect$leverage==0))
     expect_true(all(e2.lvm$sCorrect$n.corrected==e.lvm$data$n))
-    expect_equal(e2.lvm$sCorrect$epsilon, residuals(e.lvm))
+    expect_equal(e2.lvm$sCorrect$residuals, residuals(e.lvm))
     expect_equal(e2.lvm$sCorrect$param, coef(e.lvm))
     expect_equal(e2.lvm$sCorrect$score, score(e.lvm, indiv = TRUE))
     expect_equal(score2(e.lvm, bias.correct = FALSE),
                  score(e.lvm, indiv = TRUE))
     
-    expect_equal(e2.lvm$sCorrect$epsilon, residuals2(e2.lvm))
+    expect_equal(e2.lvm$sCorrect$residuals, residuals2(e2.lvm))
     expect_true(all(leverage2(e2.lvm) == 0))
 })
 
@@ -466,21 +469,21 @@ test_that("compound symmetry with weights (at ML) internal consistency",{
     expect_equal(unname(e2.lvm$sCorrect$score[,param.lava]),
                  unname(e2.lme$sCorrect$score[,param.nlme]), tol = 1e-5)
 
-    expect_equal(unname(e2.lvm$sCorrect$epsilon),
-                 unname(e2.lme$sCorrect$epsilon), tol = 1e-5)
+    expect_equal(unname(e2.lvm$sCorrect$residuals),
+                 unname(e2.lme$sCorrect$residuals), tol = 1e-5)
 })
 
 test_that("compound symmetry with weights (at ML) compare to lava",{
     expect_equivalent(e2.lvm$sCorrect$vcov.param, vcov(e.lvm))
     expect_true(all(e2.lvm$sCorrect$leverage==0))
     expect_true(all(e2.lvm$sCorrect$n.corrected==e.lvm$data$n))
-    expect_equal(e2.lvm$sCorrect$epsilon, residuals(e.lvm))
+    expect_equal(e2.lvm$sCorrect$residuals, residuals(e.lvm))
     expect_equal(e2.lvm$sCorrect$param, coef(e.lvm))
     expect_equal(e2.lvm$sCorrect$score, score(e.lvm, indiv = TRUE))
     expect_equal(score2(e.lvm, bias.correct = FALSE),
                  score(e.lvm, indiv = TRUE))
     
-    expect_equal(e2.lvm$sCorrect$epsilon, residuals2(e2.lvm))
+    expect_equal(e2.lvm$sCorrect$residuals, residuals2(e2.lvm))
     expect_true(all(leverage2(e2.lvm) == 0))
 })
 
@@ -535,8 +538,8 @@ test_that("Unstructured (at ML) internal consistency",{
     expect_equal(unname(e2.lvm$sCorrect$score[,param.lava]),
                  unname(e2.gls$sCorrect$score[,param.nlme]), tol = 1e-4)
     
-    expect_equal(unname(e2.lvm$sCorrect$epsilon),
-                 unname(e2.gls$sCorrect$epsilon), tol = 1e-4)
+    expect_equal(unname(e2.lvm$sCorrect$residuals),
+                 unname(e2.gls$sCorrect$residuals), tol = 1e-4)
 })
 
 test_that("Unstructured (at ML) compare to lava",{
@@ -544,7 +547,7 @@ test_that("Unstructured (at ML) compare to lava",{
     expect_equivalent(e2.lvm$sCorrect$vcov.param, vcov(e.lvm))
     expect_true(all(e2.lvm$sCorrect$leverage==0))
     expect_true(all(e2.lvm$sCorrect$n.corrected==e.lvm$data$n))
-    expect_equivalent(e2.lvm$sCorrect$epsilon, residuals(e.lvm))
+    expect_equivalent(e2.lvm$sCorrect$residuals, residuals(e.lvm))
     expect_equal(e2.lvm$sCorrect$param, coef(e.lvm))
     expect_equal(e2.lvm$sCorrect$score, score(e.lvm, indiv = TRUE))
     expect_equal(score2(e.lvm, bias.correct = FALSE), score(e.lvm, indiv = TRUE))
@@ -602,8 +605,8 @@ test_that("Unstructured with weights (at ML) internal consistency",{
     expect_equal(unname(e2.lvm$sCorrect$score[,param.lava]),
                  unname(e2.gls$sCorrect$score[,param.nlme]), tol = 1e-3)
 
-    expect_equal(unname(e2.lvm$sCorrect$epsilon),
-                 unname(e2.gls$sCorrect$epsilon), tol = 1e-3)
+    expect_equal(unname(e2.lvm$sCorrect$residuals),
+                 unname(e2.gls$sCorrect$residuals), tol = 1e-3)
 
 })
 
@@ -612,7 +615,7 @@ test_that("Unstructured with weights (at ML) compare to lava",{
     expect_equivalent(e2.lvm$sCorrect$vcov.param, vcov(e.lvm))
     expect_true(all(e2.lvm$sCorrect$leverage==0))
     expect_true(all(e2.lvm$sCorrect$n.corrected==e.lvm$data$n))
-    expect_equivalent(e2.lvm$sCorrect$epsilon, residuals(e.lvm))
+    expect_equivalent(e2.lvm$sCorrect$residuals, residuals(e.lvm))
     expect_equal(e2.lvm$sCorrect$param, coef(e.lvm))
     expect_equal(e2.lvm$sCorrect$score, score(e.lvm, indiv = TRUE))
     expect_equal(score2(e.lvm, bias.correct = FALSE), score(e.lvm, indiv = TRUE))
@@ -634,7 +637,7 @@ test_that("factor model (at ML) compared to lava",{
     expect_equivalent(e2.lvm$sCorrect$vcov.param, vcov(e.lvm))
     expect_true(all(e2.lvm$sCorrect$leverage==0))
     expect_true(all(e2.lvm$sCorrect$n.corrected==e.lvm$data$n))
-    expect_equivalent(e2.lvm$sCorrect$epsilon, residuals(e.lvm))
+    expect_equivalent(e2.lvm$sCorrect$residuals, residuals(e.lvm))
     expect_equal(e2.lvm$sCorrect$param, coef(e.lvm))
     expect_equal(e2.lvm$sCorrect$score, score(e.lvm, indiv = TRUE))
     expect_equal(score2(e.lvm, bias.correct = FALSE), score(e.lvm, indiv = TRUE))
@@ -708,7 +711,7 @@ test_that("2 factor model (at ML) compared to lava",{
     expect_equivalent(e2.lvm$sCorrect$vcov.param, vcov(e.lvm))
     expect_true(all(e2.lvm$sCorrect$leverage==0))
     expect_true(all(e2.lvm$sCorrect$n.corrected==e.lvm$data$n))
-    expect_equivalent(e2.lvm$sCorrect$epsilon, residuals(e.lvm))
+    expect_equivalent(e2.lvm$sCorrect$residuals, residuals(e.lvm))
     expect_equal(e2.lvm$sCorrect$param, coef(e.lvm))
     expect_equal(e2.lvm$sCorrect$score, score(e.lvm, indiv = TRUE))
     expect_equal(score2(e.lvm, bias.correct = FALSE), score(e.lvm, indiv = TRUE))
@@ -765,7 +768,7 @@ test_that("2 factor model with covariance (at ML) compared to lava",{
     expect_equivalent(e2.lvm$sCorrect$vcov.param, vcov(e.lvm))
     expect_true(all(e2.lvm$sCorrect$leverage==0))
     expect_true(all(e2.lvm$sCorrect$n.corrected==e.lvm$data$n))
-    expect_equivalent(e2.lvm$sCorrect$epsilon, residuals(e.lvm))
+    expect_equivalent(e2.lvm$sCorrect$residuals, residuals(e.lvm))
     expect_equal(e2.lvm$sCorrect$param, coef(e.lvm))
     expect_equal(e2.lvm$sCorrect$score, score(e.lvm, indiv = TRUE))
     expect_equal(score2(e.lvm, bias.correct = FALSE), score(e.lvm, indiv = TRUE))
@@ -805,7 +808,7 @@ test_that("2 factor model with correlation (at ML) compared to lava",{
     expect_equivalent(e2.lvm$sCorrect$vcov.param, vcov(e.lvm))
     expect_true(all(e2.lvm$sCorrect$leverage==0))
     expect_true(all(e2.lvm$sCorrect$n.corrected==e.lvm$data$n))
-    expect_equivalent(e2.lvm$sCorrect$epsilon, residuals(e.lvm))
+    expect_equivalent(e2.lvm$sCorrect$residuals, residuals(e.lvm))
     expect_equal(e2.lvm$sCorrect$param, coef(e.lvm))
     expect_equal(e2.lvm$sCorrect$score, score(e.lvm, indiv = TRUE))
     expect_equal(score2(e.lvm, bias.correct = FALSE), score(e.lvm, indiv = TRUE))

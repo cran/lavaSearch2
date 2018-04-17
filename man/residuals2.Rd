@@ -10,22 +10,31 @@
 \usage{
 residuals2(object, ...)
 
-\method{residuals2}{lm2}(object, param = NULL, data = NULL, ...)
+\method{residuals2}{lm2}(object, param = NULL, data = NULL,
+  type = "response", ...)
 
-\method{residuals2}{gls2}(object, param = NULL, data = NULL, ...)
+\method{residuals2}{gls2}(object, param = NULL, data = NULL,
+  type = "response", ...)
 
-\method{residuals2}{lme2}(object, param = NULL, data = NULL, ...)
+\method{residuals2}{lme2}(object, param = NULL, data = NULL,
+  type = "response", ...)
 
-\method{residuals2}{lvmfit2}(object, param = NULL, data = NULL, ...)
+\method{residuals2}{lvmfit2}(object, param = NULL, data = NULL,
+  type = "response", ...)
 }
 \arguments{
 \item{object}{a \code{lm2}, \code{gls2}, \code{lme2}, or \code{lvmfit2} object.}
 
 \item{...}{arguments to be passed to \code{sCorrect}.}
 
-\item{param}{[optional] the fitted parameters.}
+\item{param}{[named numeric vector] the fitted parameters.}
 
-\item{data}{[optional] the data set.}
+\item{data}{[data.frame] the data set.}
+
+\item{type}{[character] the type of residual to extract:
+\code{"response"} for raw residuals,
+\code{"studentized"} for studentized residuals,
+\code{"normalized"} for normalized residuals.}
 }
 \value{
 a matrix containing the residuals relative to each sample (in rows)
@@ -35,14 +44,27 @@ and each endogenous variable (in column).
 Extract correct residuals from a gaussian linear model.
 }
 \details{
-If argument \code{p} or \code{data} is not null, then the small sample size correction is recomputed to correct the residuals.
+If argument \code{p} or \code{data} is not null, then the small sample size correction is recomputed to correct the residuals. \cr
+
+The raw residuals are defined by  observation minus the fitted value:
+\deqn{
+\varepsilon = (Y_1 - \mu_1, ..., Y_m - \mu_m)
+}
+The studentized residuals divided the raw residuals relative to each endogenous variable by the modeled variance of the endogenous variable.
+\deqn{
+\varepsilon_{stud} =(\frac{Y_1 - \mu_1}{\sigma_1}, ..., \frac{Y_m - \mu_m}{\sigma_m})
+}
+The normalized residuals multiply the raw residuals by the inverse of the square root of the modeled residual variance covariance matrix.
+\deqn{
+\varepsilon_{norm} = \varepsilon \Omega^{-1/2}
+}
 }
 \examples{
 ## simulate data
 set.seed(10)
 m <- lvm(Y1~eta,Y2~eta,Y3~eta)
 latent(m) <- ~eta
-d <- sim(m,20, latent = FALSE)
+d <- lava::sim(m,20, latent = FALSE)
 
 ## standard linear model
 e.lm <- lm(Y1~Y2, data = d)

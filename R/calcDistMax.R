@@ -3,9 +3,9 @@
 ## author: Brice Ozenne
 ## created: jun 21 2017 (16:44) 
 ## Version: 
-## last-updated: feb  6 2018 (09:27) 
+## last-updated: mar 22 2018 (16:38) 
 ##           By: Brice Ozenne
-##     Update #: 470
+##     Update #: 474
 #----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -178,8 +178,7 @@ calcDistMaxIntegral <- function(statistic, iid, df,
     }else{
         out$z <- NA
     }
-    
-    if(trace > 0){ cat("Computation of multivariate student probabilities to adjust the p.values: ") }
+    if(trace > 0){ cat("Computation of multivariate student probabilities to adjust the p.values \n") }
     if(ncpus > 1){
         ## *** parallel computations
         if(init.cpus){
@@ -244,8 +243,6 @@ calcDistMaxIntegral <- function(statistic, iid, df,
     }
     out$p.adjust <- stats::setNames(out$p.adjust, names(statistic))
         
-    if(trace > 0){ cat("done \n") }
-
     ## ** export
     return(out)
 }

@@ -66,7 +66,7 @@ A coefficient may corresponds to the strength of one or several link.
 \examples{
 #### regression ####
 m <- lvm(Y~X1+X2)
-e <- estimate(m, sim(m, 1e2))
+e <- estimate(m, lava::sim(m, 1e2))
 
 coefType(m)
 coefType(e)
@@ -80,7 +80,7 @@ covariance(m) <- y1~y2
 
 m.Sim <- m
 categorical(m.Sim, labels = c("a","b","c")) <- ~x2
-e <- estimate(m, sim(m.Sim, 1e2))
+e <- estimate(m, lava::sim(m.Sim, 1e2))
 
 coefType(m)
 coefType(e)
@@ -94,14 +94,14 @@ coefType(m, as.lava = FALSE)
 m <- lvm(c(Y1~0+1*eta1,Y2~0+1*eta1,Y3~0+1*eta1,
           Z1~0+1*eta2,Z2~0+1*eta2,Z3~0+1*eta2))
 latent(m) <- ~eta1 + eta2
-e <- estimate(m, sim(m,1e2))
+e <- estimate(m, lava::sim(m,1e2))
 
 coefType(m)
 coefType(e)
 
 #### multigroup ####
 m <- lvm(Y~X1+X2)
-eG <- estimate(list(m,m), list(sim(m, 1e2),sim(m, 1e2)))
+eG <- estimate(list(m,m), list(lava::sim(m, 1e2), lava::sim(m, 1e2)))
 coefType(eG)
 
 }

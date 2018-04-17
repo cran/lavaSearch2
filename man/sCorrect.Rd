@@ -3,14 +3,20 @@
 \name{sCorrect}
 \alias{sCorrect}
 \alias{sCorrect.lm}
+\alias{sCorrect.lm2}
 \alias{sCorrect.gls}
+\alias{sCorrect.gls2}
 \alias{sCorrect.lme}
+\alias{sCorrect.lme2}
 \alias{sCorrect.lvmfit}
 \alias{sCorrect.lvmfit2}
 \alias{sCorrect<-}
 \alias{sCorrect<-.lm}
+\alias{sCorrect<-.lm2}
 \alias{sCorrect<-.gls}
+\alias{sCorrect<-.gls2}
 \alias{sCorrect<-.lme}
+\alias{sCorrect<-.lme2}
 \alias{sCorrect<-.lvmfit}
 \alias{sCorrect<-.lvmfit2}
 \title{Compute the Derivative of the Information Matrix}
@@ -21,13 +27,19 @@ sCorrect(object, ...)
   score = TRUE, df = TRUE, numeric.derivative = FALSE, param = NULL,
   data = NULL, tol = 1e-05, n.iter = 20, trace = 0, ...)
 
+\method{sCorrect}{lm2}(object, ...)
+
 \method{sCorrect}{gls}(object, cluster, adjust.Omega = TRUE,
   adjust.n = TRUE, score = TRUE, df = TRUE, numeric.derivative = FALSE,
   param = NULL, data = NULL, tol = 1e-05, n.iter = 20, trace = 0, ...)
 
+\method{sCorrect}{gls2}(object, ...)
+
 \method{sCorrect}{lme}(object, cluster, adjust.Omega = TRUE,
   adjust.n = TRUE, score = TRUE, df = TRUE, numeric.derivative = FALSE,
   param = NULL, data = NULL, tol = 1e-05, n.iter = 20, trace = 0, ...)
+
+\method{sCorrect}{lme2}(object, ...)
 
 \method{sCorrect}{lvmfit}(object, adjust.Omega = TRUE, adjust.n = TRUE,
   score = TRUE, df = TRUE, numeric.derivative = FALSE, param = NULL,
@@ -39,9 +51,15 @@ sCorrect(x, ...) <- value
 
 \method{sCorrect}{lm}(x, ...) <- value
 
+\method{sCorrect}{lm2}(x, ...) <- value
+
 \method{sCorrect}{gls}(x, ...) <- value
 
+\method{sCorrect}{gls2}(x, ...) <- value
+
 \method{sCorrect}{lme}(x, ...) <- value
+
+\method{sCorrect}{lme2}(x, ...) <- value
 
 \method{sCorrect}{lvmfit}(x, ...) <- value
 
@@ -58,7 +76,8 @@ sCorrect(x, ...) <- value
 
 \item{score}{[internal] export the score.}
 
-\item{df}{[logical] should the first derivative of the expected information matrix be computed. Required when computing the degrees of freedom of the test statistics.}
+\item{df}{[logical] should the degree of freedoms of the Wald statistic be computed using the Satterthwaite correction?
+Otherwise the degree of freedoms are set to \code{Inf}, i.e. a normal distribution is used instead of a Student's t distribution when computing the p-values.}
 
 \item{numeric.derivative}{[logical] should a numerical derivative be used to compute the first derivative of the information matrix?
 Otherwise an analytic formula is used.}
@@ -82,6 +101,9 @@ Only required for \code{gls} models with no correlation argument.}
 \description{
 Compute the derivative of the information matrix.
 }
+\details{
+The argument \code{value} is equivalent to the argument \code{bias.correct} of the function \code{summary2}.
+}
 \concept{
 small sample inference
 
@@ -95,22 +117,22 @@ formula.lvm <- as.formula(paste0("Y~",paste0(X.name,collapse="+")))
 m <- lvm(formula.lvm)
 distribution(m,~Id) <- sequence.lvm(0)
 set.seed(10)
-d <- sim(m,n)
+d <- lava::sim(m,n)
 
 ## linear model
 e.lm <- lm(formula.lvm,data=d)
 system.time(
-sCorrect(e.lm) <- TRUE
+sCorrect(e.lm) <- TRUE ## i.e. bias.correct = TRUE
 )
 
 ## gls model
 library(nlme)
 e.gls <- gls(formula.lvm, data = d, method = "ML")
-sCorrect(e.gls, cluster = 1:NROW(d)) <- TRUE
+sCorrect(e.gls, cluster = 1:NROW(d)) <- TRUE ## i.e. bias.correct = TRUE
 summary2(e.gls)
 
 ## latent variable model
 e.lvm <- estimate(lvm(formula.lvm),data=d)
-sCorrect(e.lvm) <- TRUE
+sCorrect(e.lvm) <- TRUE ## i.e. bias.correct = TRUE
 summary2(e.lvm)
 }

@@ -3,9 +3,9 @@
 ## author: Brice Ozenne
 ## created: sep 22 2017 (16:43) 
 ## Version: 
-## last-updated: mar 16 2018 (12:36) 
+## last-updated: feb  5 2018 (18:03) 
 ##           By: Brice Ozenne
-##     Update #: 150
+##     Update #: 149
 #----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -182,7 +182,6 @@ getNewLink.modelsearch2 <- function(object, step = 1:nStep(object), ...){
 #' @return a \code{modelsearch2} object.
 #' 
 #' @examples
-#' \dontrun{
 #' mSim <- lvm(Y~G+X1+X2)
 #' addvar(mSim) <- ~Z1+Z2+Z3+Z4+Z5+Z6
 #' df.data <- lava::sim(mSim, 1e2)
@@ -196,7 +195,7 @@ getNewLink.modelsearch2 <- function(object, step = 1:nStep(object), ...){
 #' res.xy <- merge(res.x,res.y)
 #'
 #' modelsearch2(e.lvm, statistic = "score", method.p.adjust = "holm")
-#' }
+#'
 #' @keywords internal
 
 ## ** function - merge

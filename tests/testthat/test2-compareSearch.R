@@ -3,9 +3,9 @@
 ## author: Brice Ozenne
 ## created: okt  5 2017 (09:25) 
 ## Version: 
-## last-updated: mar 13 2018 (13:25) 
+## last-updated: mar 26 2018 (17:34) 
 ##           By: Brice Ozenne
-##     Update #: 20
+##     Update #: 21
 #----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -33,7 +33,7 @@ m.sim <- lvm(Y~E+X1+0.5*X2+0.1*X3,~Z1+Z2+Z3)
 m.base <- lvm(Y~E,~X1+X2+X3+Z1+Z2+Z3)
 
 set.seed(10)
-df.sim <- sim(m.sim, n=100, latent = FALSE)
+df.sim <- lava::sim(m.sim, n=100, latent = FALSE)
 e.base <- estimate(m.base, data = df.sim)
 
 resCompare <- compareSearch(e.base, 

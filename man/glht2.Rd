@@ -49,7 +49,7 @@ latent(mSim) <- "eta"
 set.seed(10)
 n <- 1e2
 
-df.data <- sim(mSim, n, latent = FALSE, p = c(beta = 1))
+df.data <- lava::sim(mSim, n, latent = FALSE, p = c(beta = 1))
 
 #### Inference on a single model ####
 e.lvm <- estimate(lvm(Y1~E), data = df.data)

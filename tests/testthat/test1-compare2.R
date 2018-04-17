@@ -3,9 +3,9 @@
 ## author: Brice Ozenne
 ## created: okt 20 2017 (10:22) 
 ## Version: 
-## last-updated: mar 13 2018 (16:36) 
+## last-updated: jul 22 2016 (18:10) 
 ##           By: Brice Ozenne
-##     Update #: 212
+##     Update #: 231
 #----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -35,6 +35,8 @@ if(FALSE){ ## already called in test-all.R
     library(testthat)
     library(lavaSearch2)
 }
+
+
 library(clubSandwich)
 library(nlme)
 library(lme4)
@@ -56,7 +58,7 @@ latent(mSim) <- ~eta1+eta2
 categorical(mSim, labels = c("Male","Female")) <- ~Gender
 transform(mSim, Id~Y1) <- function(x){1:NROW(x)}
 set.seed(10)
-d <- sim(mSim, n = n, latent = FALSE)
+d <- lava::sim(mSim, n = n, latent = FALSE)
 dL <- reshape2::melt(d, id.vars = c("Id","X1","X2","X3","Gender"),
                      measure.vars = c("Y1","Y2","Y3","Z1","Z2","Z3"))
 dLred <- dL[dL$variable %in% c("Y1","Y2","Y3"),]
@@ -215,9 +217,9 @@ m <- lvm(c(Y1[mu1:sigma]~1*eta,
 e.lvm <- estimate(m, d)
 ## compare2(e.lvm)
 
-e.lmer <- lme4::lmer(value ~ variable + X1 + Gender + (1|Id),
-                     data = dLred, REML = FALSE)
-
+e.lmer <- lmerTest::lmer(value ~ variable + X1 + Gender + (1|Id),
+                         data = dLred, REML = FALSE)
+e2.lmer <- update(e.lmer, REML = TRUE)
 e.lme <- nlme::lme(value ~ variable + X1 + Gender, random = ~ 1|Id,
                    data = dLred, method = "ML")
 
@@ -230,20 +232,26 @@ expect_equal(logLik(e.lmer),logLik(e.lme))
 coef_test(e.lme, vcov = "CR0", test = "Satterthwaite", cluster = dLred$Id)
 ## strange that same type of coef have very different degrees of freedom
 
-## ** compare - ok
+## ** compare 
 expect_equal(as.double(logLik(e.lmer)),as.double(logLik(e.lvm)))
 
 test_that("mixed model: Satterthwaite ",{
+    skip_if_not_installed("lmerTest", minimum_version = "2.0-37.90016")
+
     ## does not work when running test
-    ## GS <- summary(e.lmer, ddf = "Satterthwaite")$coef[,"df"]
-    GS <- lmerTest:::calcSummary(e.lmer, ddf = "Satterthwaite")
+    ## GS <- summary(e.lmer)$coef[,"df"]
+    GS <- do.call(rbind,lapply(1:5, function(x){ ## x <- 3
+        C <- rep(0,5) ; C[x] <- 1;
+        tempo <- lmerTest::contestMD(e.lmer, L = C, rhs = 0, ddf = "Satterthwaite")
+        return(data.frame(df = tempo[["DenDF"]], statistic = sqrt(tempo[["F value"]])))
+    }))
 
     name.param <- names(coef(e.lvm))
     df.lvm <- compare2(e.lvm, par = name.param, bias.correct = FALSE, as.lava = FALSE)[1:length(name.param),]
     expect_equal(as.double(GS$df),
                  as.double(df.lvm[1:5,"df"]), tol = 1e-4) ## needed for CRAN
-    expect_equal(as.double(GS$tvalue),
-                 as.double(df.lvm[1:5,"statistic"]), tol = 1e-8) ## needed for CRAN
+    expect_equal(as.double(GS$statistic),
+                 as.double(abs(df.lvm[1:5,"statistic"])), tol = 1e-8) ## needed for CRAN
 
     name.param <- names(.coef2(e.lme))
     df.lme <- compare2(e.lme, par = name.param, bias.correct = FALSE, as.lava = FALSE)[1:length(name.param),]
@@ -254,19 +262,30 @@ test_that("mixed model: Satterthwaite ",{
     df.gls <- compare2(e.gls, par = name.param, bias.correct = FALSE, as.lava = FALSE)[1:length(name.param),]
     expect_equal(df.gls$statistic[1:5], df.lvm$statistic[1:5], tol = 1e-5)
     expect_equal(df.gls$df[1:5], df.lvm$df[1:5], tol = 1e-5)
+
+    ## F test
+    GS <- lmerTest::contestMD(e.lmer, L = diag(1,5,5), rhs = 0, ddf = "Satterthwaite")
+    name.param <- names(coef(e.lvm))    
+    df.F <- compare2(e.lvm, par = name.param[1:5], bias.correct = FALSE, as.lava = FALSE)["global",]
+    expect_equal(GS[["DenDF"]], df.F$df, tol = 1e-5)
+    expect_equal(GS[["F value"]], df.F$statistic, tol = 1e-8)
 })
 
 test_that("mixed model: KR-like correction",{
+    skip_if_not_installed("lmerTest", minimum_version = "2.0-37.90016")
+
     ## does not work when running test
     ## GS <- summary(e.lmer, ddf = "Kenward-Roger")$coef[,"df"]
-    GS <- lmerTest:::calcSummary(e.lmer, ddf = "Kenward-Roger")
-
+    GS <- do.call(rbind,lapply(1:5, function(x){ ## x <- 3
+        C <- rep(0,5) ; C[x] <- 1;
+        tempo <- lmerTest::contestMD(e2.lmer, L = C, rhs = 0, ddf = "Kenward-Roger")
+        return(data.frame(df = tempo[["DenDF"]], statistic = sqrt(tempo[["F value"]])))
+    })) ## disagreement
+    
     ## get_Lb_ddf(e.lmer, c(0,1,0,0,0))
     ## get_Lb_ddf(e.lmer, c(0,0,0,1,0))
     name.param <- names(coef(e.lvm))
     df.lvm <- compare2(e.lvm, par = name.param, bias.correct = TRUE, as.lava = FALSE)[1:length(name.param),]
-
-
     name.param <- names(.coef2(e.lme))
     df.lme <- compare2(e.lme, par = name.param, bias.correct = TRUE, as.lava = FALSE)[1:length(name.param),]
     expect_equal(df.lme$statistic, df.lvm$statistic, tol = 1e-5)
@@ -277,6 +296,36 @@ test_that("mixed model: KR-like correction",{
     expect_equal(df.gls$statistic[1:5], df.lvm$statistic[1:5], tol = 1e-5)
     expect_equal(df.gls$df[1:5], df.lvm$df[1:5], tol = 1e-5)
 })
+
+### ** compare to SAS
+if(FALSE){
+    ## setwd("c:/Users/hpl802/AppData/Roaming/R")
+    write.table(dLred, file = "mydata.txt", row.names = FALSE)
+    ## /* Define path */
+    ## %Let NomEtude = %Str(C:\Users\hpl802\AppData\Roaming\R\);
+
+    ## /* Define path to file */
+    ## FILENAME Fichier "&NomEtude.%Str(mydata.txt)";
+
+    ## /* Importation of the data */
+    ## Data mydata; 
+    ## Infile Fichier FirstObs=2 obs=61; /* if no FirstObs : will read all first lines */
+    ## input gpr $ animal $ week weight; 
+    ## Run;
+
+    ## /* display data */
+    ## PROC SGPANEL DATA=mydata;
+    ## PANELBY gpr;
+    ## SERIES X=week Y=weight / GROUP=animal;
+    ## RUN;
+
+    ## /* Fit mixed model */
+    ## PROC Mixed DATA = mydata;
+    ## Class gpr animal week ;
+    ## Model weight = week gpr*week / SOLUTION DDFM=KR;
+    ## Repeated week / SUBJECT = animal TYPE = CS R RCORR;
+    ## RUN; 
+}
 
 ## * Mixed model: Unstructured with different variance
 m <- lvm(Y1~1*eta,
@@ -313,6 +362,19 @@ test_that("UN mixed model: df",{
     name.param <- names(coef(e.lvm))
     df.lvm <- compare2(e.lvm, par = name.param, bias.correct = FALSE, as.lava = FALSE)
 
+    ##                          estimate       std  statistic       df      p-value
+    ## [eta] = 0              -0.2530247 0.2459609 -1.0287194 61.99195 3.076087e-01
+    ## [Y2] = 0                0.1513703 0.2248199  0.6732956 50.00000 5.038597e-01
+    ## [Y3] = 0                0.3987991 0.2286753  1.7439534 50.00000 8.731285e-02
+    ## [eta~X1] = 0            1.4498392 0.1465743  9.8914990 50.00000 2.318146e-13
+    ## [eta~GenderFemale] = 0  0.9213738 0.2991017  3.0804696 50.00000 3.355219e-03
+    ## [Y1~~Y1] = 0            1.3533853 0.4323206  3.1305133 29.40589 3.923193e-03
+    ## [eta~~eta] = 0          0.4391486 0.3092283  1.4201436 21.64808 1.698083e-01
+    ## [Y2~~Y2] = 0            1.6200992 0.4392003  3.6887476 13.94845 2.444719e-03
+    ## [Y3~~Y3] = 0            1.7889734 0.4646774  3.8499254 13.62954 1.850575e-03
+    ## [Y1~~Y2] = 0            0.2231421 0.3296648  0.6768757 24.12389 5.049242e-01
+    ## [Y1~~Y3] = 0            0.2638691 0.3376548  0.7814760 23.84905 4.422119e-01
+    ## global                         NA        NA 17.0357449 34.39628 7.882273e-11
     ## overparametrized model
     ## name.param <- names(.coef2(e.lme))
     ## df.lme <- compare2(e.lme, par = name.param, bias.correct = FALSE, as.lava = FALSE)

@@ -3,9 +3,9 @@
 ## author: Brice Ozenne
 ## created: maj 30 2017 (18:32) 
 ## Version: 
-## last-updated: mar 12 2018 (17:18) 
+## last-updated: mar 22 2018 (16:37) 
 ##           By: Brice Ozenne
-##     Update #: 701
+##     Update #: 706
 #----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -214,7 +214,7 @@ modelsearchMax <- function(x, restricted, link, directive, packages,
         }
         
     }
-    
+
     if(method.p.adjust == "max"){
         nameN0 <- df.test[indexCV, "link"]
         statisticN0 <- setNames(subset(df.test, subset = convergence==0, select = "statistic", drop = TRUE),
@@ -225,9 +225,6 @@ modelsearchMax <- function(x, restricted, link, directive, packages,
         }else {
             dfN0 <- NULL
         }
-        resQmax <- calcDistMaxIntegral(statistic = statisticN0[1], iid = iid.link[,1,drop=FALSE], df = dfN0,
-                                       iid.previous = iid.previous, quantile.previous = quantile.previous, 
-                                       alpha = alpha, ncpus = ncpus, init.cpus = FALSE, trace = trace)
         
         if(method.max=="integration"){
             resQmax <- calcDistMaxIntegral(statistic = statisticN0,

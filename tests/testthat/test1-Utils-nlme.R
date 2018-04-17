@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: nov 16 2017 (10:36) 
 ## Version: 
-## Last-Updated: mar 13 2018 (13:25) 
+## Last-Updated: apr  4 2018 (14:19) 
 ##           By: Brice Ozenne
-##     Update #: 44
+##     Update #: 56
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -40,10 +40,29 @@ dL <- reshape2::melt(dW,id.vars = c("G","Id","Gender"), variable.name = "time")
 dL <- dL[order(dL$Id),,drop=FALSE]
 dL$time.num <- as.numeric(dL$time)
 
+## * t.test
+test_that("invariant to the order in the dataset", {
+    e1.gls <- gls(Y1 ~ Gender, data = dW[order(dW$Id),],
+                  weights = varIdent(form = ~1|Gender),
+                  method = "ML")
+
+    out1 <- getVarCov2(e1.gls, cluster = dW$Id)
+    index.cluster <- as.numeric(names(out1$index.Omega))
+    expect_true(all(diff(index.cluster)>0))
+
+    e2.gls <- gls(Y1 ~ Gender, data = dW[order(dW$Gender),],
+                  weights = varIdent(form = ~1|Gender),
+                  method = "ML")
+    out2 <- getVarCov2(e2.gls, cluster = dW$Id)
+    index.cluster <- as.numeric(names(out2$index.Omega))
+    expect_true(all(diff(index.cluster)>0))
+})
+
 ## * Heteroschedasticity
 e.gls <- nlme::gls(value ~ time + G + Gender,
                    weights = varIdent(form =~ 1|time),
                    data = dL, method = "ML")
+
 test_that("Heteroschedasticity", {
     vec.sigma <- c(1,coef(e.gls$modelStruct$varStruct, unconstrained = FALSE))
     expect_equal(diag(vec.sigma^2 * sigma(e.gls)^2),

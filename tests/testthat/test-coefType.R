@@ -3,9 +3,9 @@
 ## author: Brice Ozenne
 ## created: okt 12 2017 (14:52) 
 ## Version: 
-## last-updated: mar 13 2018 (13:25) 
+## last-updated: mar 26 2018 (17:34) 
 ##           By: Brice Ozenne
-##     Update #: 77
+##     Update #: 78
 #----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -29,7 +29,7 @@ context("coefType")
 ## * linear regression
 ## ** only continous variables
 m <- lvm(Y~X1+X2)
-e <- estimate(m, sim(m, 1e2))
+e <- estimate(m, lava::sim(m, 1e2))
 
 
 df.truth <- data.frame(name = c("Y","Y~X1","Y~X2","Y~~Y"),
@@ -84,7 +84,7 @@ test_that("coefReg - lm", {
 m <- lvm(Y~X1+X2+X3)
 mSim <- m
 categorical(mSim, labels =c("a","b","c")) <- ~X2
-d <- sim(mSim, 1e2)
+d <- lava::sim(mSim, 1e2)
 e <- estimate(m, d)
 
 df.truth <- data.frame(name = c("Y","Y~X1","Y~X2b","Y~X2c","Y~X3","Y~~Y"),
@@ -111,7 +111,7 @@ test_that("coefType - lm", {
 m <- lvm(Y1~X1+X2,Y2~X1+X3)
 mSim <- m
 categorical(mSim, labels = c("a","b","c")) <- "X1"
-d <- sim(mSim, 1e2)
+d <- lava::sim(mSim, 1e2)
 e <- estimate(m, d)
 
 df.truth <- data.frame(name = c("Y1","Y2",
@@ -145,7 +145,7 @@ covariance(m) <- Y1~Z1
 latent(m) <- ~eta1+eta2
 mSim <- m
 categorical(mSim, labels =c("a","b","c")) <- ~X2
-d <- sim(mSim, 1e2, latent = FALSE)
+d <- lava::sim(mSim, 1e2, latent = FALSE)
 e <- estimate(m, d)
 
 df.truth <- rbind(c("Y2","intercept","nu"),
@@ -206,7 +206,7 @@ m <- lvm(c(Y1~0+1*eta1,Y2~0+1*eta1,Y3~0+1*eta1,
 latent(m) <- ~eta1 + eta2
 covariance(m) <- Y1~Y2
 
-e <- estimate(m, sim(m,1e2))
+e <- estimate(m, lava::sim(m,1e2))
 
 
 df.truth <- rbind(data.frame(name = "Y1", type = "intercept", detail = "nu", fixed = TRUE, stringsAsFactors = FALSE),
@@ -262,7 +262,7 @@ m <- lvm(c(Y1[mu:sigma]~beta*eta1,Y2[mu:sigma]~1*eta1,Y3~1*eta1+X1),eta1~X1)
 mSim <- m
 categorical(mSim, labels = as.character(1:3)) <- ~X1
 
-d <- sim(mSim, latent=FALSE, 1e2)
+d <- lava::sim(mSim, latent=FALSE, 1e2)
 e <- estimate(m, d)
 
 test_that("coefType - constrains mean/variance", {

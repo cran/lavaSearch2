@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: feb 19 2018 (14:17) 
 ## Version: 
-## Last-Updated: mar 15 2018 (17:51) 
+## Last-Updated: apr  4 2018 (10:51) 
 ##           By: Brice Ozenne
-##     Update #: 152
+##     Update #: 158
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -92,9 +92,8 @@
             for(iG in index.varparam){ # iG <- 1
                 iP1 <- grid.varparam[iG,1]
                 iP2 <- grid.varparam[iG,2]
-
                 iDiag <- diag(OmegaM1[[iC]] %*% dOmega[[iP1]][iIndex,iIndex,drop=FALSE] %*% OmegaM1[[iC]] %*% dOmega[[iP2]][iIndex,iIndex,drop=FALSE])
-                Info[iP1,iP2] <- Info[iP1,iP2] + 1/2 * sum(iDiag * (1 - leverage[iC,iIndex]))            
+                Info[iP1,iP2] <- Info[iP1,iP2] + 1/2 * sum(iDiag * (1 - leverage[iC,iIndex]))
             }
         }        
     }

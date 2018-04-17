@@ -3,9 +3,9 @@
 ## author: Brice Ozenne
 ## created: okt 12 2017 (16:43) 
 ## Version: 
-## last-updated: mar 16 2018 (11:46) 
+## last-updated: apr  4 2018 (09:33) 
 ##           By: Brice Ozenne
-##     Update #: 2251
+##     Update #: 2260
 #----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -43,7 +43,7 @@
 #' m <- lvm(formula.lvm)
 #' distribution(m,~Id) <- sequence.lvm(0)
 #' set.seed(10)
-#' d <- sim(m,n)
+#' d <- lava::sim(m,n)
 #'
 #' ## linear model
 #' e.lm <- lm(formula.lvm,data=d)
@@ -64,7 +64,6 @@
 #' @rdname score2
 #' @export
 score2.lm <- function(object, param = NULL, data = NULL, bias.correct = TRUE, ...){
-
     sCorrect(object, param = param, data = data,
              score = TRUE, df = FALSE, ...) <- bias.correct
 
@@ -107,12 +106,12 @@ score2.lm2 <- function(object, param = NULL, data = NULL, ...){
 
 }
 
-## * score2.gls
+## * score2.gls2
 #' @rdname score2
 #' @export
 score2.gls2 <- score2.lm2
 
-## * score2.lme
+## * score2.lme2
 #' @rdname score2
 #' @export
 score2.lme2 <- score2.lm2

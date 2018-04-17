@@ -5,9 +5,14 @@
 \alias{skeleton.lvm}
 \alias{skeleton.lvmfit}
 \alias{skeletonDtheta}
+\alias{skeletonDtheta.gls}
+\alias{skeletonDtheta.lme}
 \alias{skeletonDtheta.lvm}
 \alias{skeletonDtheta.lvmfit}
 \alias{skeletonDtheta2}
+\alias{skeletonDtheta2.gls}
+\alias{skeletonDtheta2.lme}
+\alias{skeletonDtheta2.lm}
 \alias{skeletonDtheta2.lvm}
 \alias{skeletonDtheta2.lvmfit}
 \title{Pre-computation for the Score}
@@ -16,24 +21,45 @@ skeleton(object, ...)
 
 \method{skeleton}{lvm}(object, as.lava, name.endogenous, name.latent, ...)
 
-\method{skeleton}{lvmfit}(object, skeleton, param, data, name.endogenous,
-  name.latent, ...)
+\method{skeleton}{lvmfit}(object, param, data, name.endogenous, name.latent,
+  ...)
 
 skeletonDtheta(object, ...)
+
+\method{skeletonDtheta}{gls}(object, class.cor, class.var, X, sigma2.base0,
+  Msigma2.base0, M.corcoef, ref.group, index.lower.tri, indexArr.lower.tri,
+  name.endogenous, n.endogenous, cluster, n.cluster, var.coef, name.varcoef,
+  name.otherVar, n.varcoef, cor.coef, name.corcoef, n.corcoef, index.Omega,
+  update.mean, update.variance, ...)
+
+\method{skeletonDtheta}{lme}(object, name.endogenous, n.endogenous,
+  name.rancoef, ...)
 
 \method{skeletonDtheta}{lvm}(object, data, df.param.all, param2originalLink,
   name.endogenous, name.latent, ...)
 
-\method{skeletonDtheta}{lvmfit}(object, dtheta, name.endogenous, name.latent, B,
-  alpha.XGamma, Lambda, Psi, ...)
+\method{skeletonDtheta}{lvmfit}(object, name.endogenous, name.latent, ...)
 
 skeletonDtheta2(object, ...)
+
+\method{skeletonDtheta2}{gls}(object, dOmega = NULL, class.cor = NULL,
+  class.var = NULL, M.corcoef = NULL, n.endogenous = NULL,
+  index.lower.tri = NULL, indexArr.lower.tri = NULL, var.coef = NULL,
+  name.otherVar = NULL, name.varcoef = NULL, n.varcoef = NULL,
+  cor.coef = NULL, name.corcoef = NULL, ...)
+
+\method{skeletonDtheta2}{lme}(object, dOmega = NULL, class.cor = NULL,
+  class.var = NULL, M.corcoef = NULL, n.endogenous = NULL,
+  index.lower.tri = NULL, indexArr.lower.tri = NULL, var.coef = NULL,
+  name.otherVar = NULL, name.varcoef = NULL, n.varcoef = NULL,
+  cor.coef = NULL, name.corcoef = NULL, ...)
+
+\method{skeletonDtheta2}{lm}(object, ...)
 
 \method{skeletonDtheta2}{lvm}(object, data, df.param.all, param2originalLink,
   name.latent, ...)
 
-\method{skeletonDtheta2}{lvmfit}(object, dtheta, d2theta, name.endogenous,
-  name.latent, B, Lambda, Psi, ...)
+\method{skeletonDtheta2}{lvmfit}(object, ...)
 }
 \arguments{
 \item{object}{a \code{lvm} object.}
@@ -75,7 +101,7 @@ skeleton.lvmfit <- lavaSearch2::skeleton.lvmfit
 m <- lvm(Y1~X1+X2+eta,Y2~X3+eta,Y3~eta)
 latent(m) <- ~eta
 
-e <- estimate(m,sim(m,1e2))
+e <- estimate(m, lava::sim(m,1e2))
 M.data <- as.matrix(model.frame(e))
 
 skeleton(e$model, as.lava = TRUE,
@@ -89,7 +115,7 @@ skeleton(e, data = M.data, p = pars(e), as.lava = TRUE,
 
 ## with constrains
 m <- lvm(Y[mu:sigma] ~ beta*X1+X2)
-e <- estimate(m, sim(m,1e2))
+e <- estimate(m, lava::sim(m,1e2))
 M.data <- as.matrix(model.frame(e))
 
 skeleton(e$model, as.lava = TRUE,

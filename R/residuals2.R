@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: nov  8 2017 (09:05) 
 ## Version: 
-## Last-Updated: mar 12 2018 (17:51) 
+## Last-Updated: mar 28 2018 (16:15) 
 ##           By: Brice Ozenne
-##     Update #: 912
+##     Update #: 927
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -21,14 +21,30 @@
 #' @name residuals2
 #' 
 #' @param object a \code{lm2}, \code{gls2}, \code{lme2}, or \code{lvmfit2} object.
-#' @param param [optional] the fitted parameters.
-#' @param data [optional] the data set.
+#' @param type [character] the type of residual to extract:
+#' \code{"response"} for raw residuals,
+#' \code{"studentized"} for studentized residuals,
+#' \code{"normalized"} for normalized residuals.
+#' @param param [named numeric vector] the fitted parameters.
+#' @param data [data.frame] the data set.
 #' @param ... arguments to be passed to \code{sCorrect}.
 #'
 #' @seealso \code{\link{sCorrect}} to obtain \code{lm2}, \code{gls2}, \code{lme2}, or \code{lvmfit2} objects.
 #'
-#' @details If argument \code{p} or \code{data} is not null, then the small sample size correction is recomputed to correct the residuals.
-#' 
+#' @details If argument \code{p} or \code{data} is not null, then the small sample size correction is recomputed to correct the residuals. \cr
+#'
+#' The raw residuals are defined by  observation minus the fitted value:
+#' \deqn{
+#' \varepsilon = (Y_1 - \mu_1, ..., Y_m - \mu_m)
+#' }
+#' The studentized residuals divided the raw residuals relative to each endogenous variable by the modeled variance of the endogenous variable.
+#' \deqn{
+#' \varepsilon_{stud} =(\frac{Y_1 - \mu_1}{\sigma_1}, ..., \frac{Y_m - \mu_m}{\sigma_m})
+#' }
+#' The normalized residuals multiply the raw residuals by the inverse of the square root of the modeled residual variance covariance matrix.
+#' \deqn{
+#' \varepsilon_{norm} = \varepsilon \Omega^{-1/2}
+#' }
 #' @return a matrix containing the residuals relative to each sample (in rows)
 #' and each endogenous variable (in column).
 #'
@@ -37,7 +53,7 @@
 #' set.seed(10)
 #' m <- lvm(Y1~eta,Y2~eta,Y3~eta)
 #' latent(m) <- ~eta
-#' d <- sim(m,20, latent = FALSE)
+#' d <- lava::sim(m,20, latent = FALSE)
 #'
 #' ## standard linear model
 #' e.lm <- lm(Y1~Y2, data = d)
@@ -60,8 +76,10 @@
 ## * residuals2.lm
 #' @rdname residuals2
 #' @export
-residuals2.lm2 <- function(object, param = NULL, data = NULL, ...){
+residuals2.lm2 <- function(object, param = NULL, data = NULL, type = "response", ...){
 
+    type <- match.arg(type, choices = c("response","studentized","normalized"), several.ok = FALSE)
+    
     if(!is.null(param) || !is.null(data)){
         args <- object$sCorrect$args
         args$df <- FALSE
@@ -70,7 +88,20 @@ residuals2.lm2 <- function(object, param = NULL, data = NULL, ...){
                                    args = c(list(object, param = param, data = data),
                                             args))
     }
-    return(object$sCorrect$epsilon)   
+    if(type=="response"){
+        residuals <- object$sCorrect$residuals
+    }else if(type=="studentized"){
+        residuals <- sweep(object$sCorrect$residuals,
+                           STATS = sqrt(diag(object$sCorrect$Omega)),
+                           FUN = "/",
+                           MARGIN = 2)
+        ## object$sCorrect$residuals/residuals
+    }else if(type=="normalized"){
+        residuals <- object$sCorrect$residuals %*% matrixPower(object$sCorrect$Omega, symmetric = TRUE, power = -1/2)
+        ## object$sCorrect$residuals/residuals
+        ## var(residuals)        
+    }
+    return(residuals)
 }
 
 ## * residuals2.gls

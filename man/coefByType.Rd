@@ -110,7 +110,7 @@ variance coefficient(s) (\code{coefVar}).
 \examples{
 #### regression ####
 m <- lvm(Y~X1+X2)
-e <- estimate(m, sim(m, 1e2))
+e <- estimate(m, lava::sim(m, 1e2))
 
 coefCov(m)
 coefCov(m, value = TRUE)
@@ -136,7 +136,7 @@ covariance(m) <- y1~y2
 
 m.Sim <- m
 categorical(m.Sim, labels = c("a","b","c")) <- ~x2
-e <- estimate(m, sim(m.Sim, 1e2))
+e <- estimate(m, lava::sim(m.Sim, 1e2))
 
 coefCov(m)
 coefCov(m, value = TRUE) 
@@ -166,7 +166,7 @@ coefReg(e, value = TRUE)
 
 #### multigroup ####
 m <- lvm(Y~X1+X2)
-eG <- estimate(list(m,m), list(sim(m, 1e2),sim(m, 1e2)))
+eG <- estimate(list(m,m), list(lava::sim(m, 1e2), lava::sim(m, 1e2)))
 
 coefIndexModel(eG)
 

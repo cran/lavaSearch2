@@ -79,7 +79,7 @@ categorical(mSim, labels = c("placebo","SSRI")) <- ~Treatment
 categorical(mSim, labels = c("male","female")) <- ~Gender
 n <- 1e2
 set.seed(10)
-df.data <- sim(mSim,n)
+df.data <- lava::sim(mSim,n)
 
 ## Estimate separate models
 lmX <- estimate(lvm(X ~ -1 + Age + Treatment), data = df.data)

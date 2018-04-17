@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: mar 12 2018 (16:38) 
 ## Version: 
-## Last-Updated: mar 12 2018 (17:19) 
+## Last-Updated: mar 26 2018 (17:10) 
 ##           By: Brice Ozenne
-##     Update #: 8
+##     Update #: 9
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -42,7 +42,7 @@
 #' m <- lvm(formula.lvm)
 #' distribution(m,~Id) <- sequence.lvm(0)
 #' set.seed(10)
-#' d <- sim(m,n)
+#' d <- lava::sim(m,n)
 #'
 #' ## linear model
 #' e.lm <- lm(formula.lvm,data=d)

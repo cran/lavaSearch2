@@ -3,9 +3,9 @@
 ## author: Brice Ozenne
 ## created: okt 26 2017 (14:25) 
 ## Version: 
-## last-updated: feb  5 2018 (15:51) 
+## last-updated: mar 26 2018 (17:09) 
 ##           By: Brice Ozenne
-##     Update #: 35
+##     Update #: 37
 #----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -33,13 +33,13 @@
 #' regression(m) <- u~x
 #' latent(m) <- ~u
 #'
-#' d <- sim(m,1e2)
+#' d <- lava::sim(m,1e2)
 #'
-#' try(checkData(m, d)) # return an error
+#' try(checkData(m, data = d)) # return an error
 #' 
-#' checkData(m, d[,-4])
+#' checkData(m, data = d[,-4])
 #' 
-#' try(checkData(m, d[,-(3:4)])) # return an error
+#' try(checkData(m, data = d[,-(3:4)])) # return an error
 #'
 #' @concept diagnostic
 #' @export

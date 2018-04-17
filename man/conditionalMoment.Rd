@@ -11,52 +11,54 @@
 \usage{
 conditionalMoment(object, ...)
 
-\method{conditionalMoment}{lm}(object, name.endogenous, ...)
+\method{conditionalMoment}{lm}(object, data, param, name.endogenous,
+  first.order, second.order, ...)
 
 \method{conditionalMoment}{gls}(object, data, formula, param, attr.param,
-  ref.group, second.order, index.Omega, cluster, n.cluster, name.endogenous,
-  ...)
+  ref.group, first.order, second.order, index.Omega, vec.OmegaMat, cluster,
+  n.cluster, name.endogenous, n.endogenous, ...)
 
-\method{conditionalMoment}{lme}(object, attr.param, name.endogenous, ...)
+\method{conditionalMoment}{lme}(object, attr.param, ...)
 
-\method{conditionalMoment}{lvm}(object, data, second.order, name.endogenous,
-  name.latent, ...)
+\method{conditionalMoment}{lvm}(object, data, first.order, second.order,
+  name.endogenous, name.latent, ...)
 
-\method{conditionalMoment}{lvmfit}(object, data, param, usefit, second.order,
-  ...)
+\method{conditionalMoment}{lvmfit}(object, data, param, first.order,
+  second.order, usefit, ...)
 }
 \arguments{
 \item{object, x}{a latent variable model.}
 
 \item{...}{[internal] only used by the generic method or by the <- methods.}
 
-\item{name.endogenous}{[character vector, optional] name of the endogenous variables}
-
 \item{data}{[data.frame] data set.}
 
-\item{formula}{[formula] two-sided linear formula.}
-
 \item{param, p}{[numeric vector] the fitted coefficients.}
+
+\item{name.endogenous}{[character vector, optional] name of the endogenous variables}
+
+\item{second.order}{[logical] should the terms relative to the third derivative of the likelihood be be pre-computed?}
+
+\item{formula}{[formula] two-sided linear formula.}
 
 \item{attr.param}{[character vector] the type of each coefficient
 (e.g. mean or variance coefficient).}
 
 \item{ref.group}{[character vector] the levels of the variable defining the variance component in a generic covariance matrix.}
 
-\item{second.order}{[logical] should the terms relative to the third derivative of the likelihood be be pre-computed?}
-
 \item{cluster}{[integer vector] the grouping variable relative to which the observations are iid.}
 
 \item{n.cluster}{[integer >0] the number of i.i.d. observations.}
 
+\item{n.endogenous}{[integer >0] the number of outcomes.}
+
 \item{name.latent}{[character vector, optional] name of the latent variables}
 
 \item{usefit, value}{[logical] If TRUE the coefficients estimated by the model are used to pre-compute quantities. Only for lvmfit objects.}
-
-\item{n.endogenous}{[integer >0] the number of outcomes.}
 }
 \description{
-Compute partial derivatives regarding to the mean and the variance, and compute the design matrices.
+Compute the conditional mean and variance,
+and their first and second derivative regarding the model parameters.
 }
 \details{
 For lvmfit objects, there are two levels of pre-computation:
@@ -66,8 +68,6 @@ For lvmfit objects, there are two levels of pre-computation:
 }
 }
 \examples{
-conditionalMoment <- lavaSearch2:::conditionalMoment
-
 m <- lvm(Y1~eta,Y2~eta,Y3~eta)
 latent(m) <- ~eta
 
@@ -75,13 +75,15 @@ d <- lava::sim(m,1e2)
 e <- estimate(m, d)
 
 ## basic pre-computation
-res1 <- conditionalMoment(e, data = d, second.order = FALSE,
+res1 <- conditionalMoment(e, data = d,
+                         first.order = FALSE, second.order = FALSE,
                          name.endogenous = endogenous(e),
                          name.latent = latent(e), usefit = FALSE)
 res1$skeleton$Sigma
 
 ## full pre-computation
-res2 <- conditionalMoment(e, param = coef(e), data = d, second.order = FALSE,
+res2 <- conditionalMoment(e, param = coef(e), data = d,
+                         first.order = FALSE, second.order = FALSE,
                          name.endogenous = endogenous(e),
                          name.latent = latent(e), usefit = TRUE
 )

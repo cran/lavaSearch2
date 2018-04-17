@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: jan 31 2018 (12:05) 
 ## Version: 
-## Last-Updated: mar 12 2018 (18:01) 
+## Last-Updated: apr 17 2018 (10:11) 
 ##           By: Brice Ozenne
-##     Update #: 200
+##     Update #: 202
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -56,7 +56,7 @@
 #' categorical(mSim, labels = c("male","female")) <- ~Gender
 #' n <- 1e2
 #' set.seed(10)
-#' df.data <- sim(mSim,n)
+#' df.data <- lava::sim(mSim,n)
 #'
 #' ## Estimate separate models
 #' lmX <- estimate(lvm(X ~ -1 + Age + Treatment), data = df.data)

@@ -173,7 +173,7 @@ modelsearch2.lvmfit <- function(object, link = NULL, data = NULL,
     ls.call <- lapply(add.args, function(arg){object$call[[arg]]})
     names(ls.call) <- add.args
 
-    ls.call$data <- as.data.frame(stats::model.frame(object))
+    ls.call$data <- as.data.frame(stats::model.frame(object, all = TRUE))
     if(!is.null(data)){
         index.cols <- which(names(data)%in%names(ls.call$data)==FALSE)
         if(length(index.cols)>0){
@@ -421,7 +421,7 @@ modelsearch2.default <- function(object, link, data = NULL,
         cl <- parallel::makeCluster(ncpus)
         doParallel::registerDoParallel(cl)
     }
-    
+
     ## ** display a summary of the call
     if(trace>0){
         cat("\n",
@@ -531,11 +531,10 @@ modelsearch2.default <- function(object, link, data = NULL,
         }
         ls.seqModels[[iStep]] <- iObject
 
-        ### *** display results
+### *** display results
         if(trace > 0){
             if(cv==FALSE){
-
-                cat("add ",ls.seqTests[[iStep]][rowSelected, "link"],
+                cat("add ",as.character(ls.seqTests[[iStep]][rowSelected, "link"]),
                     " (statistic = ",ls.seqTests[[iStep]][rowSelected, "statistic"],
                     ", adjusted.p.value = ",ls.seqTests[[iStep]][rowSelected, "adjusted.p.value"],
                     ")\n",sep="")

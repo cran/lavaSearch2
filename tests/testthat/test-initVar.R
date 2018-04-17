@@ -7,7 +7,7 @@ if(TRUE){ ## already called in test-all.R
 
 lava.options(symbols = c("~","~~"))
 
-context("#### initVar #### \n")
+context("initVarLink")
 
 ## * tests
 

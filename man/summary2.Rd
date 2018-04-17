@@ -3,6 +3,7 @@
 \name{summary2}
 \alias{summary2}
 \alias{summary2.gls}
+\alias{summary2.lm2}
 \alias{summary2.gls2}
 \alias{summary2.lme2}
 \alias{summary2.lvmfit2}
@@ -10,20 +11,27 @@
 \usage{
 summary2(object, ...)
 
-\method{summary2}{gls}(object, bias.correct = TRUE, cluster = NULL, ...)
+\method{summary2}{gls}(object, df = TRUE, bias.correct = TRUE,
+  cluster = NULL, ...)
+
+\method{summary2}{lm2}(object, digit = max(3, getOption("digit")),
+  robust = FALSE, df = TRUE, ...)
 
 \method{summary2}{gls2}(object, digit = max(3, getOption("digit")),
-  robust = FALSE, ...)
+  robust = FALSE, df = TRUE, ...)
 
 \method{summary2}{lme2}(object, digit = max(3, getOption("digit")),
-  robust = FALSE, ...)
+  robust = FALSE, df = TRUE, ...)
 
-\method{summary2}{lvmfit2}(object, robust = FALSE, ...)
+\method{summary2}{lvmfit2}(object, robust = FALSE, df = TRUE, ...)
 }
 \arguments{
 \item{object}{a \code{gls}, \code{lme} or \code{lvm} object.}
 
 \item{...}{arguments passed to the \code{summary} method of the object.}
+
+\item{df}{[logical] should the degree of freedoms of the Wald statistic be computed using the Satterthwaite correction?
+Otherwise the degree of freedoms are set to \code{Inf}, i.e. a normal distribution is used instead of a Student's t distribution when computing the p-values.}
 
 \item{bias.correct}{[logical] should the standard errors of the coefficients be corrected for small sample bias?
 See \code{\link{sCorrect}} for more details.}
@@ -48,7 +56,7 @@ using \code{sCorrect} and then call \code{summary}.
 \examples{
 m <- lvm(Y~X1+X2)
 set.seed(10)
-d <- sim(m, 2e1)
+d <- lava::sim(m, 2e1)
 
 ## Gold standard
 summary(lm(Y~X1+X2, d))$coef

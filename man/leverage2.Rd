@@ -60,7 +60,7 @@ If argument \code{p} or \code{data} is not null, then the small sample size corr
 set.seed(10)
 m <- lvm(Y1~eta,Y2~eta,Y3~eta)
 latent(m) <- ~eta
-d <- sim(m,20, latent = FALSE)
+d <- lava::sim(m,20, latent = FALSE)
 
 ## standard linear model
 e.lm <- lm(Y1~Y2, data = d)

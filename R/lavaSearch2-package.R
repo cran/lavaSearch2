@@ -1,15 +1,22 @@
 #' @docType package
-#' @name lavaSearch
+#' @name lavaSearch2
+#' @aliases lavaSearch2, lavaSearch2-package
 #'
 #' @title Tools for Model Specification in the Latent Variable Framework
 #' @description
 #' The package contains three main functionalities:
 #' \itemize{
-#' \item \code{\link{compare2}}: Wald tests/F-tests with improved control of the type 1 error in small samples.
+#' \item \code{\link{compare2}}, \code{\link{summary2}}: Wald tests/robust Wald tests/F-tests/robust F-tests with improved control of the type 1 error in small samples.
 #' \item \code{\link{glht2}}: adjustment for multiple comparisons when doing inference for multiple latent variable models.
 #' \item \code{\link{modelsearch2}}: searching for local dependencies with adjustment for multiple comparisons.
 #' }
-#'
+#' It contains other useful functions such as:
+#'\itemize{
+#' \item \code{\link{calibrateType1}}: simulation study of the type 1 error of Wald tests.
+#' \item \code{\link{createContrast}}: user-friendly function generating a contrast matrix.
+#' \item \code{\link{getVarCov2}}: reconstruct the conditional variance covariance matrix.
+#' \item \code{\link{iidJack}}: extract the jackknife iid decomposition.
+#' }
 #' @details
 #' The latent variable models (LVM) considered in this package can be written \cr
 #' as a measurement model:
@@ -37,10 +44,9 @@
 #' 
 #' @section Limitations:
 #' 
-#' 'lavaSearch2' has been design for Gaussian latent variable models with complete data.
+#' 'lavaSearch2' has been design for Gaussian latent variable models.
 #' This means that it may not work / give valid results:
 #' \itemize{
-#' \item in presence of missing values. 
 #' \item in presence of censored or binary outcomes.
 #' \item with stratified models (i.e. object of class \code{multigroup}).
 #' } 
@@ -48,6 +54,7 @@
 
 #' @import lava
 #' @import ggplot2
+#' @importFrom ggplot2 autoplot
 #' @importFrom graphics par plot text
 #' @importFrom MASS mvrnorm
 #' @importFrom Matrix bdiag

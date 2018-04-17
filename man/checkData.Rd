@@ -28,13 +28,13 @@ regression(m) <- c(y1,y2,y3)~u
 regression(m) <- u~x
 latent(m) <- ~u
 
-d <- sim(m,1e2)
+d <- lava::sim(m,1e2)
 
-try(checkData(m, d)) # return an error
+try(checkData(m, data = d)) # return an error
 
-checkData(m, d[,-4])
+checkData(m, data = d[,-4])
 
-try(checkData(m, d[,-(3:4)])) # return an error
+try(checkData(m, data = d[,-(3:4)])) # return an error
 
 }
 \concept{

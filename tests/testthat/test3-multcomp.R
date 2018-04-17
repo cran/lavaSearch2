@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: nov 29 2017 (15:22) 
 ## Version: 
-## Last-Updated: mar 13 2018 (13:25) 
+## Last-Updated: mar 26 2018 (17:34) 
 ##           By: Brice Ozenne
-##     Update #: 102
+##     Update #: 103
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -47,7 +47,7 @@ latent(mSim) <- "eta"
 set.seed(10)
 n <- 1e2
 
-df.data <- sim(mSim, n, latent = FALSE, p = c(beta = 1))
+df.data <- lava::sim(mSim, n, latent = FALSE, p = c(beta = 1))
 
 ## * list of linear regressions
 name.Y <- setdiff(endogenous(mSim),"E")
