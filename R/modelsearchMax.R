@@ -3,9 +3,9 @@
 ## author: Brice Ozenne
 ## created: maj 30 2017 (18:32) 
 ## Version: 
-## last-updated: mar 22 2018 (16:37) 
+## last-updated: jul 17 2018 (09:24) 
 ##           By: Brice Ozenne
-##     Update #: 706
+##     Update #: 734
 #----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -36,12 +36,11 @@ modelsearchMax <- function(x, restricted, link, directive, packages,
                            update.FCT, update.args, iid.FCT,                           
                            alpha, method.p.adjust, method.max, n.sim = 1e3, 
                            iid.previous = NULL, quantile.previous = NULL, 
-                           export.iid, trace, ncpus, init.cpus){
+                           export.iid, trace, cpus, cl){
 
     ## WARNING: do not put link as NULL for data.table since it is used as an argument by the function
     
-    ### ** initialisation
-    if(is.null(ncpus)){ ncpus <- parallel::detectCores()}
+    ## ** initialisation
     n.link <- NROW(restricted)
     nObs <- NROW(update.args$data)
 
@@ -53,8 +52,8 @@ modelsearchMax <- function(x, restricted, link, directive, packages,
     typeSD <- attr(iid.FCT, "typeSD")
     df <- attr(iid.FCT, "df")
     bias.correct <- attr(iid.FCT, "bias.correct")
-    
-    ### ** wraper
+
+    ## ** wraper
     warper <- function(iterI){ # iterI <- 2
 
         out <- list(df = data.frame(statistic = as.numeric(NA),
@@ -109,74 +108,55 @@ modelsearchMax <- function(x, restricted, link, directive, packages,
         }
         return(out)
     }
+
+    ## ** start parallel computation
+    init.cpus <- (is.null(cl) && cpus>1)
+    if(init.cpus){
+        ## define cluster
+        cl <- parallel::makeCluster(cpus)
+
+        ## link to foreach
+        doParallel::registerDoParallel(cl)
+    }
     
-### ** get influence function
+
+    ## ** get influence function
     if(trace>0){
         cat("gather influence functions \n")
     }
             
-    if(ncpus>1){
-
-        FCTcombine <- function(res1,res2){
-            res <- list(df = rbind(res1$df,res2$df),
-                        iid = cbind(res1$iid,res2$iid))
-            return(res)
-        }
-
-        if(init.cpus){
-            test.package <- try(requireNamespace("doParallel"), silent = TRUE)
-            if(inherits(test.package,"try-error")){
-                stop("There is no package \'doParallel\' \n",
-                     "This package is necessary when argument \'ncpus\' is greater than 1 \n")
-            }
-            test.package <- try(requireNamespace("foreach"), silent = TRUE)
-            if(inherits(test.package,"try-error")){
-                stop("There is no package \'foreach\' \n",
-                     "This package is necessary when argument \'ncpus\' is greater than 1 \n")
-            
-            }
-            cl <- parallel::makeCluster(ncpus)
-            doParallel::registerDoParallel(cl)
-        }
+    if(cpus>1){
     
         if(trace > 0){
-            test.package <- try(requireNamespace("tcltk"), silent = TRUE)
-            if(inherits(test.package,"try-error")){
-                stop("There is no package \'tcltk\' \n",
-                     "This package is necessary when argument \'trace\' is TRUE \n")
-            }
-            parallel::clusterExport(cl, varlist = "trace")
+            pb <- utils::txtProgressBar(max = n.link, style = 3) 
         }
 
+        ## export package
         vec.packages <- c("lavaSearch2", packages)
+        parallel::clusterCall(cl, fun = function(x){
+            sapply(vec.packages, function(iP){
+                suppressPackageStartupMessages(requireNamespace(iP, quietly = TRUE))
+            })
+        })
+
+        ## get influence function
         i <- NULL # [:for CRAN check] foreach
         res <- foreach::`%dopar%`(
-                            foreach::foreach(i = 1:n.link, .packages =  vec.packages,
-                                             # .export = c("ls.LVMargs"),
-                                             .combine = FCTcombine),
-                            {
-                                if(trace){
-                                    if(!exists("pb")){
-                                        pb <- tcltk::tkProgressBar("modelsearchMax:", min=1, max=n.link)
-                                    }
-                                    tcltk::setTkProgressBar(pb, i)
-                                }
+                            foreach::foreach(i = 1:n.link,
+                                             .combine = function(res1,res2){
+                                                 res <- list(df = rbind(res1$df,res2$df),
+                                                             iid = cbind(res1$iid,res2$iid))
+                                                 return(res)
+                                             }), {
+                                if(trace>0){utils::setTxtProgressBar(pb, i)}
                                 return(warper(i))
                             })
 
-        if(init.cpus){
-            parallel::stopCluster(cl)
-        }
+        if(trace>0){close(pb)}
         
     }else{
         if(trace>0){
-            test.package <- try(requireNamespace("pbapply"), silent = TRUE)
-            if(inherits(test.package,"try-error")){
-                stop("There is no package \'pbapply\' \n",
-                     "This package is necessary when argument \'trace\' is TRUE \n")
-            }                
-            resApply <- pbapply::pblapply(1:n.link, warper)
-            
+            resApply <- pbapply::pblapply(1:n.link, warper)            
         }else{
             resApply <- lapply(1:n.link, warper)
         }
@@ -233,8 +213,8 @@ modelsearchMax <- function(x, restricted, link, directive, packages,
                                            iid.previous = iid.previous,
                                            quantile.previous = quantile.previous, 
                                            alpha = alpha,
-                                           ncpus = ncpus,
-                                           init.cpus = FALSE,
+                                           cpus = cpus,
+                                           cl = cl,
                                            trace = trace)
             resQmax$p.adjust
         }else{
@@ -245,7 +225,7 @@ modelsearchMax <- function(x, restricted, link, directive, packages,
             
             resQmax <- calcDistMaxBootstrap(statistic = statisticN0, iid = iid.link, method = method.boot, n.sim = n.sim,
                                             iid.previous = iid.previous, quantile.previous = quantile.previous, 
-                                            alpha = alpha, ncpus = ncpus, init.cpus = FALSE, trace = trace)
+                                            alpha = alpha, cpus = cpus, cl = cl, trace = trace)
         }
         df.test[indexCV, "corrected.level"] <- resQmax$correctedLevel
         df.test[indexCV, "adjusted.p.value"] <- resQmax$p.adjust
@@ -253,11 +233,7 @@ modelsearchMax <- function(x, restricted, link, directive, packages,
         Sigma <- resQmax$Sigma
         rownames(Sigma) <- df.test[indexCV, "link"]
         colnames(Sigma) <- df.test[indexCV, "link"]
-        
-        if(init.cpus){
-            parallel::stopCluster(cl)
-        }
-        
+                
     }else{
         df.test[indexCV, "corrected.level"] <- as.numeric(NA)
         df.test[indexCV, "adjusted.p.value"] <- stats::p.adjust(df.test[indexCV, "p.value"],
@@ -266,6 +242,11 @@ modelsearchMax <- function(x, restricted, link, directive, packages,
         Sigma <- NULL        
     }    
 
+    ## ** end parallel calculation
+    if(init.cpus){
+        parallel::stopCluster(cl)
+    }
+    
     ### ** export
     out <- list(df.test = df.test,
                 iid = if(export.iid){iid.link}else{NULL},

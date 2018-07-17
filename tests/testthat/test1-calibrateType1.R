@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr 10 2018 (09:34) 
 ## Version: 
-## Last-Updated: apr 17 2018 (10:55) 
+## Last-Updated: maj  2 2018 (09:55) 
 ##           By: Brice Ozenne
-##     Update #: 17
+##     Update #: 26
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -24,7 +24,7 @@ if(FALSE){ ## already called in test-all.R
 lava.options(symbols = c("~","~~"))
 context("calibrateType1")
 
-## * Simulation
+## * calibrateType1.lvm
 m.generative <- lvm(Y~X1+X2,G~1)
 generative.coef <- c("Y" = 0.35,
                      "Y~X1" = 1.5,
@@ -34,7 +34,7 @@ true.coef <- c("Y~G" = 0,
                generative.coef)
 m.fit <- lvm(Y~X1+X2+G)
 
-test_that("calibrateType1", {
+test_that("calibrateType1.lvm", {
 
     out <- calibrateType1(m.fit, true.coef = true.coef,
                           null = c("Y~G"), checkType1 = TRUE,
@@ -74,6 +74,43 @@ test_that("calibrateType1", {
 
 })
 
+## * calibrateType1.lvmfit
+m2 <- lvm(Y~X1+X2+G)
+e <- lava::estimate(m2, lava::sim(m.generative, 1e3))
+test_that("calibrateType1.lvmfit", {
+
+    out <- calibrateType1(e, null = c("Y~G"), n.rep = 10, seed = 10, trace = FALSE)
+    
+    ## butils::object2script(summary(out, display = FALSE), digits = 6)
+    GS <- data.frame("n" = c(1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000), 
+                     "method" = c("p.Ztest", "p.robustZtest", "p.Satt", "p.robustSatt", "p.SSC", "p.robustSSC", "p.KR", "p.robustKR"), 
+                     "link" = c("Y~G", "Y~G", "Y~G", "Y~G", "Y~G", "Y~G", "Y~G", "Y~G"), 
+                     "n.rep" = c(10, 10, 10, 10, 10, 10, 10, 10), 
+                     "type1error" = c(0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1), 
+                     "ci.inf" = c(0.013882, 0.013882, 0.013882, 0.013882, 0.013882, 0.013882, 0.013882, 0.013882), 
+                     "ci.sup" = c(0.467237, 0.467237, 0.467237, 0.467237, 0.467237, 0.467237, 0.467237, 0.467237), 
+                     "correction" = c("Gaussian approx.", "Gaussian approx.", "Satterthwaite approx.", "Satterthwaite approx.", "small sample correction", "small sample correction", "Satterthwaite approx. with small sample correction", "Satterthwaite approx. with small sample correction"), 
+                     "statistic" = c("Wald", "robust Wald", "Wald", "robust Wald", "Wald", "robust Wald", "Wald", "robust Wald"))
+
+    expect_equal(GS$type1error, summary(out, print = FALSE)$type1error, tol = 1e-5, scale = 1)
+
+    #### parallel computation
+    ## out <- calibrateType1(e, null = c("Y~G"), n.rep = 1e3, cpus = 4, seed = 10)
+    ## res <- summary(out, digit = 5)
+
+    ## GS <- data.frame("n" = c(1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000), 
+    ##                  "method" = c("p.Ztest", "p.robustZtest", "p.Satt", "p.robustSatt", "p.SSC", "p.robustSSC", "p.KR", "p.robustKR"), 
+    ##                  "link" = c("Y~G", "Y~G", "Y~G", "Y~G", "Y~G", "Y~G", "Y~G", "Y~G"), 
+    ##                  "n.rep" = c(1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000), 
+    ##                  "type1error" = c(0.050, 0.054, 0.050, 0.053, 0.050, 0.053, 0.050, 0.052), 
+    ##                  "ci.inf" = c(0.038095, 0.041587, 0.038095, 0.040712, 0.038095, 0.040712, 0.038095, 0.039839), 
+    ##                  "ci.sup" = c(0.065372, 0.069847, 0.065372, 0.068731, 0.065372, 0.068731, 0.065372, 0.067612), 
+    ##                  "correction" = c("Gaussian approx.", "Gaussian approx.", "Satterthwaite approx.", "Satterthwaite approx.", "small sample correction", "small sample correction", "Satterthwaite approx. with small sample correction", "Satterthwaite approx. with small sample correction"), 
+    ##                  "statistic" = c("Wald", "robust Wald", "Wald", "robust Wald", "Wald", "robust Wald", "Wald", "robust Wald"),
+    ##                  stringsAsFactors = FALSE)
+    ## butils::object2script(res, digits = 6)
+    ## expect_equal(GS$type1error, res$type1error, tol = 1e-5, scale = 1)
+})
 
 ######################################################################
 ### test1-calibrateType1.R ends here

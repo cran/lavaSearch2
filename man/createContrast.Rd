@@ -13,8 +13,8 @@
 \usage{
 createContrast(object, ...)
 
-\method{createContrast}{character}(object, name.param, add.rowname = TRUE,
-  rowname.rhs = TRUE, ...)
+\method{createContrast}{character}(object, name.param, diff.first = FALSE,
+  add.rowname = TRUE, rowname.rhs = TRUE, ...)
 
 \method{createContrast}{lm}(object, par, add.variance, ...)
 
@@ -22,12 +22,12 @@ createContrast(object, ...)
 
 \method{createContrast}{lme}(object, par, add.variance, ...)
 
-\method{createContrast}{lvmfit}(object, par, ...)
+\method{createContrast}{lvmfit}(object, par = NULL, var.test = NULL, ...)
 
-\method{createContrast}{list}(object, par = NULL, add.variance,
+\method{createContrast}{list}(object, par = NULL, add.variance = NULL,
   var.test = NULL, ...)
 
-\method{createContrast}{mmm}(object, par = NULL, add.variance,
+\method{createContrast}{mmm}(object, par = NULL, add.variance = NULL,
   var.test = NULL, ...)
 }
 \arguments{
@@ -36,6 +36,8 @@ createContrast(object, ...)
 \item{...}{[internal] Only used by the generic method.}
 
 \item{name.param}{[internal] the names of all the model coefficients.}
+
+\item{diff.first}{[logical] should the contrasts between the first and any of the other coefficients define the null hypotheses.}
 
 \item{add.rowname}{[internal] should a name be defined for each hypothesis.}
 
@@ -94,9 +96,14 @@ createContrast(lmX, par = character(0))
 
 ## Contrast matrix for the join model
 ls.lvm <- list(X = lmX, Y = lmY, Z = lvmZ)
-createContrast(ls.lvm, var.test = "Treatment")
-createContrast(ls.lvm, par = character(0))
+createContrast(ls.lvm, var.test = "Treatment", add.variance = FALSE)
+createContrast(ls.lvm, par = character(0), add.variance = FALSE)
 
+## Contrast for multigroup models
+m <- lvm(Y~Age+Treatment)
+e <- estimate(list(m,m), data = split(df.data, df.data$Gender))
+createContrast(e, par = "1@Y~TreatmentSSRI - 2@Y~TreatmentSSRI = 0")
+createContrast(e, par = "2@Y~TreatmentSSRI - 1@Y~TreatmentSSRI = 0")
 }
 \concept{
 small sample inference

@@ -8,7 +8,7 @@
 \method{autoplot}{calibrateType1}(object, type = "bias", plot = TRUE,
   color.threshold = "red", type.bias = "absolute", alpha = 0.05,
   nrow.legend = NULL, name2label = NULL, color = NULL,
-  keep.method = NULL)
+  keep.method = NULL, ...)
 }
 \arguments{
 \item{object}{output of \code{\link{calibrateType1}}.}
@@ -39,6 +39,8 @@ Only relevant when type equals \code{"type1error"}.}
 
 \item{keep.method}{[character vector] the methods names for which the type 1 error should be displayed.
 Only relevant when type equals \code{"type1error"}.}
+
+\item{...}{[internal] Only used by the generic method.}
 }
 \value{
 An list containing:

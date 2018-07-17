@@ -4,12 +4,12 @@
 \alias{summary.modelsearch2}
 \title{summary Method for modelsearch2 Objects}
 \usage{
-\method{summary}{modelsearch2}(object, display = TRUE, ...)
+\method{summary}{modelsearch2}(object, print = TRUE, ...)
 }
 \arguments{
 \item{object}{output of the \code{modelsearch2} function.}
 
-\item{display}{should the summary be printed in the terminal.}
+\item{print}{should the summary be printed in the terminal.}
 
 \item{...}{[internal] only used by the generic method.}
 }

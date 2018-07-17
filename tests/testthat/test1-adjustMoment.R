@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: mar 27 2018 (09:50) 
 ## Version: 
-## Last-Updated: apr  4 2018 (14:19) 
+## Last-Updated: jul 16 2018 (16:49) 
 ##           By: Brice Ozenne
-##     Update #: 16
+##     Update #: 22
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -85,7 +85,6 @@ m <- lvm(Y1~eta,
          eta~X1+X3)
 e.lvm <- estimate(m, d)
 
-sCorrect(e.lvm) <- TRUE
 test_that("factor model",{
     Omega <- getVarCov2(e.lvm)
     e.lvm$conditionalMoment <- conditionalMoment(e.lvm,

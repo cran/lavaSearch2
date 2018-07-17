@@ -3,9 +3,9 @@
 ## author: Brice Ozenne
 ## created: aug 30 2017 (10:46) 
 ## Version: 
-## last-updated: mar 13 2018 (09:43) 
+## last-updated: maj  2 2018 (10:41) 
 ##           By: Brice Ozenne
-##     Update #: 71
+##     Update #: 73
 #----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -20,12 +20,12 @@
 #' @description summary method for modelsearch2 objects.
 #'
 #' @param object output of the \code{modelsearch2} function.
-#' @param display should the summary be printed in the terminal.
+#' @param print should the summary be printed in the terminal.
 #' @param ... [internal] only used by the generic method.
 #' 
 #' @method summary modelsearch2
 #' @export
-summary.modelsearch2 <- function(object, display = TRUE, ...){
+summary.modelsearch2 <- function(object, print = TRUE, ...){
 
     p.value <- NULL # [:for CRAN check] subset
     
@@ -87,7 +87,7 @@ summary.modelsearch2 <- function(object, display = TRUE, ...){
     out$output$message.post <- paste0("confidence level: ",1-object$alpha," (two sided, adjustement: ",object$method.p.adjust,")\n")  
 
     ## ** display
-    if(display){
+    if(print){
         cat(out$output$message.pre)
         print(out$output$table)
         cat(out$output$message.post)        

@@ -84,7 +84,7 @@ Argument \code{...} passed to \code{\link{modelsearch2}}:
 \itemize{
 \item alpha: the significance threshold for retaining a new link.
 \item method.max: the method used to compute the distribution of the max statistic. See lava.options()$search.calcMaxDist.
-\item ncpus: the number of cpus that can be used for the computations.
+\item cpus: the number of cpus that can be used for the computations.
 \item nStep: the maximum number of links that can be added to the model.
 \item na.omit: should model leading to NA for the test statistic be ignored. Otherwise this will stop the selection process.
 }

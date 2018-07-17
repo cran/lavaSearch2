@@ -1,5 +1,20 @@
 # -*- mode: org -*-
 
+* Version 1.3.5 <2018-05-01 Tue>
+** User visible change
+- add arguments df, cluster to glht2
+- argument display is now named print in summary
+
+** Internal change
+- remove dependency on tcltk for displaying progress bar with parallel computation.
+- prepare for update of ggplot 2.3.0 
+
+* Version 1.3.4 <2018-04-23 Mon>
+** User visble changes 
+- =calibrateType1= is now a method and support parallel computation
+- =summary2=, =compare2=, and =iid2= for =lvmfit= object can compute
+  cluster robust standard error.
+
 * Version 1.3.3
 ** User visble changes 
 - add option Ftest to =calibrateType1=.
@@ -12,7 +27,6 @@
 ** User visble changes 
 - New feature: =calibrateType1= to perform simulation studies of the
   type 1 error rate for Wald test in LVM.
-
 
 * Version 1.3.0 <2018-04-04 Wed>
 ** User visble changes 

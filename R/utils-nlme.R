@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: nov 15 2017 (17:29) 
 ## Version: 
-## Last-Updated: apr  3 2018 (18:02) 
+## Last-Updated: maj  3 2018 (09:51) 
 ##           By: Brice Ozenne
-##     Update #: 605
+##     Update #: 618
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -166,7 +166,9 @@
             if(cluster %in% names(data) == FALSE){
                 stop("Variable \"",cluster,"\" not in data \n")
             }
-            cluster <- as.numeric(factor(data[[cluster]], levels = unique(data[[cluster]])))
+            ## cluster <- as.numeric(factor(data[[cluster]], levels = unique(data[[cluster]])))
+            cluster <- as.numeric(as.factor(data[[cluster]]))
+            
         }else if(length(cluster)==NROW(data)){
             cluster <- as.numeric(as.factor(cluster))
         }else{
@@ -200,7 +202,8 @@
 
 ### ** reorder cluster according to the data ordering
     levels.cluster <- unique(cluster)
-    cluster <- as.numeric(factor(cluster, levels = levels.cluster))
+    cluster <- as.numeric(as.factor(cluster))
+    ## cluster <- as.numeric(factor(cluster, levels = levels.cluster))
 
 ### ** export
     return(list(cluster = cluster,
@@ -299,6 +302,9 @@
         if(!is.numeric(index.tempo)){
             stop("The variable in the left hand side of the formula in varStruct must be numeric \n")
         }
+        if(!is.null(object$na.action)){
+            index.tempo <- index.tempo[-object$na.action]
+        }
         index.Omega <- tapply(index.tempo, cluster, function(iC){list(iC)})
         norm <- TRUE
     }else{
@@ -363,7 +369,8 @@
         }
     }
 
-    if("NULL" %in% class.var == FALSE){        
+    if("NULL" %in% class.var == FALSE){
+
         groupValue.var.ordered <- groupValue.var[order(cluster)] ## reorder by cluster
         table.unique <- tapply(1:length(vecIndex.Omega),vecIndex.Omega,function(x){
             length(unique(groupValue.var.ordered[x]))

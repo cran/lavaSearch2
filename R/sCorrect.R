@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: jan  3 2018 (14:29) 
 ## Version: 
-## Last-Updated: apr 10 2018 (14:28) 
+## Last-Updated: apr 26 2018 (11:29) 
 ##           By: Brice Ozenne
-##     Update #: 1269
+##     Update #: 1273
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -16,8 +16,8 @@
 ### Code:
 
 ## * Documentation - sCorrect
-#' @title  Compute the Derivative of the Information Matrix
-#' @description Compute the derivative of the information matrix.
+#' @title  Satterthwaite Correction and Small Sample Correction
+#' @description Correct the bias of the ML estimate of the variance and compute the first derivative of the information matrix.
 #' @name sCorrect
 #'
 #' @param object,x a \code{gls}, \code{lme}, or \code{lvm} object.
@@ -412,9 +412,9 @@ sCorrect.lvmfit <- function(object, adjust.Omega = TRUE, adjust.n = TRUE,
     if("multigroupfit" %in% class(object)){
         stop("sCorrect does not handle multigroup models \n")
     }
-    if(!is.null(object$cluster)){
-        stop("sCorrect does not handle lvmfit object with cluster \n")
-    }
+    ## if(!is.null(object$cluster)){
+    ##     stop("sCorrect does not handle lvmfit object with cluster \n")
+    ## }
    
     if(length(object$model$attributes$ordinal)>0){
         name.t <- names(object$model$attributes$ordinal)

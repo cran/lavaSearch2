@@ -3,9 +3,9 @@
 ## author: Brice Ozenne
 ## created: aug 14 2017 (11:49) 
 ## Version: 
-## last-updated: feb  6 2018 (09:29) 
+## last-updated: maj 23 2018 (09:42) 
 ##           By: Brice Ozenne
-##     Update #: 493
+##     Update #: 495
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -227,22 +227,22 @@ autoplot.intDensTri <- function(object, coord.plot=c("x","y1"), plot = TRUE, ...
     }
 
     if(object$type=="fine"){
-        gg.grid <- ggplot(gg.data, aes_string(xmin = paste0(coord.plot[1],".min"), ymin = paste0(coord.plot[2],".min"),
-                                              xmax = paste0(coord.plot[1],".max"), ymax = paste0(coord.plot[2],".max"),
-                                              fill = "index", alpha = "weight"))
-        gg.grid <- gg.grid + scale_alpha_manual(values = c(0.45,1))
+        gg.grid <- ggplot2::ggplot(gg.data, aes_string(xmin = paste0(coord.plot[1],".min"), ymin = paste0(coord.plot[2],".min"),
+                                                      xmax = paste0(coord.plot[1],".max"), ymax = paste0(coord.plot[2],".max"),
+                                                      fill = "index", alpha = "weight"))
+        gg.grid <- gg.grid + ggplot2::scale_alpha_manual(values = c(0.45,1))
     }else if(object$type=="raw"){
-        gg.grid <- ggplot(gg.data, aes_string(xmin = paste0(coord.plot[1],".min"), ymin = paste0(coord.plot[2],".min"),
-                                              xmax = paste0(coord.plot[1],".max"), ymax = paste0(coord.plot[2],".max"),
-                                              fill = "index"))        
+        gg.grid <- ggplot2::ggplot(gg.data, aes_string(xmin = paste0(coord.plot[1],".min"), ymin = paste0(coord.plot[2],".min"),
+                                                      xmax = paste0(coord.plot[1],".max"), ymax = paste0(coord.plot[2],".max"),
+                                                      fill = "index"))        
     }else if(object$type=="double"){
-        gg.grid <- ggplot(gg.data, aes_string(xmin = paste0(coord.plot[1],".min"), ymin = paste0(coord.plot[2],".min"),
-                                              xmax = paste0(coord.plot[1],".max"), ymax = paste0(coord.plot[2],".max"),
-                                              fill = "index", alpha = "interior"))
-        gg.grid <- gg.grid + scale_alpha_manual(values = c(0.4,1))
+        gg.grid <- ggplot2::ggplot(gg.data, aes_string(xmin = paste0(coord.plot[1],".min"), ymin = paste0(coord.plot[2],".min"),
+                                                      xmax = paste0(coord.plot[1],".max"), ymax = paste0(coord.plot[2],".max"),
+                                                      fill = "index", alpha = "interior"))
+        gg.grid <- gg.grid + ggplot2::scale_alpha_manual(values = c(0.4,1))
     }
-    gg.grid <- gg.grid + geom_rect() + xlab(coord.plot[1]) + ylab(coord.plot[2])
-    gg.grid <- gg.grid + geom_abline(slope = 1,color = "black") + geom_abline(slope = -1,color = "black")
+    gg.grid <- gg.grid + ggplot2::geom_rect() + ggplot2::xlab(coord.plot[1]) + ggplot2::ylab(coord.plot[2])
+    gg.grid <- gg.grid + ggplot2::geom_abline(slope = 1,color = "black") + ggplot2::geom_abline(slope = -1,color = "black")
 
     if(plot){
         print(gg.grid)

@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: mar 27 2018 (09:55) 
 ## Version: 
-## Last-Updated: apr 17 2018 (10:49) 
+## Last-Updated: jun 12 2018 (16:28) 
 ##           By: Brice Ozenne
-##     Update #: 9
+##     Update #: 15
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -145,33 +145,38 @@ getVarCov2.lme <- getVarCov2.gls
 #' @export
 getVarCov2.lvmfit <- function(object, ...){
 
-    name.latent <- latent(object)
-    n.latent <- length(name.latent)
-
-    ## ** Prepare
-    if(is.null(object$conditionalMoment)){
-        name.endogenous <- endogenous(object)
-        object.coef <- coef(object)
-        object.data <- as.data.frame(object$data$model.frame)
-
-        object$conditionalMoment <- conditionalMoment(object,
-                                                      data = object.data,
-                                                      param = object.coef,
-                                                      name.endogenous = name.endogenous,
-                                                      name.latent = name.latent,
-                                                      first.order = FALSE,
-                                                      second.order = FALSE,
-                                                      usefit = TRUE)
-    }
-
-    ## ** Compute Omega
-    if(n.latent>0){
-        Omega <- object$conditionalMoment$value$tLambda.tiIB.Psi.iIB %*% object$conditionalMoment$value$Lambda + object$conditionalMoment$value$Sigma
+    if(inherits(object, "lvmfit2")){
+        return(object$sCorrect$Omega)
     }else{
-        Omega <- object$conditionalMoment$value$Sigma
-    }
+        name.latent <- latent(object)
+        n.latent <- length(name.latent)
+
+        ## ** Prepare
+        if(is.null(object$conditionalMoment)){
+            name.endogenous <- endogenous(object)
+            object.coef <- coef(object)
+            object.data <- as.data.frame(object$data$model.frame)
+
+            object$conditionalMoment <- conditionalMoment(object,
+                                                          data = object.data,
+                                                          param = object.coef,
+                                                          name.endogenous = name.endogenous,
+                                                          name.latent = name.latent,
+                                                          first.order = FALSE,
+                                                          second.order = FALSE,
+                                                          usefit = TRUE)
+        }
+
+        ## ** Compute Omega
+        if(n.latent>0){
+            Omega <- object$conditionalMoment$value$tLambda.tiIB.Psi.iIB %*% object$conditionalMoment$value$Lambda + object$conditionalMoment$value$Sigma
+        }else{
+            Omega <- object$conditionalMoment$value$Sigma
+        }
         
-    return(Omega)
+        message("uncorrected variance-covariance matrix \n")
+        return(Omega)
+    }
 }
 
 

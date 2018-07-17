@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: jan 31 2018 (12:05) 
 ## Version: 
-## Last-Updated: apr 17 2018 (10:11) 
+## Last-Updated: jun 26 2018 (09:06) 
 ##           By: Brice Ozenne
-##     Update #: 202
+##     Update #: 228
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -26,6 +26,7 @@
 #' @param add.variance [logical] should the variance coefficients be considered as model coefficients?
 #' Required for lm, gls, and lme models.
 #' @param var.test [character] a regular expression that is used to identify the coefficients to be tested using \code{grep}. Each coefficient will be tested in a separate hypothesis. When this argument is used, the argument \code{par} is disregarded.
+#' @param diff.first [logical] should the contrasts between the first and any of the other coefficients define the null hypotheses.
 #' @param name.param [internal] the names of all the model coefficients.
 #' @param add.rowname [internal] should a name be defined for each hypothesis.
 #' @param rowname.rhs should the right hand side of the null hypothesis be added to the name.
@@ -71,9 +72,14 @@
 #'
 #' ## Contrast matrix for the join model
 #' ls.lvm <- list(X = lmX, Y = lmY, Z = lvmZ)
-#' createContrast(ls.lvm, var.test = "Treatment")
-#' createContrast(ls.lvm, par = character(0))
+#' createContrast(ls.lvm, var.test = "Treatment", add.variance = FALSE)
+#' createContrast(ls.lvm, par = character(0), add.variance = FALSE)
 #'
+#' ## Contrast for multigroup models
+#' m <- lvm(Y~Age+Treatment)
+#' e <- estimate(list(m,m), data = split(df.data, df.data$Gender))
+#' createContrast(e, par = "1@Y~TreatmentSSRI - 2@Y~TreatmentSSRI = 0")
+#' createContrast(e, par = "2@Y~TreatmentSSRI - 1@Y~TreatmentSSRI = 0")
 #' @concept small sample inference
 #' 
 #' @export
@@ -83,11 +89,22 @@
 ## * createContrast.character
 #' @rdname createContrast
 #' @export
-createContrast.character <- function(object, name.param,
+createContrast.character <- function(object, name.param, diff.first = FALSE,
                                      add.rowname = TRUE, rowname.rhs = TRUE,
                                      ...){
 
     n.param <- length(name.param)
+    dots <- list(...)
+    dots[["add.variance"]] <- NULL
+    if(length(dots)>0){
+        txt.args <- paste(names(dots), collapse = "\" \"")
+        txt.s <- if(length(dots)>1){"s"}else{""}
+        warning("Extra argument",txt.s," \"",txt.args,"\" are ignored. \n")
+    }
+
+    if(diff.first){
+        object <- paste0(object[-1]," - ",object[1])
+    }
     
     n.hypo <- length(object)
     if(any(nchar(object)==0)){
@@ -103,6 +120,7 @@ createContrast.character <- function(object, name.param,
             if(length(iTempo.eq)==1){ ## set null to 0 when second side of the equation is missing
                 iTempo.eq <- c(iTempo.eq,"0")
             }
+
             null[iH] <- as.numeric(trim(iTempo.eq[2]))
             iRh.plus <- strsplit(iTempo.eq[[1]], split = "+", fixed = TRUE)[[1]]
             iRh <- trim(unlist(sapply(iRh.plus, strsplit, split = "-", fixed = TRUE)))
@@ -135,7 +153,12 @@ createContrast.character <- function(object, name.param,
                     stop(txt.message)                    
                 }
 
-                test.sign <- length(grep("-",strsplit(iRh[iCoef], split = iName)[[1]][1]))>0
+                ## identify if it is a minus sign
+                iBeforeCoef <- strsplit(iTempo.eq[[1]], split = ls.iRh[iCoef])[[1]][1]
+                if(iCoef > 1){
+                    iBeforeCoef <- strsplit(iBeforeCoef, split = ls.iRh[iCoef-1])[[1]][2]
+                }
+                test.sign <- length(grep("-",iBeforeCoef))>0
                 contrast[iH,iName] <- c(1,-1)[test.sign+1] * iFactor
             }
         }
@@ -161,13 +184,16 @@ createContrast.lm <- function(object, par, add.variance, ...){
         stop("Argument \'par\' must be a character \n")
     }    
     name.coef <- names(coef(object))
+    if(is.null(add.variance)){
+        stop("Argument \'add.variance\' must be specified for lm objects \n")
+    }
     if(add.variance){
         if(any("sigma2" %in% name.coef)){
             stop("createContrast does not work when one of the coefficients is named \"sigma2\" \n")
         }
         name.coef <- c(name.coef,"sigma2")
     }
-    
+
     out <- createContrast(par, name.param = name.coef, ...)
     return(out)
     
@@ -199,8 +225,11 @@ createContrast.lme <- createContrast.lm
 ## * createContrast.lvmfit
 #' @rdname createContrast
 #' @export
-createContrast.lvmfit <- function(object, par, ...){
+createContrast.lvmfit <- function(object, par = NULL, var.test = NULL, ...){
 
+    if(is.null(par) && !is.null(var.test)){
+       par <- grep(var.test, names(coef(object)),  value = TRUE)
+    }
     if(!identical(class(par),"character")){
         stop("Argument \'par\' must be a character \n")
     }
@@ -212,14 +241,16 @@ createContrast.lvmfit <- function(object, par, ...){
 ## * createContrast.list
 #' @rdname createContrast
 #' @export
-createContrast.list <- function(object, par = NULL, add.variance, var.test = NULL, 
+createContrast.list <- function(object, par = NULL, add.variance = NULL, var.test = NULL, 
                                 ...){
 
     ## ** find the names of the coefficients
     name.model <- names(object)
     
     ls.coefname <- lapply(name.model, function(iModel){ ## list by model
-        iResC <- createContrast(object[[iModel]], par = character(0), add.variance = add.variance)
+        iResC <- createContrast(object[[iModel]],
+                                par = character(0),
+                                add.variance = add.variance)
         return(colnames(iResC$contrast))
     })
     names(ls.coefname) <- name.model

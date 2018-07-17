@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: feb 16 2018 (16:38) 
 ## Version: 
-## Last-Updated: apr 13 2018 (14:31) 
+## Last-Updated: apr 20 2018 (15:32) 
 ##           By: Brice Ozenne
-##     Update #: 803
+##     Update #: 807
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -110,7 +110,10 @@
                            name.meanparam = name.meanparam,
                            name.varparam = name.varparam,
                            param2index = param2index, n.param = n.param)
-    iVcov.param <- chol2inv(chol(iInfo))
+    iVcov.param <- try(chol2inv(chol(iInfo)), silent = TRUE)
+    if(inherits(iVcov.param, "try-error")){
+        iVcov.param <- solve(iInfo)
+    }
     if(trace>0){
         cat("- done \n")
     }
@@ -184,7 +187,7 @@
             n.corrected <- rep(n.cluster, n.endogenous) - colSums(leverage, na.rm = TRUE)
         }
         
-        ## *** Step (iv): correct residual covariance matrix and estimates
+        ## *** Step (v): correct residual covariance matrix, estimates, and derivatives
         if(adjust.Omega){
             ## corrected residual covariance variance
             Omega.adj <- Omega + Psi
@@ -196,7 +199,7 @@
            
         }
 
-        ## *** Step (v): expected information matrix
+        ## *** Step (vii): expected information matrix
         iInfo <- .information2(dmu = dmu,
                                dOmega = dOmega,
                                Omega = Omega.adj,

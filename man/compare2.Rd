@@ -17,12 +17,13 @@ compare2(object, ...)
 
 \method{compare2}{lm}(object, df = TRUE, bias.correct = TRUE, ...)
 
-\method{compare2}{gls}(object, df = TRUE, bias.correct = TRUE,
-  cluster = NULL, ...)
+\method{compare2}{gls}(object, cluster = NULL, df = TRUE,
+  bias.correct = TRUE, ...)
 
 \method{compare2}{lme}(object, df = TRUE, bias.correct = TRUE, ...)
 
-\method{compare2}{lvmfit}(object, df = TRUE, bias.correct = TRUE, ...)
+\method{compare2}{lvmfit}(object, cluster = NULL, df = TRUE,
+  bias.correct = TRUE, ...)
 
 \method{compare2}{lm2}(object, ...)
 
@@ -32,9 +33,9 @@ compare2(object, ...)
 
 \method{compare2}{lvmfit2}(object, ...)
 
-.compare2(object, par = NULL, contrast = NULL, null = NULL,
-  robust = FALSE, df = TRUE, as.lava = TRUE, F.test = TRUE,
-  level = 0.95)
+.compare2(object, par = NULL, contrast = NULL, null = NULL, rhs = NULL,
+  robust = FALSE, cluster = NULL, df = TRUE, as.lava = TRUE,
+  F.test = TRUE, level = 0.95)
 }
 \arguments{
 \item{object}{an object that inherits from lm/gls/lme/lvmfit.}
@@ -46,15 +47,14 @@ Otherwise the degree of freedoms are set to \code{Inf}, i.e. a normal distributi
 
 \item{bias.correct}{[logical] should the standard errors of the coefficients be corrected for small sample bias? Argument passed to \code{sCorrect}.}
 
-\item{cluster}{[integer vector] the grouping variable relative to which the observations are iid.
-Only required for \code{gls} models without correlation structure.}
+\item{cluster}{[integer vector] the grouping variable relative to which the observations are iid.}
 
 \item{par}{[vector of characters] expression defining the linear hypotheses to be tested.
 See the examples section.}
 
 \item{contrast}{[matrix] a contrast matrix defining the left hand side of the linear hypotheses to be tested.}
 
-\item{null}{[vector] the right hand side of the linear hypotheses to be tested.}
+\item{null, rhs}{[vector] the right hand side of the linear hypotheses to be tested.}
 
 \item{robust}{[logical] should the robust standard errors be used instead of the model based standard errors?}
 
@@ -73,12 +73,12 @@ Test Linear Hypotheses using a multivariate Wald statistic.
 Similar to \code{lava::compare} but with small sample correction.
 }
 \details{
-The \code{par} argument or the arguments \code{contrast} and \code{null} specify the set of linear hypotheses to be tested. They can be written:
+The \code{par} argument or the arguments \code{contrast} and \code{null} (or equivalenty \code{rhs})
+specify the set of linear hypotheses to be tested. They can be written:
 \deqn{
   contrast * \theta = null
 }
 where \eqn{\theta} is the vector of the model coefficients. \cr
-
 The \code{par} argument must contain expression(s) involving the model coefficients.
 For example \code{"beta = 0"} or \code{c("-5*beta + alpha = 3","-alpha")} are valid expressions if alpha and beta belong to the set of model coefficients.
 A contrast matrix and the right hand side will be generated inside the function. \cr
@@ -87,6 +87,9 @@ When directly specified, the contrast matrix must contain as many columns as the
 Each hypothesis correspond to a row in the contrast matrix. \cr
 
 The null vector should contain as many elements as there are row in the contrast matrix. \cr
+
+Argument rhs and null are equivalent.
+This redondance enable compatibility between \code{lava::compare}, \code{compare2}, \code{multcomp::glht}, and \code{glht2}.
 }
 \examples{
 #### simulate data ####
@@ -110,6 +113,7 @@ C <- createContrast(e.lm, par = c("X1b=0","X1c=0"), add.variance = TRUE)
 
 ## run compare2
 compare2(e.lm, contrast = C$contrast, null = C$null)
+compare2(e.lm, contrast = C$contrast, null = C$null, robust = TRUE)
 
 #### with gls ####
 library(nlme)

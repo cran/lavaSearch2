@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: nov  8 2017 (09:05) 
 ## Version: 
-## Last-Updated: mar 28 2018 (16:15) 
+## Last-Updated: jun  4 2018 (14:24) 
 ##           By: Brice Ozenne
-##     Update #: 927
+##     Update #: 932
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -73,13 +73,13 @@
 `residuals2` <-
     function(object, ...) UseMethod("residuals2")
 
-## * residuals2.lm
+## * residuals2.lm2
 #' @rdname residuals2
 #' @export
 residuals2.lm2 <- function(object, param = NULL, data = NULL, type = "response", ...){
 
     type <- match.arg(type, choices = c("response","studentized","normalized"), several.ok = FALSE)
-    
+
     if(!is.null(param) || !is.null(data)){
         args <- object$sCorrect$args
         args$df <- FALSE
@@ -98,23 +98,24 @@ residuals2.lm2 <- function(object, param = NULL, data = NULL, type = "response",
         ## object$sCorrect$residuals/residuals
     }else if(type=="normalized"){
         residuals <- object$sCorrect$residuals %*% matrixPower(object$sCorrect$Omega, symmetric = TRUE, power = -1/2)
+        colnames(residuals) <- colnames(object$sCorrect$residuals)
         ## object$sCorrect$residuals/residuals
         ## var(residuals)        
     }
     return(residuals)
 }
 
-## * residuals2.gls
+## * residuals2.gls2
 #' @rdname residuals2
 #' @export
 residuals2.gls2 <- residuals2.lm2
 
-## * residuals2.lme
+## * residuals2.lme2
 #' @rdname residuals2
 #' @export
 residuals2.lme2 <- residuals2.lm2
 
-## * residuals2.lvmfit
+## * residuals2.lvmfit2
 #' @rdname residuals2
 #' @export
 residuals2.lvmfit2 <- residuals2.lm2

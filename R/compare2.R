@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: jan 30 2018 (14:33) 
 ## Version: 
-## Last-Updated: apr 17 2018 (10:31) 
+## Last-Updated: jul 16 2018 (16:35) 
 ##           By: Brice Ozenne
-##     Update #: 328
+##     Update #: 379
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -26,23 +26,22 @@
 #' Otherwise the degree of freedoms are set to \code{Inf}, i.e. a normal distribution is used instead of a Student's t distribution when computing the p-values.
 #' @param bias.correct [logical] should the standard errors of the coefficients be corrected for small sample bias? Argument passed to \code{sCorrect}.
 #' @param cluster [integer vector] the grouping variable relative to which the observations are iid.
-#' Only required for \code{gls} models without correlation structure.
 #' @param par [vector of characters] expression defining the linear hypotheses to be tested.
 #' See the examples section. 
 #' @param contrast [matrix] a contrast matrix defining the left hand side of the linear hypotheses to be tested.
 #' @param robust [logical] should the robust standard errors be used instead of the model based standard errors?
-#' @param null [vector] the right hand side of the linear hypotheses to be tested.
+#' @param null,rhs [vector] the right hand side of the linear hypotheses to be tested.
 #' @param as.lava [logical] should the output be similar to the one return by \code{lava::compare}?
 #' @param F.test [logical] should a joint test be performed?
 #' @param level [numeric 0-1] the confidence level of the confidence interval.
 #' @param ...  [internal] only used by the generic method.
 #'
-#' @details The \code{par} argument or the arguments \code{contrast} and \code{null} specify the set of linear hypotheses to be tested. They can be written:
+#' @details The \code{par} argument or the arguments \code{contrast} and \code{null} (or equivalenty \code{rhs})
+#' specify the set of linear hypotheses to be tested. They can be written:
 #' \deqn{
 #'   contrast * \theta = null
 #' }
 #' where \eqn{\theta} is the vector of the model coefficients. \cr
-#' 
 #' The \code{par} argument must contain expression(s) involving the model coefficients.
 #' For example \code{"beta = 0"} or \code{c("-5*beta + alpha = 3","-alpha")} are valid expressions if alpha and beta belong to the set of model coefficients.
 #' A contrast matrix and the right hand side will be generated inside the function. \cr
@@ -51,6 +50,9 @@
 #' Each hypothesis correspond to a row in the contrast matrix. \cr
 #'
 #' The null vector should contain as many elements as there are row in the contrast matrix. \cr
+#' 
+#' Argument rhs and null are equivalent.
+#' This redondance enable compatibility between \code{lava::compare}, \code{compare2}, \code{multcomp::glht}, and \code{glht2}.
 #'
 #' @seealso \code{\link{createContrast}} to create contrast matrices. \cr
 #' \code{\link{sCorrect}} to pre-compute quantities for the small sample correction.
@@ -80,6 +82,7 @@
 #'
 #' ## run compare2
 #' compare2(e.lm, contrast = C$contrast, null = C$null)
+#' compare2(e.lm, contrast = C$contrast, null = C$null, robust = TRUE)
 #' 
 #' #### with gls ####
 #' library(nlme)
@@ -111,7 +114,7 @@ compare2.lm <- function(object, df = TRUE, bias.correct = TRUE, ...){
 ## * compare2.gls
 #' @rdname compare2
 #' @export
-compare2.gls <- function(object, df = TRUE, bias.correct = TRUE, cluster = NULL, ...){
+compare2.gls <- function(object, cluster = NULL, df = TRUE, bias.correct = TRUE, ...){
     sCorrect(object, df = df, cluster = cluster) <- bias.correct
     return(.compare2(object, ...))
 }
@@ -124,7 +127,10 @@ compare2.lme <- compare2.lm
 ## * compare2.lvmfit
 #' @rdname compare2
 #' @export
-compare2.lvmfit <- compare2.lm
+compare2.lvmfit <- function(object, cluster = NULL, df = TRUE, bias.correct = TRUE, ...){
+    sCorrect(object, df = df) <- bias.correct
+    return(.compare2(object, cluster = cluster, ...))
+}
 
 ## * compare2.lm2
 #' @rdname compare2
@@ -156,12 +162,19 @@ compare2.lvmfit2 <- function(object, ...){
 
 ## * .compare2
 #' @rdname compare2
-.compare2 <- function(object, par = NULL, contrast = NULL, null = NULL,
-                      robust = FALSE, df = TRUE,
+.compare2 <- function(object, par = NULL, contrast = NULL, null = NULL, rhs = NULL,
+                      robust = FALSE, cluster = NULL, df = TRUE,
                       as.lava = TRUE, F.test = TRUE, level = 0.95){
 
     ## ** extract information
-    if(df){
+    if(!is.null(null) && !is.null(rhs)){
+        stop("Arguments \'null\' and \'rhs\' should not be both specified \n")
+    }
+
+    if(robust && df > 1){ ## hidden option: df for robust standard error computed by (Pan, 2002)
+        dVcov.param <- NA ## necessary to pass the test after
+        score <- object$sCorrect$score
+    }else if(df>0){        
         dVcov.param <- object$sCorrect$dVcov.param
     }else{
         dVcov.param <- NULL
@@ -169,7 +182,7 @@ compare2.lvmfit2 <- function(object, ...){
     
     param <- object$sCorrect$param
     if(robust){
-        vcov.param <- crossprod(iid2(object))
+        vcov.param <- crossprod(iid2(object, cluster = cluster))
     }else{
         vcov.param <- object$sCorrect$vcov.param
         attr(vcov.param, "warning") <- NULL
@@ -248,21 +261,17 @@ compare2.lvmfit2 <- function(object, ...){
     }else{
         vcov.tempo <- object$sCorrect$vcov.param
         attr(vcov.tempo, "warning") <- NULL
-
-        calcDF <- function(M.C){ # M.C <- C
-            C.vcov.C <- rowSums(M.C %*% vcov.tempo * M.C)
-    
-            C.dVcov.C <- sapply(keep.param, function(x){
-                rowSums(M.C %*% dVcov.param[,,x] * M.C)
-            })
-            numerator <- 2 *(C.vcov.C)^2
-            denom <- rowSums(C.dVcov.C %*% vcov.tempo[keep.param,keep.param,drop=FALSE] * C.dVcov.C)
-            df <- numerator/denom
-            return(df)
-        }
-
         ## univariate
-        df.Wald  <- calcDF(contrast)
+        if(robust && df > 1){ ## hidden option: df for robust standard error computed by (Pan, 2002)
+            df.Wald  <- dfSigmaRobust(contrast = contrast,
+                                      vcov = vcov.tempo,
+                                      score = score)
+        }else{
+            df.Wald  <- dfSigma(contrast = contrast,
+                                vcov = vcov.tempo,
+                                dVcov = dVcov.param,
+                                keep.param = keep.param)
+        }
 
         ## multivariate
         svd.tempo <- eigen(solve(contrast %*% vcov.tempo %*% t(contrast)))
@@ -271,8 +280,16 @@ compare2.lvmfit2 <- function(object, ...){
      
         C.anova <- sqrt(D.svd) %*% t(P.svd) %*% contrast
         ## Fstat - crossprod(C.anova %*% p)/n.hypo
-        nu_m <- calcDF(C.anova) ## degree of freedom of the independent t statistics
-    
+        if(robust && df > 1){ ## hidden option: df for robust standard error computed by (Pan, 2002)
+            nu_m  <- dfSigmaRobust(contrast = C.anova,
+                                   vcov = vcov.tempo,
+                                   score = score)
+        }else{
+            nu_m <- dfSigma(contrast = C.anova,
+                            vcov = vcov.tempo,
+                            dVcov = dVcov.param,
+                            keep.param = keep.param) ## degree of freedom of the independent t statistics
+        }    
         EQ <- sum(nu_m/(nu_m-2))
         df.F <- 2*EQ / (EQ - n.hypo)
 
@@ -338,6 +355,9 @@ compare2.lvmfit2 <- function(object, ...){
                     null = null,
                     cnames = name.hypo                    
                     )
+        if(robust){
+            colnames(out$estimate)[2] <- "robust SE"
+        }        
         attr(out, "B") <- contrast
         class(out) <- "htest"
     }else{
@@ -348,6 +368,81 @@ compare2.lvmfit2 <- function(object, ...){
 
     attr(out,"error") <- error
     return(out)
+}
+
+## * dfSigma
+##' @title Degree of Freedom for the Chi-Square Test
+##' @description Computation of the degrees of freedom of the chi-squared distribution
+##' relative to the model-based variance
+##'
+##' @param contrast [numeric vector] the linear combination of parameters to test
+##' @param vcov [numeric matrix] the variance-covariance matrix of the parameters.
+##' @param dVcov [numeric array] the first derivative of the variance-covariance matrix of the parameters.
+##' @param keep.param [character vector] the name of the parameters with non-zero first derivative of their variance parameter.
+##' 
+dfSigma <- function(contrast, vcov, dVcov, keep.param){
+    C.vcov.C <- rowSums(contrast %*% vcov * contrast) ## variance matrix of the linear combination
+    
+    C.dVcov.C <- sapply(keep.param, function(x){
+        rowSums(contrast %*% dVcov[,,x] * contrast)
+    })
+    numerator <- 2 *(C.vcov.C)^2
+    denom <- rowSums(C.dVcov.C %*% vcov[keep.param,keep.param,drop=FALSE] * C.dVcov.C)
+    df <- numerator/denom
+    return(df)
+}
+
+## * dfSigmaRobust
+##' @title Degree of Freedom for the Robust Chi-Square Test
+##' @description Computation of the degrees of freedom of the chi-squared distribution
+##' relative to the robust-based variance
+##'
+##' @param contrast [numeric vector] the linear combination of parameters to test
+##' @param vcov [numeric matrix] the variance-covariance matrix of the parameters.
+##' @param score [numeric matrix] the individual score for each parameter.
+##'
+##' @details When contrast is the identity matrix, this function compute the moments of the sandwich estimator
+##' and the degrees of freedom of the approximate t-test as described in (Pan, 2002) section 2 and 3.1.
+##'
+##' @references
+##' Wei Pan and Melanie M. Wall, Small-sample adjustments in using the sandwich variance estiamtor in generalized estimating equations. Statistics in medicine (2002) 21:1429-1441.
+##' 
+dfSigmaRobust <- function(contrast, vcov, score){
+    
+    ## ** prepare
+    n <- NROW(score)
+    p <- NCOL(contrast)
+        
+    ## apply contrasts
+    score.S <- score %*% contrast
+    vcov.S <- vcov %*% contrast
+    
+    M.vecPi <- t(apply(score.S, 1, function(iRow){
+        as.vector(tcrossprod(iRow))
+    }))
+    ## dim(M.vecPi) ## (n,p)
+
+    #### ** check
+    ## vcov %*% t(score) %*% score %*% vcov
+    ## (vcov %x% vcov) %*% colSums(M.vecPi)
+
+    ## ** compute moments of P
+    Q <- colMeans(M.vecPi)
+    T <- stats::var(M.vecPi) ## missing 1/n factor compared to (Pan, 2002)
+    
+    ## vec.Pcenter <- sweep(vec.P, FUN = "-", MARGIN = 2, STATS = Q)
+    ## crossprod(vec.Pcenter)/(99)
+
+    ## ** compute moments of Vs = (Vm x Vm) P
+    E_Vs <- n *(vcov.S %x% vcov.S) %*% Q
+    Sigma_Vs <- n * (vcov.S %x% vcov.S) %*% T %*% (vcov.S %x% vcov.S) ## missing n factor compared to (Pan, 2002) so it cancels out with the previous missing factor
+
+    ## ** compute parameters of the chi-square distribution
+    sigma <- as.double(E_Vs)
+    tau <- diag(Sigma_Vs)
+
+    df <- matrix((2*sigma^2)/tau, nrow = p, ncol = p)
+    return(diag(df))
 }
 
 

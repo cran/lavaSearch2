@@ -19,7 +19,7 @@
 \alias{sCorrect<-.lme2}
 \alias{sCorrect<-.lvmfit}
 \alias{sCorrect<-.lvmfit2}
-\title{Compute the Derivative of the Information Matrix}
+\title{Satterthwaite Correction and Small Sample Correction}
 \usage{
 sCorrect(object, ...)
 
@@ -99,7 +99,7 @@ Only required for \code{gls} models with no correlation argument.}
 \item{value}{[logical] value for the arguments \code{adjust.Omega} and \code{adjust.n}.}
 }
 \description{
-Compute the derivative of the information matrix.
+Correct the bias of the ML estimate of the variance and compute the first derivative of the information matrix.
 }
 \details{
 The argument \code{value} is equivalent to the argument \code{bias.correct} of the function \code{summary2}.

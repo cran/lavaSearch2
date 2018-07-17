@@ -3,9 +3,9 @@
 ## author: Brice Ozenne
 ## created: aug 25 2017 (10:18) 
 ## Version: 
-## last-updated: sep 18 2017 (11:16) 
+## last-updated: maj  2 2018 (10:38) 
 ##           By: Brice Ozenne
-##     Update #: 12
+##     Update #: 13
 #----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -20,7 +20,7 @@
 #' @export
 print.modelsearch2 <- function(x, ...){
 
-    out <- summary(x, display = TRUE, ...)
+    out <- summary(x, print = TRUE, ...)
     return(invisible(out))
 }
 

@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: nov 16 2017 (10:36) 
 ## Version: 
-## Last-Updated: apr  4 2018 (14:19) 
+## Last-Updated: maj  3 2018 (13:21) 
 ##           By: Brice Ozenne
-##     Update #: 56
+##     Update #: 61
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -140,6 +140,29 @@ e.lme <- nlme::lme(value ~ time + G + Gender,
                    method = "ML")
 
 expect_error(getVarCov2(e.lme))
+
+## * PET dataset
+
+df.PET <- data.frame("ID" = c( 925, 2020, 2059, 2051, 2072, 2156, 2159, 2072, 2020, 2051, 2231,
+                              2738, 2231, 2777,  939,  539, 2738, 2777,  925, 2156, 2159, 2059), 
+                     "session" = c("V", "V", "V", "V", "V", "V", "V", "C", "C", "C", "C",
+                                   "C", "V", "C", "C", "V", "V", "V", "C", "C", "C", "C"), 
+                     "PET" = c(-2.53, -6.74, -8.17, -2.44, -3.54, -1.27, -0.55, -0.73, -1.42,  3.35,
+                               -2.11,  2.60, -4.52,  0.99, -1.02, -1.78, -5.86,  1.20, NA, NA, NA, NA)
+                     )
+df.PET$session.index <- as.numeric(as.factor(df.PET$session))
+
+
+e.lme <- lme(PET ~ session,
+             random = ~ 1 | ID,
+             weights = varIdent(form=~session.index|session),
+             na.action = "na.omit",
+             data = df.PET)
+test_that("getVarCov2 - NA", {
+    expect_equal(matrix(c( 7.893839, 1.583932, 1.583932, 4.436933), 2, 2),
+                 unname(getVarCov2(e.lme)$Omega), tol = 1e-6, scale = 1)
+})
+
 
 ##----------------------------------------------------------------------
 ### test-Utils-nlme.R ends here

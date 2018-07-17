@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: mar  6 2018 (10:42) 
 ## Version: 
-## Last-Updated: apr 10 2018 (09:34) 
+## Last-Updated: apr 26 2018 (13:15) 
 ##           By: Brice Ozenne
-##     Update #: 59
+##     Update #: 60
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -58,13 +58,6 @@ transform(m,Id~X1) <- function(x){1:NROW(x)}
 d.tempo <- lava::sim(m, n)
 e <- estimate(m, data = d.tempo)
 test_that("error when using transform", {
-    expect_error(sCorrect(e))
-})
-
-## ** error for lvm with cluster
-m <- lvm(Y~X1)
-e <- estimate(m, data = d, cluster = 1:NROW(d))
-test_that("error when using cluster", {
     expect_error(sCorrect(e))
 })
 

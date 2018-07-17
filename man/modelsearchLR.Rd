@@ -5,7 +5,7 @@
 \title{Testing the Relevance of Additional Links Using a Likelihood Ratio Test}
 \usage{
 modelsearchLR(x, data, restricted, link, directive, update.FCT, update.args,
-  method.p.adjust, display.warnings, trace)
+  method.p.adjust, print.warnings, trace)
 }
 \value{
 A list.

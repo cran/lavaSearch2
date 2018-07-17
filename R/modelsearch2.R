@@ -43,7 +43,7 @@
 #' \itemize{
 #' \item alpha: the significance threshold for retaining a new link.
 #' \item method.max: the method used to compute the distribution of the max statistic. See lava.options()$search.calcMaxDist.
-#' \item ncpus: the number of cpus that can be used for the computations.
+#' \item cpus: the number of cpus that can be used for the computations.
 #' \item nStep: the maximum number of links that can be added to the model.
 #' \item na.omit: should model leading to NA for the test statistic be ignored. Otherwise this will stop the selection process.
 #' }
@@ -146,7 +146,7 @@ modelsearch2.lvmfit <- function(object, link = NULL, data = NULL,
     dots.modelsearch2 <- dots[names(dots) %in% args.findNewLink == FALSE]
     
     ## ** normalize the links
-    if(is.null(link)){
+     if(is.null(link)){
         res.find <- do.call(findNewLink,
                             args = c(list(object$model,
                                           data = stats::model.frame(object),
@@ -228,7 +228,7 @@ modelsearch2.default <- function(object, link, data = NULL,
                                  typeSD = "information", df = TRUE, bias.correct = TRUE,
                                  trace = TRUE,
                                  ...){
-    
+
     ## ** normalise arguments
     typeSD <- match.arg(typeSD, c("information","robust","jackknife"))
     if(df == FALSE && bias.correct == TRUE){
@@ -360,9 +360,9 @@ modelsearch2.default <- function(object, link, data = NULL,
                           update.FCT, update.args, iid.FCT,
                           nStep = NULL, na.omit = TRUE,
                           alpha = 0.05, method.max = "integration", 
-                          ncpus = 1, trace = 1,
+                          cpus = 1, trace = 1,
                           packages = NULL, conditional = FALSE, exposure = NULL, ## not documented
-                          display.warnings = TRUE, export.iid = FALSE ## not documented
+                          print.warnings = TRUE, export.iid = FALSE ## not documented
                           ){
 
     ## ** preliminary tests
@@ -373,7 +373,7 @@ modelsearch2.default <- function(object, link, data = NULL,
     if(any(exposure %in% names(stats::coef(object)) == FALSE)){
         stop("exposure does not correspond to a coefficient in \'object\' \n")
     }    
-    if(is.null(ncpus)){ ncpus <- parallel::detectCores()}
+    if(is.null(cpus)){ cpus <- parallel::detectCores()}
     if(method.p.adjust %in% c("fastmax","max") && statistic != "Wald"){
         stop("Adjustment for multiple testing using the distribution of the max statistic \n",
              "is only available for when specifying statistic=\"Wald\" \n",
@@ -382,6 +382,21 @@ modelsearch2.default <- function(object, link, data = NULL,
     }
     if(statistic != "Wald"){
         typeSD <- NULL
+    }
+
+    if(is.null(cpus) || cpus > 1){
+        test.package <- try(requireNamespace("foreach"), silent = TRUE)
+        if(inherits(test.package,"try-error")){
+            stop("There is no package \'foreach\' \n",
+                 "This package is necessary when argument \'cpus\' is greater than 1 \n")
+        }
+    }
+    
+    if(!is.null(cpus) && cpus>1){
+        if(cpus > parallel::detectCores()){
+            stop("Argument \'cpus\' is greater than the number of available CPU cores \n",
+                 "available CPU cores: ",parallel::detectCores(),"\n")
+        }
     }
 
     ## ** initialisation
@@ -406,21 +421,20 @@ modelsearch2.default <- function(object, link, data = NULL,
     cv <- FALSE
        
     ## cpus
-    if(is.null(ncpus)){ ncpus <- parallel::detectCores()}
-    if(ncpus>1){
-        test.package <- try(requireNamespace("doParallel"), silent = TRUE)
-        if(inherits(test.package,"try-error")){
-            stop("There is no package \'doParallel\' \n",
-                 "This package is necessary when argument \'ncpus\' is greater than 1 \n")
+    if(is.null(cpus)){ cpus <- parallel::detectCores()}
+
+    ## define cluster
+    if(cpus>1){
+        if(trace>0){
+            cl <- parallel::makeCluster(cpus, outfile = "")
+        }else{
+            cl <- parallel::makeCluster(cpus)
         }
-        test.package <- try(requireNamespace("foreach"), silent = TRUE)
-        if(inherits(test.package,"try-error")){
-            stop("There is no package \'foreach\' \n",
-                 "This package is necessary when argument \'ncpus\' is greater than 1 \n")
-        }
-        cl <- parallel::makeCluster(ncpus)
         doParallel::registerDoParallel(cl)
+    }else{
+        cl <- NULL
     }
+    
 
     ## ** display a summary of the call
     if(trace>0){
@@ -436,7 +450,7 @@ modelsearch2.default <- function(object, link, data = NULL,
                        " Correction for sequential testing           : ",conditional,"\n")
             },
             " Confidence level                            : ",1-alpha,"\n",
-            " Number of cpus                              : ",ncpus,"\n\n",
+            " Number of cpus                              : ",cpus,"\n\n",
             sep="")
     }
 
@@ -470,7 +484,7 @@ modelsearch2.default <- function(object, link, data = NULL,
             ### *** run modelsearchLR
             res.search <- modelsearchLR(iObject, restricted = iRestricted, link = iLink, directive = iDirective,
                                         update.FCT = update.FCT, update.args = update.args,
-                                        method.p.adjust = method.p.adjust, display.warnings = display.warnings, trace = trace-1)
+                                        method.p.adjust = method.p.adjust, print.warnings = print.warnings, trace = trace-1)
 
         }else if(statistic == "Wald"){
             ### *** run modelsearchMax
@@ -486,7 +500,7 @@ modelsearch2.default <- function(object, link, data = NULL,
                                          update.FCT = update.FCT, update.args = update.args, iid.FCT = iid.FCT,
                                          method.p.adjust = method.p.adjust, method.max = method.max,
                                          iid.previous = iid.previous, quantile.previous = quantile.previous,
-                                         export.iid = max(conditional,export.iid), trace = trace-1, ncpus = ncpus, init.cpus = FALSE)
+                                         export.iid = max(conditional,export.iid), trace = trace-1, cpus = cpus, cl = cl)
         }
 
         ## ** update according the most significant p.value
@@ -521,7 +535,7 @@ modelsearch2.default <- function(object, link, data = NULL,
             vec.seqQuantile <- c(vec.seqQuantile,unique(res.search$df.test$quantile))
         }
         
-        ### *** update the model
+### *** update the model
         if(cv==FALSE){
             iObject <- update.FCT(iObject, args = update.args,
                                   restricted = iRestricted[index.rm,], directive = iDirective[index.rm])
@@ -531,7 +545,7 @@ modelsearch2.default <- function(object, link, data = NULL,
         }
         ls.seqModels[[iStep]] <- iObject
 
-### *** display results
+        ## *** display results
         if(trace > 0){
             if(cv==FALSE){
                 cat("add ",as.character(ls.seqTests[[iStep]][rowSelected, "link"]),
@@ -554,7 +568,7 @@ modelsearch2.default <- function(object, link, data = NULL,
         
     }
          
-    ## * Test treatment effect
+    ## ** Test treatment effect
     if(!is.null(exposure) && FALSE){
         if(statistic == "Wald" && method.p.adjust == "max"){
             ## df.exposure <- data.table("link" = exposure,
@@ -586,7 +600,7 @@ modelsearch2.default <- function(object, link, data = NULL,
         ##                            mu = c(mu.conditional,newBeta), 
         ##                            conditional = c(mu.conditional,rep(0,length(exposure))),
         ##                            method = method.max,
-        ##                            n.sim = n.sim, ncpus = ncpus, init.cpus = FALSE, trace = trace)
+        ##                            n.sim = n.sim, cpus = cpus, init.cpus = FALSE, trace = trace)
             
         ##     df.exposure[,`p.value` := resQmax$p.adjust]
         ##     z <- resQmax$z
@@ -603,12 +617,12 @@ modelsearch2.default <- function(object, link, data = NULL,
             ## }
         }
     }
-    ## * end job
-    if(ncpus>1){
+    ## ** end parallel computation
+    if(cpus>1){
         parallel::stopCluster(cl)
     }
     
-    ## * export
+    ## ** export
     if(length(ls.seqIID)==0){ls.seqIID <- NULL}
     if(length(ls.seqSigma)==0){ls.seqSigma <- NULL}
     output <- list(sequenceTest = ls.seqTests,

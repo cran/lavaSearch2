@@ -3,9 +3,9 @@
 ## author: Brice Ozenne
 ## created: sep 22 2017 (11:57) 
 ## Version: 
-## last-updated: mar 22 2018 (17:26) 
+## last-updated: maj  7 2018 (09:24) 
 ##           By: Brice Ozenne
-##     Update #: 304
+##     Update #: 315
 #----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -108,13 +108,13 @@ compareSearch <- function(object, alpha = 0.05,
     }
     if("Wald" %in% statistic){
         if(trace){
-            cat("modelsearch with the robust Wald statistic")
+            cat("modelsearch with the Wald statistic")
         }
         if(any(c("fastmax","max") %in% method.p.adjust)){
             if("fastmax" %in% method.p.adjust){
                 ls.search$Wald <- try(modelsearch2(object, statistic = "Wald", method.p.adjust = "fastmax",
                                                    trace = trace-1, ...), silent = TRUE)
-               method.p.adjust[method.p.adjust == "fastmax"] <- "max"
+                method.p.adjust[method.p.adjust == "fastmax"] <- "max"
             }else{
                 ls.search$Wald <- try(modelsearch2(object, statistic = "Wald", method.p.adjust = "max",
                                                    trace = trace-1, ...), silent = TRUE)
@@ -128,12 +128,12 @@ compareSearch <- function(object, alpha = 0.05,
                 vec.tempo <- getStep(ls.search$Wald, step = currentStep, slot = "sequenceTest")
                 maxStep <- list(...)$nStep
                 vec.p.adjust <- sapply(setdiff(method.p.adjust,c("fastmax","max")), function(iAdj){
-                    min(stats::p.adjust(vec.tempo$p.value, method = iAdj))
+                    min(stats::p.adjust(stats::na.omit(vec.tempo$p.value), method = iAdj))
                 })
                 if(is.null(maxStep)){maxStep <- Inf}
 
                 ## *** perform additional search
-                if(any(vec.p.adjust < alpha) && (vec.tempo$selected==FALSE) && (currentStep<maxStep) ){ # continue the modelsearch
+                if(any(vec.p.adjust < alpha) && any(vec.tempo$selected==FALSE) && (currentStep<maxStep) ){ # continue the modelsearch
 
                     ## add the link of the last test to the model (avoid to repeat step)
                     model.tempo <- getStep(ls.search$Wald, step=nStep(ls.search$Wald), slot = "sequenceModel")

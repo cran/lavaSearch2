@@ -2,7 +2,10 @@
 % Please edit documentation in R/summary2.R
 \name{summary2}
 \alias{summary2}
+\alias{summary2.lm}
 \alias{summary2.gls}
+\alias{summary2.lme}
+\alias{summary2.lvmfit}
 \alias{summary2.lm2}
 \alias{summary2.gls2}
 \alias{summary2.lme2}
@@ -11,8 +14,14 @@
 \usage{
 summary2(object, ...)
 
+\method{summary2}{lm}(object, df = TRUE, bias.correct = TRUE, ...)
+
 \method{summary2}{gls}(object, df = TRUE, bias.correct = TRUE,
   cluster = NULL, ...)
+
+\method{summary2}{lme}(object, df = TRUE, bias.correct = TRUE, ...)
+
+\method{summary2}{lvmfit}(object, df = TRUE, bias.correct = TRUE, ...)
 
 \method{summary2}{lm2}(object, digit = max(3, getOption("digit")),
   robust = FALSE, df = TRUE, ...)
@@ -23,7 +32,8 @@ summary2(object, ...)
 \method{summary2}{lme2}(object, digit = max(3, getOption("digit")),
   robust = FALSE, df = TRUE, ...)
 
-\method{summary2}{lvmfit2}(object, robust = FALSE, df = TRUE, ...)
+\method{summary2}{lvmfit2}(object, cluster = NULL, robust = FALSE,
+  df = TRUE, ...)
 }
 \arguments{
 \item{object}{a \code{gls}, \code{lme} or \code{lvm} object.}
@@ -36,10 +46,9 @@ Otherwise the degree of freedoms are set to \code{Inf}, i.e. a normal distributi
 \item{bias.correct}{[logical] should the standard errors of the coefficients be corrected for small sample bias?
 See \code{\link{sCorrect}} for more details.}
 
-\item{cluster}{[integer vector] the grouping variable relative to which the observations are iid.
-Only required for \code{gls} models without correlation structure.}
+\item{cluster}{[integer vector] the grouping variable relative to which the observations are iid.}
 
-\item{digit}{[integer > 0] the number of digit to keep when displaying the summary.}
+\item{digit}{[integer > 0] the number of decimal places to use when displaying the summary.}
 
 \item{robust}{[logical] should the robust standard errors be used instead of the model based standard errors?}
 }
@@ -51,7 +60,7 @@ Summary with small sample correction.
 except that it first computes the small sample correction (but does not store it).
 So if \code{summary2} is to be called several times,
 it is more efficient to pre-compute the quantities for the small sample correction
-using \code{sCorrect} and then call \code{summary}.
+using \code{sCorrect} and then call \code{summary2}.
 }
 \examples{
 m <- lvm(Y~X1+X2)

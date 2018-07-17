@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr  5 2018 (13:20) 
 ## Version: 
-## Last-Updated: apr  5 2018 (13:52) 
+## Last-Updated: maj 23 2018 (09:53) 
 ##           By: Brice Ozenne
-##     Update #: 16
+##     Update #: 29
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -40,7 +40,8 @@
 ##' Only relevant when type equals \code{"type1error"}.
 ##' @param keep.method [character vector] the methods names for which the type 1 error should be displayed.
 ##' Only relevant when type equals \code{"type1error"}.
-##'
+##' @param ... [internal] Only used by the generic method.
+##' 
 ##' @details Method names:
 ##' \itemize{
 ##' \item \code{p.Ztest}
@@ -64,7 +65,8 @@
 ##' @export
 autoplot.calibrateType1 <- function(object, type = "bias", plot = TRUE, color.threshold = "red",
                                     type.bias = "absolute",
-                                    alpha = 0.05, nrow.legend = NULL, name2label = NULL, color = NULL, keep.method = NULL){
+                                    alpha = 0.05, nrow.legend = NULL, name2label = NULL, color = NULL, keep.method = NULL,
+                                    ...){
 
     type <- match.arg(type, choices = c("bias","type1error"))
 
@@ -89,39 +91,23 @@ autoplot.calibrateType1 <- function(object, type = "bias", plot = TRUE, color.th
         df.gg <- rbind(df1,df2)
 
         ## *** display
-        gg <- ggplot() + geom_boxplot(data = df.gg, aes_string(x = "type", y = "bias")) 
-        gg <- gg + facet_wrap(corrected ~ n, labeller = label_both)
+        gg <- ggplot2::ggplot() + ggplot2::geom_boxplot(data = df.gg, aes_string(x = "type", y = "bias")) 
+        gg <- gg + ggplot2::facet_wrap(corrected ~ n, labeller = ggplot2::label_both)
         df.line <- data.frame(x = c(-Inf,Inf), y = 0)
-        gg <- gg + geom_line(data = df.line, aes_string(x = "x", y = "y"), color = color.threshold)
+        gg <- gg + ggplot2::geom_line(data = df.line, aes_string(x = "x", y = "y"), color = color.threshold)
         
     }
 
     ## ** display type 1 error
     if(type == "type1error"){
-        ## *** data
-        dfLong <- melt(object$p.value,
-                       measure.vars = grep("^p.",names(object$p.value),value = TRUE),
-                       value.name = "p.value",
-                       variable.name = "method")
-        df.gg <- stats::aggregate(dfLong$p.value,
-                                  by = list(n = dfLong$n, method = dfLong$method, link = dfLong$link),
-                                  FUN = function(x){c(n = length(x), type1error = mean(x<=alpha, na.rm = TRUE))},
-                                  simplify = FALSE)
-        df.gg <- cbind(df.gg[,c("n","method","link")],
-                       do.call(rbind,df.gg[,"x"]))
-
+        df.gg <- summary(object, alpha = alpha, type = type, display = FALSE)
+        
         ## *** display
         if(is.null(keep.method)){
             keep.method <- as.character(unique(df.gg$method))
         }
         if(is.null(name2label)){
-            name2label <- c(p.Ztest = "Gaussian approx.",
-                            p.Satt = "Satterthwaite approx.",
-                            p.KR = "Satterthwaite approx. with small sample correction",
-                            p.robustZtest = "robust Gaussian approx.",
-                            p.robustSatt = "robust Satterthwaite approx.",
-                            p.robustKR = "robust Satterthwaite approx. with small sample correction"
-                            )
+            name2label <- setNames(unique(paste0(df.gg$statistic,", ",df.gg$correction)),unique(df.gg$method))
         }
         if(is.null(color)){
             ## from ggthemes::colorblind_pal()(8)
@@ -131,27 +117,28 @@ autoplot.calibrateType1 <- function(object, type = "bias", plot = TRUE, color.th
         label.method <- name2label[keep.method]
         n.method <- length(keep.method)
 
-        
-        gg <- ggplot(df.gg, aes_string(x = "n", y = "type1error", group = "method", color = "method", shape = "method"))
-        gg <- gg + geom_point(size = 3) + geom_line(size = 2)
-        gg <- gg + facet_grid(~link, labeller = label_parsed)
-        gg <- gg + geom_abline(intercept = alpha, slope = 0, color = color.threshold)
-        gg <- gg + xlab("sample size")
-        gg <- gg + ylab("type 1 error rate")
-        gg <- gg + theme(legend.position = "bottom")
+       y.range <- range(c(alpha,df.gg$type1error))
+        gg <- ggplot2::ggplot(df.gg, aes_string(x = "n", y = "type1error", group = "method", color = "method", shape = "method"))
+        gg <- gg + ggplot2::geom_point(size = 3) + ggplot2::geom_line(size = 2)
+        gg <- gg + ggplot2::facet_grid(~link, labeller = ggplot2::label_parsed)
+        gg <- gg + ggplot2::geom_abline(intercept = alpha, slope = 0, color = color.threshold)
+        gg <- gg + ggplot2::xlab("sample size")
+        gg <- gg + ggplot2::ylab("type 1 error rate")
+        gg <- gg + ggplot2::theme(legend.position = "bottom")
+        gg <- gg + ggplot2::coord_cartesian(ylim = y.range)
 
         if(!is.null(nrow.legend)){
-            gg <- gg + guides(color=guide_legend(nrow=nrow.legend,byrow=TRUE))
+            gg <- gg + ggplot2::guides(color = ggplot2::guide_legend(nrow=nrow.legend,byrow=TRUE))
         }
         
-        gg <- gg + scale_color_manual("",
-                                      breaks = keep.method,
-                                      label = label.method,
-                                      values = color[1:n.method])
-        gg <- gg + scale_shape_manual("",
-                                      breaks = keep.method,
-                                      label = label.method,
-                                      values = seq(15,by=1,length=n.method))
+        gg <- gg + ggplot2::scale_color_manual("",
+                                               breaks = keep.method,
+                                               label = label.method,
+                                               values = color[1:n.method])
+        gg <- gg + ggplot2::scale_shape_manual("",
+                                               breaks = keep.method,
+                                               label = label.method,
+                                               values = seq(15,by=1,length=n.method))
         
          
     }
@@ -160,6 +147,7 @@ autoplot.calibrateType1 <- function(object, type = "bias", plot = TRUE, color.th
     if(plot){
         print(gg)
     }
+    rownames(df.gg) <- NULL
     return(invisible(list(plot = gg,
                           data = df.gg)))
 }

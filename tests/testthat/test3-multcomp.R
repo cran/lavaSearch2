@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: nov 29 2017 (15:22) 
 ## Version: 
-## Last-Updated: mar 26 2018 (17:34) 
+## Last-Updated: maj 17 2018 (13:18) 
 ##           By: Brice Ozenne
-##     Update #: 103
+##     Update #: 114
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -42,7 +42,7 @@ lava.options(symbols = c("~","~~"))
 context("multcomp - mmm")
 
 ## * simulation
-mSim <- lvm(c(Y1,Y2,Y3,Y4,Y5,Y6,Y7,Y8,Y9,Y10)~ beta * eta, E ~ 1)
+mSim <- lvm(c(Y1,Y2,Y3,Y4)~ beta * eta, E ~ 1)
 latent(mSim) <- "eta"
 set.seed(10)
 n <- 1e2
@@ -74,7 +74,7 @@ test_that("glht vs. glht2 (list lm): information std", {
     expect_equivalent(e.glht$linfct,e.glht2$linfct[,name.mean])
 
     eS.glht <- summary(e.glht)
-    eS.glht2 <- summary(e.glht2)
+    eS.glht2 <- summary(e.glht2, print = FALSE)
 
     expect_equal(eS.glht$test$tstat, 1/sqrt(n/(n-2))*eS.glht2$test$tstat)
 })
@@ -94,11 +94,29 @@ test_that("glht vs. glht2 (list ml): robust std", {
     expect_equivalent(e.glht$linfct,e.glht2$linfct[,name.mean])
 
     eS.glht <- summary(e.glht)
-    eS.glht2 <- summary(e.glht2)
+    eS.glht2 <- summary(e.glht2, print = FALSE)
 
     expect_equal(eS.glht$test$tstat, eS.glht2$test$tstat)
     ## cannot compare p.values
     ## because some are based on a student law and others on a gaussian law
+})
+
+test_that("glht2 vs. lava (ml): robust std", {
+    lsRed.lm <- ls.lm[1:2]
+    class(lsRed.lm) <- "mmm"
+
+    resC <- createContrast(lsRed.lm, var.test = "E", add.variance = TRUE)
+    name.all <- colnames(resC$contrast)
+    name.mean <- name.all[-grep("sigma",name.all)]
+    e.glht2 <- glht2(lsRed.lm, linfct = resC$contrast,
+                     bias.correct = FALSE, robust = TRUE, df = FALSE)
+
+    GS <- estimate(ls.lm[[1]], cluster = 1:n)$coefmat
+    test <- summary(e.glht2, test = adjusted("none"))$test
+    
+    expect_equal(as.double(test$sigma[1]), GS["E","Std.Err"], tol = 1e-8)
+    expect_equal(as.double(test$pvalues[1]), GS["E","P-value"], tol = 1e-8)
+    ##
 })
 
 test_that("glht vs. calcDistMaxIntegral", {
@@ -124,10 +142,10 @@ test_that("glht vs. calcDistMaxIntegral", {
 
 
 ## * lvm
-names(df.data)
+## names(df.data)
 
-m.lvm <- lvm(c(Y1,Y2,Y3,Y4)~ eta, eta ~ Y10+E,
-             Y1~Y5)
+m.lvm <- lvm(c(Y1,Y2,Y3)~ eta, eta ~ E,
+             Y1~Y4)
 e.lvm <- estimate(m.lvm, df.data)
 
 test_that("glht vs. glht2 (lvm): information std", {
@@ -159,13 +177,7 @@ test_that("glht vs. glht2 (lvm): information std", {
 mmm.lvm <- mmm(Y1 = estimate(lvm(Y1~E), data = df.data),
                Y2 = estimate(lvm(Y2~E), data = df.data),
                Y3 = estimate(lvm(Y3~E), data = df.data),
-               Y4 = estimate(lvm(Y4~E), data = df.data),
-               Y5 = estimate(lvm(Y5~E), data = df.data),
-               Y6 = estimate(lvm(Y6~E), data = df.data),
-               Y7 = estimate(lvm(Y7~E), data = df.data),
-               Y8 = estimate(lvm(Y8~E), data = df.data),
-               Y9 = estimate(lvm(Y9~E), data = df.data),
-               Y10 = estimate(lvm(Y10~E), data = df.data)
+               Y4 = estimate(lvm(Y4~E), data = df.data)
                )
 
 test_that("glht vs. glht2 (list lvm): information std", {

@@ -3,9 +3,9 @@
 ## author: Brice Ozenne
 ## created: maj 30 2017 (17:58) 
 ## Version: 
-## last-updated: feb  5 2018 (15:51) 
+## last-updated: maj  2 2018 (09:53) 
 ##           By: Brice Ozenne
-##     Update #: 88
+##     Update #: 89
 #----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -29,7 +29,7 @@
 #' @rdname modelsearchLR
 modelsearchLR <- function (x, data, restricted, link, directive, 
                            update.FCT, update.args,
-                           method.p.adjust, display.warnings, trace){
+                           method.p.adjust, print.warnings, trace){
 
     ## ** initialisation
     n.link <- length(link)
