@@ -13,8 +13,8 @@
 \usage{
 createContrast(object, ...)
 
-\method{createContrast}{character}(object, name.param, diff.first = FALSE,
-  add.rowname = TRUE, rowname.rhs = TRUE, ...)
+\method{createContrast}{character}(object, name.param,
+  diff.first = FALSE, add.rowname = TRUE, rowname.rhs = TRUE, ...)
 
 \method{createContrast}{lm}(object, par, add.variance, ...)
 
@@ -22,7 +22,8 @@ createContrast(object, ...)
 
 \method{createContrast}{lme}(object, par, add.variance, ...)
 
-\method{createContrast}{lvmfit}(object, par = NULL, var.test = NULL, ...)
+\method{createContrast}{lvmfit}(object, par = NULL, var.test = NULL,
+  ...)
 
 \method{createContrast}{list}(object, par = NULL, add.variance = NULL,
   var.test = NULL, ...)
@@ -105,6 +106,4 @@ e <- estimate(list(m,m), data = split(df.data, df.data$Gender))
 createContrast(e, par = "1@Y~TreatmentSSRI - 2@Y~TreatmentSSRI = 0")
 createContrast(e, par = "2@Y~TreatmentSSRI - 1@Y~TreatmentSSRI = 0")
 }
-\concept{
-small sample inference
-}
+\concept{small sample inference}

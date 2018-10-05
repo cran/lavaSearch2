@@ -3,9 +3,9 @@
 ## author: Brice Ozenne
 ## created: okt 12 2017 (14:52) 
 ## Version: 
-## last-updated: mar 26 2018 (17:34) 
+## last-updated: aug  6 2018 (15:34) 
 ##           By: Brice Ozenne
-##     Update #: 78
+##     Update #: 79
 #----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -136,6 +136,20 @@ test_that("coefType - lm", {
     expect_equal(test$name,df.truth$name)
 })
 
+## ** with extra variable
+
+m.sim <- lvm(Y1 ~ 1)
+categorical(m.sim, labels = c("control","concussion")) <- ~group
+
+test_that("coefType - lm with extra variable", {
+    coefType(m.sim)
+})
+
+## m.sim <- lvm(Y1 ~ 1, group ~ 1) ## ERROR
+## categorical(m.sim, labels = c("control","concussion")) <- ~group
+## lava:::categorical2dummy(m.sim, sim(m.sim, 1e2))$x$M
+## no group concussion column
+
 ## * lvm
 ## ** categorical variable
 m <- lvm(c(Y1,Y2,Y3)~eta1, c(Z1,Z2,Z3)~eta2)
@@ -198,7 +212,6 @@ test_that("coefType - lvm", {
     expect_equal(test$detail,df.truth$detail)
     expect_equal(test$name,df.truth$name)
 })
-
 ## ** constrains (0 mean 1 loading)
 
 m <- lvm(c(Y1~0+1*eta1,Y2~0+1*eta1,Y3~0+1*eta1,

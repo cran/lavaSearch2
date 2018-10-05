@@ -7,9 +7,9 @@
 \usage{
 findNewLink(object, ...)
 
-\method{findNewLink}{lvm}(object, data = NULL, exclude.var = NULL,
-  rm.latent_latent = FALSE, rm.endo_endo = FALSE, rm.latent_endo = FALSE,
-  output = "names", ...)
+\method{findNewLink}{lvm}(object, data = NULL, type = "both",
+  exclude.var = NULL, rm.latent_latent = FALSE, rm.endo_endo = FALSE,
+  rm.latent_endo = FALSE, output = "names", ...)
 }
 \arguments{
 \item{object}{a \code{lvm} object.}
@@ -17,6 +17,8 @@ findNewLink(object, ...)
 \item{...}{[internal] only used by the generic method.}
 
 \item{data}{[optional] a dataset used to identify the categorical variables when not specified in the \code{lvm} object.}
+
+\item{type}{[character vector] the type of links to be considered: \code{"regression"}, \code{"covariance"}, or \code{"both"}, .}
 
 \item{exclude.var}{[character vector] all links related to these variables will be ignore.}
 
@@ -57,8 +59,8 @@ latent(m) <- ~u
 findNewLink(m, rm.endo = FALSE)
 findNewLink(m, rm.endo = TRUE)
 findNewLink(m, rm.endo = TRUE, output = "index")
+findNewLink(m, type = "covariance")
+findNewLink(m, type = "regression")
 
 }
-\concept{
-modelsearch
-}
+\concept{modelsearch}

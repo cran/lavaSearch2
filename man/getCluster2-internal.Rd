@@ -4,7 +4,6 @@
 \alias{getCluster2-internal}
 \alias{.getCluster2}
 \alias{.getCluster2.gls}
-\alias{getCluster2-internal}
 \alias{.getCluster2.lme}
 \title{Reconstruct the Cluster Variable from a nlme Model}
 \usage{
@@ -34,7 +33,5 @@ A list containing:
 \description{
 Reconstruct the cluster variable from a nlme model.
 }
-\concept{
-extractor
-}
+\concept{extractor}
 \keyword{internal}

@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: mar  6 2018 (10:42) 
 ## Version: 
-## Last-Updated: apr 26 2018 (13:15) 
+## Last-Updated: sep 21 2018 (16:31) 
 ##           By: Brice Ozenne
-##     Update #: 60
+##     Update #: 61
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -67,8 +67,8 @@ test_that("error when using transform", {
 ## check in sCorrect.R 
 e <- gls(Y~X1, data = d, correlation = corCompSymm(form =~1|G),
          method = "REML")
-test_that("warning when using nlme with REML and Satterthwaite", {
-    expect_warning(sCorrect(e, score = FALSE, df = FALSE, trace = 0) <- FALSE)
+test_that("no warning when using no correction", {
+    expect_warning(sCorrect(e, score = FALSE, df = FALSE, trace = 0) <- FALSE, regexp = NA)
 })
 
 ## ** warning for the small sample correction estimated with REML

@@ -94,6 +94,4 @@ summary2(e.lvm)$coef
 \seealso{
 \code{\link{sCorrect}} for more detail about the small sample correction.
 }
-\concept{
-small sample inference
-}
+\concept{small sample inference}

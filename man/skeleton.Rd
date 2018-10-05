@@ -21,22 +21,22 @@ skeleton(object, ...)
 
 \method{skeleton}{lvm}(object, as.lava, name.endogenous, name.latent, ...)
 
-\method{skeleton}{lvmfit}(object, param, data, name.endogenous, name.latent,
-  ...)
+\method{skeleton}{lvmfit}(object, param, data, name.endogenous,
+  name.latent, ...)
 
 skeletonDtheta(object, ...)
 
 \method{skeletonDtheta}{gls}(object, class.cor, class.var, X, sigma2.base0,
   Msigma2.base0, M.corcoef, ref.group, index.lower.tri, indexArr.lower.tri,
-  name.endogenous, n.endogenous, cluster, n.cluster, var.coef, name.varcoef,
-  name.otherVar, n.varcoef, cor.coef, name.corcoef, n.corcoef, index.Omega,
-  update.mean, update.variance, ...)
+  name.endogenous, n.endogenous, cluster, n.cluster, var.coef,
+  name.varcoef, name.otherVar, n.varcoef, cor.coef, name.corcoef,
+  n.corcoef, index.Omega, update.mean, update.variance, ...)
 
 \method{skeletonDtheta}{lme}(object, name.endogenous, n.endogenous,
   name.rancoef, ...)
 
-\method{skeletonDtheta}{lvm}(object, data, df.param.all, param2originalLink,
-  name.endogenous, name.latent, ...)
+\method{skeletonDtheta}{lvm}(object, data, df.param.all,
+  param2originalLink, name.endogenous, name.latent, ...)
 
 \method{skeletonDtheta}{lvmfit}(object, name.endogenous, name.latent, ...)
 
@@ -56,8 +56,8 @@ skeletonDtheta2(object, ...)
 
 \method{skeletonDtheta2}{lm}(object, ...)
 
-\method{skeletonDtheta2}{lvm}(object, data, df.param.all, param2originalLink,
-  name.latent, ...)
+\method{skeletonDtheta2}{lvm}(object, data, df.param.all,
+  param2originalLink, name.latent, ...)
 
 \method{skeletonDtheta2}{lvmfit}(object, ...)
 }
@@ -130,9 +130,6 @@ skeleton(e, data = M.data, p = pars(e), as.lava = FALSE,
 
 }
 }
-\concept{
-small sample inference
-
-derivative of the score equation
-}
+\concept{derivative of the score equation}
+\concept{small sample inference}
 \keyword{internal}

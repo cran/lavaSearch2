@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: jan  3 2018 (14:29) 
 ## Version: 
-## Last-Updated: apr 26 2018 (11:29) 
+## Last-Updated: okt  4 2018 (16:17) 
 ##           By: Brice Ozenne
-##     Update #: 1273
+##     Update #: 1276
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -73,7 +73,10 @@
 #' 
 #' @export
 `sCorrect` <-
-  function(object, ...) UseMethod("sCorrect")
+    function(object, adjust.Omega, adjust.n,
+             score, df, numeric.derivative,
+             param, data,
+             tol, n.iter, trace, ...) UseMethod("sCorrect")
 
 
 ## * sCorrect.lm
@@ -193,16 +196,16 @@ sCorrect.lm2 <- function(object, ...){
 ## * sCorrect.gls
 #' @rdname sCorrect
 #' @export
-sCorrect.gls <- function(object, cluster, adjust.Omega = TRUE, adjust.n = TRUE,
+sCorrect.gls <- function(object, adjust.Omega = TRUE, adjust.n = TRUE,
                          score = TRUE, df = TRUE, numeric.derivative = FALSE, 
                          param = NULL, data = NULL,
                          tol = 1e-5, n.iter = 20, trace = 0,
-                         ...){
+                         cluster, ...){
 ### ** limitations
     if(object$method!="ML"){
         if(adjust.Omega==TRUE || adjust.n == TRUE){
             warning("Small sample corrections were derived for ML not for REML\n")
-        }else{
+        }else if(df){
             warning("The Satterthwaite approximation ignores that fact that the model was fitted using REML\n")
         }
     }

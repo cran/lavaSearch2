@@ -3,9 +3,9 @@
 ## author: Brice Ozenne
 ## created: sep 22 2017 (16:43) 
 ## Version: 
-## last-updated: feb  5 2018 (18:03) 
+## last-updated: okt  4 2018 (17:40) 
 ##           By: Brice Ozenne
-##     Update #: 149
+##     Update #: 213
 #----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -26,6 +26,7 @@
 #' @return an integer.
 #' 
 #' @examples
+#' \dontrun{
 #' mSim <- lvm(Y~G+X1+X2)
 #' addvar(mSim) <- ~Z1+Z2+Z3+Z4+Z5+Z6
 #' df.data <- lava::sim(mSim, 1e2)
@@ -33,9 +34,10 @@
 #' mBase <- lvm(Y~G)
 #' addvar(mBase) <- ~X1+X2+Z1+Z2+Z3+Z4+Z5+Z6
 #' e.lvm <- estimate(mBase, data = df.data)
-#' res <- modelsearch2(e.lvm, statistic = "score", method.p.adjust = "holm")
+#' res <- modelsearch2(e.lvm, method.p.adjust = "holm")
 #' nStep(res)
-#'
+#' }
+#' 
 #' @concept modelsearch
 #' @concept extractor
 #' @export
@@ -60,9 +62,9 @@ nStep.modelsearch2 <- function(object){
 #' @param object a \code{modelsearch2} object
 #' @param step [integer >0] which test should be extracted?
 #' @param slot [character] the element from the modelsearch2 object that should be extracted.
-#' @param ... [internal] only used by the generic method.
 #'
 #' @examples
+#' \dontrun{
 #' mSim <- lvm(Y~G+X1+X2)
 #' addvar(mSim) <- ~Z1+Z2+Z3+Z4+Z5+Z6
 #' df.data <- lava::sim(mSim, 1e2)
@@ -70,22 +72,22 @@ nStep.modelsearch2 <- function(object){
 #' mBase <- lvm(Y~G)
 #' addvar(mBase) <- ~X1+X2+Z1+Z2+Z3+Z4+Z5+Z6
 #' e.lvm <- estimate(mBase, data = df.data)
-#' res <- modelsearch2(e.lvm, statistic = "score", method.p.adjust = "holm")
+#' res <- modelsearch2(e.lvm, method.p.adjust = "holm")
+#'
 #' getStep(res)
 #' getStep(res, slot = "sequenceTest")
-#' getStep(res, slot = "sequenceQuantile")
 #' getStep(res, step = 1)
-#'
+#' }
 #' @concept modelsearch
 #' @concept extractor
 #' @export
 `getStep` <-
-  function(object, ...) UseMethod("getStep")
+  function(object, step, slot) UseMethod("getStep")
 
 ## ** function - getStep
 #' @rdname getStep
 #' @export
-getStep.modelsearch2 <- function(object, step = nStep(object), slot = NULL, ...){
+getStep.modelsearch2 <- function(object, step = nStep(object), slot = NULL){
     
     ## ** normalize arguments
     lastStep <- nStep(object)
@@ -100,11 +102,7 @@ getStep.modelsearch2 <- function(object, step = nStep(object), slot = NULL, ...)
     new.object <- object
     new.object$sequenceTest <- object$sequenceTest[step]
     new.object$sequenceModel <- object$sequenceModel[step]
-    if(object$method.p.adjust == "max"){
-        new.object$sequenceQuantile <- object$sequenceQuantile[[step]]
-        sequenceIID <- object$sequenceIID[step]
-        sequenceSigma <- object$sequenceSigma[step]
-    }
+    class(new.object) <- NULL
 
     ## ** export
     if(is.null(slot)){
@@ -126,32 +124,34 @@ getStep.modelsearch2 <- function(object, step = nStep(object), slot = NULL, ...)
 #' 
 #' @param object a \code{modelsearch2} object.
 #' @param step [logical] which test should be extracted?
-#' @param ... [internal] only used by the generic method.
 #'
 #' @return A character vector.
 #' 
 #' @examples
+#' \dontrun{
 #' mSim <- lvm(Y~G+X1+X2)
 #' addvar(mSim) <- ~Z1+Z2+Z3+Z4+Z5+Z6
+#'
+#' set.seed(10)
 #' df.data <- lava::sim(mSim, 1e2)
 #'
 #' mBase <- lvm(Y~G)
 #' addvar(mBase) <- ~X1+X2+Z1+Z2+Z3+Z4+Z5+Z6
 #' e.lvm <- estimate(mBase, data = df.data)
-#' res <- modelsearch2(e.lvm, statistic = "score", method.p.adjust = "holm")
+#' res <- modelsearch2(e.lvm, method.p.adjust = "holm")
 #' getNewLink(res)
-#'
+#' }
 #' @concept modelsearch
 #' @concept extractor
 #' 
 #' @export
 `getNewLink` <-
-  function(object, ...) UseMethod("getNewLink")
+  function(object, step) UseMethod("getNewLink")
 
 ## ** function - getNewLink
 #' @rdname getNewLink
 #' @export
-getNewLink.modelsearch2 <- function(object, step = 1:nStep(object), ...){
+getNewLink.modelsearch2 <- function(object, step = 1:nStep(object)){
 
     selected <- link <- NULL
     
@@ -170,82 +170,155 @@ getNewLink.modelsearch2 <- function(object, step = 1:nStep(object), ...){
     return(unlist(ls.link))    
 }
 
-## * merge
-## ** documentation - merge
-#' @title Merge two modelsearch Objects
-#' @description Merge two modelsearch objects. Does not check for meaningful result.
-#' @name merge
+## * getNewModel
+## ** documentation - getNewModel
+#' @title Extract the Model that Has Been Retains by the modelsearch2.
+#' @description Extract the model that has been retained by modelsearch2.
+#' @name getNewModel
 #' 
-#' @param x,y a \code{modelsearch2} object.
-#' @param ... [internal] only used by the generic method.
+#' @param object a \code{modelsearch2} object.
+#' @param step [integer >=0] the step at which the model should be extracted.
+#' 0 returns the initial model, i.e. before adding any links.
 #'
-#' @return a \code{modelsearch2} object.
+#' @return A \code{lvmfit} object.
 #' 
 #' @examples
+#' \dontrun{
 #' mSim <- lvm(Y~G+X1+X2)
 #' addvar(mSim) <- ~Z1+Z2+Z3+Z4+Z5+Z6
+#'
+#' set.seed(10)
 #' df.data <- lava::sim(mSim, 1e2)
 #'
 #' mBase <- lvm(Y~G)
 #' addvar(mBase) <- ~X1+X2+Z1+Z2+Z3+Z4+Z5+Z6
 #' e.lvm <- estimate(mBase, data = df.data)
-#' res.x <- modelsearch2(e.lvm, statistic = "score", method.p.adjust = "holm", nStep = 2)
-#' res.y <- modelsearch2(getStep(res.x, slot = "sequenceModel"), 
-#'                       statistic = "score", method.p.adjust = "holm")
-#' res.xy <- merge(res.x,res.y)
-#'
-#' modelsearch2(e.lvm, statistic = "score", method.p.adjust = "holm")
-#'
-#' @keywords internal
-
-## ** function - merge
-#' @rdname merge
+#' res <- modelsearch2(e.lvm, method.p.adjust = "holm")
+#' getNewModel(res)
+#' }
+#' @concept modelsearch
+#' @concept extractor
+#' 
 #' @export
-merge.modelsearch2 <- function(x, y, ...){
+`getNewModel` <-
+  function(object, step) UseMethod("getNewModel")
 
-    ## ** merge
-    x$sequenceTest <- c(x$sequenceTest,y$sequenceTest)
-    x$sequenceModel <- c(x$sequenceModel,y$sequenceModel)
+## ** function - getNewLink
+#' @rdname getNewModel
+#' @export
+getNewModel.modelsearch2 <- function(object, step = nStep(object)){
 
-    if(sum(c(y$method.p.adjust,x$method.p.adjust) == "max") == 1){
-        if(x$method.p.adjust != "max"){
-            lastStep.x <- nStep(x)
-            Mtest.x <- getStep(x, step = 1, slot = "sequenceTest")
-            nLink.x <- NROW(Mtest.x)
-            name.x <- Mtest.x[["link"]]
-
-            x$sequenceQuantile <- rep(NA, times = lastStep.x)
-            if(!is.null(y$sequenceIID)){
-                x$sequenceIID <- vector(mode = "list", length = lastStep.x)
-            }
-            x$sequenceSigma <- vector(mode = "list", length = lastStep.x)            
-        }
-        if(y$method.p.adjust != "max"){
-            lastStep.y <- nStep(y)
-            Mtest.y <- getStep(y, step = 1, slot = "sequenceTest")
-            nLink.y <- NROW(Mtest.y)
-            name.y <- Mtest.y[["link"]]
-
-            y$sequenceQuantile <- rep(NA, times = lastStep.y)
-            if(!is.null(x$sequenceIID)){
-                y$sequenceIID <- vector(mode = "list", length = lastStep.y)
-            }
-            y$sequenceSigma <- vector(mode = "list", length = lastStep.y)            
-        }
-        x$sequenceQuantile <- c(x$sequenceQuantile,y$sequenceQuantile)
-        x$sequenceIID <- c(x$sequenceIID,y$sequenceIID)
-        x$sequenceSigma <- c(x$sequenceSigma,y$sequenceSigma)
-
+    ## ** normalize arguments
+    lastStep <- nStep(object)
+    if(any(step %in% 0:lastStep == FALSE)){
+        stop("Argument \'step\' must be an integer between 0 and ",lastStep,"\n")
+    }
+    if(length(step)!=1){
+        stop("Argument \'step\' must have length one \n")
     }
     
-    for(iSlot in c("statistic","method.p.adjust","alpha","method.iid","cv")){
-        x[[iSlot]] <- unique(c(x[[iSlot]],y[[iSlot]]))
-        if(length(x[[iSlot]])>1){x[[iSlot]] <- NA}
-    }
-    ## ** export
-    return(x)    
+    ## ** extract
+    if(step>0){
+        return(object$sequenceModel[[step]])
+    }else{
+        return(object$initialModel)
+        }
 }
 
+## * autoplot
+## ** documentation - autoplot
+#' @title Display the Value of a Coefficient across the Steps.
+#' @description Display the value of a coefficient across the steps.
+#' @name autplot-modelsearch2
+#' 
+#' @param object a \code{modelsearch2} object.
+#' @param param [character vector] the name of the coefficient(s) to be displayed.
+#' @param ci [logical] should the confidence intervals of the coefficient(s) be displayed.
+#' @param step [integer >0] the steps at which the coefficient value should be displayed.
+#' @param plot [logical] should the graph be displayed?
+#' @param add.0 [logical] should an horizontal line representing no effect be displayed?
+#' @param ...  [internal] only used by the generic method.
+#'
+#' @return A list containing \itemize{
+#' \item \code{plot}: a ggplot object.
+#' \item \code{data}: the data used to generate the ggplot object.
+#' }
+#' 
+#' @examples
+#' \dontrun{
+#' mSim <- lvm(Y~G+X1+X2+X3+X4+X5)
+#' addvar(mSim) <- ~Z1+Z2
+#'
+#' set.seed(10)
+#' df.data <- lava::sim(mSim, 1e2)
+#'
+#' mBase <- lvm(Y~G)
+#' addvar(mBase) <- ~X1+X2+X3+X4+X5+Z1+Z2
+#' e.lvm <- estimate(mBase, data = df.data)
+#' res <- modelsearch2(e.lvm, method.p.adjust = "holm", alpha = 0.05)
+#' autoplot(res, param = "Y~G")
+#' autoplot(res, param = c("Y","Y~G"))
+#' }
+#' @concept modelsearch
+#' @concept extractor
+#' 
 
-#----------------------------------------------------------------------
-### methods-modelsearch2.R ends here
+## ** code - autoplot
+#' @rdname autoplot.modelsearch2
+#' @method autoplot modelsearch2
+#' @export
+autoplot.modelsearch2 <- function(object, param, ci = TRUE, step = 0:nStep(object),
+                                  plot = TRUE, add.0 = TRUE, ...){
+
+    ## ** check arguments
+    lastStep <- nStep(object)
+    if(any(step %in% 0:lastStep == FALSE)){
+        stop("Argument \'step\' must be an integer between 0 and ",lastStep,"\n")
+    }
+    if(any(diff(step)<=0)){
+        stop("Argument \'step\' must be a vector of strictly increasing integers \n")
+    }
+    
+    name.coef <- names(coef(object$initialModel))
+    if(any(param %in% name.coef == FALSE)){
+        stop("Argument \'param\' incorrect: some parameters do not belong to the initial model \n",
+             "invalid parameters: \"",paste0(param[param %in% name.coef == FALSE], collapse ="\" \""),"\"\n")
+    }
+
+    ## ** get data
+    n.points <- length(step)
+    alpha <- object$alpha
+    level <- 1-alpha
+    df.plot <- NULL
+    
+    for(iStep in 1:length(step)){
+        iModel <- getNewModel(object, step = step[iStep])
+        iCoef <- unname(cbind(coef(iModel)[param],stats::confint(iModel, level = level)[param,,drop=FALSE]))
+        colnames(iCoef) <- c("estimate", "ci.inf", "ci.sup")
+        df.plot  <- rbind(df.plot,
+                          data.frame(step = step[iStep], param  = param, iCoef)
+                          )
+    }
+
+    ## ** graphical display
+    gg <- ggplot2::ggplot(df.plot, aes_string(x = "step", y = "estimate"))
+    if(add.0){
+        gg <- gg + ggplot2::geom_hline(yintercept = 0, color = "red")
+    }
+    gg <- gg + ggplot2::geom_point() + ggplot2::geom_line()
+    gg <- gg + ggplot2::facet_wrap(~param)
+    if(ci){
+        gg <- gg + ggplot2::geom_errorbar(aes_string(ymin = "ci.inf", ymax = "ci.sup"))        
+        gg <- gg + ggplot2::ylab(paste0("estimate [",round(level*100,2),"% confidence interval]"))
+    }
+    if(plot){
+        print(gg)
+    }
+
+    ## ** export
+    return(invisible(list(plot = gg,
+                          data = df.plot)))
+
+    
+
+}

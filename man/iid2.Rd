@@ -14,14 +14,14 @@
 \usage{
 iid2(object, ...)
 
-\method{iid2}{lm}(object, param = NULL, data = NULL, bias.correct = TRUE,
-  ...)
+\method{iid2}{lm}(object, param = NULL, data = NULL,
+  bias.correct = TRUE, ...)
 
 \method{iid2}{gls}(object, cluster = NULL, param = NULL, data = NULL,
   bias.correct = TRUE, ...)
 
-\method{iid2}{lme}(object, param = NULL, data = NULL, bias.correct = TRUE,
-  ...)
+\method{iid2}{lme}(object, param = NULL, data = NULL,
+  bias.correct = TRUE, ...)
 
 \method{iid2}{lvmfit}(object, param = NULL, data = NULL,
   bias.correct = TRUE, ...)
@@ -29,11 +29,11 @@ iid2(object, ...)
 \method{iid2}{lm2}(object, cluster = NULL, param = NULL, data = NULL,
   robust = TRUE, ...)
 
-\method{iid2}{gls2}(object, cluster = NULL, param = NULL, data = NULL,
-  robust = TRUE, ...)
+\method{iid2}{gls2}(object, cluster = NULL, param = NULL,
+  data = NULL, robust = TRUE, ...)
 
-\method{iid2}{lme2}(object, cluster = NULL, param = NULL, data = NULL,
-  robust = TRUE, ...)
+\method{iid2}{lme2}(object, cluster = NULL, param = NULL,
+  data = NULL, robust = TRUE, ...)
 
 \method{iid2}{lvmfit2}(object, cluster = NULL, data = NULL, ...)
 }
@@ -93,8 +93,5 @@ diag(crossprod(iid.tempo))-diag(vcov(e.lvm))
 \seealso{
 \code{\link{sCorrect}} to obtain \code{lm2}, \code{gls2}, \code{lme2}, or \code{lvmfit2} objects.
 }
-\concept{
-small sample inference
-
-iid decomposition
-}
+\concept{iid decomposition}
+\concept{small sample inference}

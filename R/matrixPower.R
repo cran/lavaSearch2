@@ -3,9 +3,9 @@
 ## author: Brice Ozenne
 ## created: okt 23 2017 (16:52) 
 ## Version: 
-## last-updated: mar  7 2018 (12:17) 
+## last-updated: sep 28 2018 (11:01) 
 ##           By: Brice Ozenne
-##     Update #: 48
+##     Update #: 56
 #----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -22,6 +22,7 @@
 ##' @param power [numeric] power to be applied to the matrix.
 ##' @param symmetric [logical] is the matrix symmetric? Argument passed to the function \code{eigen}.
 ##' @param tol [numeric >0] the threshold under which the eigenvalues are set to 0.
+##' @param print.warning [logical] should a warning be print when some or the eigenvalues are not strictly positive.
 ##' 
 ##' @return A matrix.
 ##' 
@@ -53,21 +54,30 @@
 ##' round(iM.half %*% iM.half %*% M,5)
 ##' 
 ##' @keywords internal
-matrixPower <- function(object, power, symmetric, tol = 1e-12){
+matrixPower <- function(object, power, symmetric, tol = 1e-12, print.warning = TRUE){
     object.eigen <- eigen(object, symmetric = symmetric)
 
+    warn <- 0
     if(power<0 && any(object.eigen$values<tol)){
-        warning("negative eigenvalues are set to ",tol,"\n")
+        if(print.warning){
+            warning("small or negative eigenvalues are set to ",tol,"\n")
+        }
+        warn <- 1
         object.eigen$values[object.eigen$values < tol] <- tol
     }
     nRow <- length(object.eigen$values)
     D <- diag(object.eigen$values^power, nrow = nRow, ncol = nRow)
 
     if(symmetric){
-        return(object.eigen$vectors %*% D %*% t(object.eigen$vectors))
+        out <- object.eigen$vectors %*% D %*% t(object.eigen$vectors)
     }else{
-        return(object.eigen$vectors %*% D %*% solve(object.eigen$vectors))
+        out <- object.eigen$vectors %*% D %*% solve(object.eigen$vectors)
     }
+
+    if(warn==1){
+        attr(out,"warning") <- "small or negative eigenvalues"
+    }
+    return(out)
 
 }
 

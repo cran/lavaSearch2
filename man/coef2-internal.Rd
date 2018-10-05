@@ -37,7 +37,5 @@ from a \code{lm}, \code{gls}, or \code{lme} object.
 The variance coefficients that are exported are the residual variance of each outcome. 
 This is \eqn{\sigma^2} for the first one and \eqn{k^2 \sigma^2} for the remaining ones.
 }
-\concept{
-extractor
-}
+\concept{extractor}
 \keyword{internal}

@@ -31,15 +31,16 @@
 \alias{coefVar.multigroup}
 \title{Extract the Coefficient by Type}
 \usage{
-coefCov(object, ...)
+coefCov(object, value, keep.var, ...)
 
 \method{coefCov}{lvm}(object, value = FALSE, keep.var = FALSE, ...)
 
 \method{coefCov}{lvmfit}(object, value = FALSE, keep.var = FALSE, ...)
 
-\method{coefCov}{multigroup}(object, value = FALSE, keep.var = FALSE, ...)
+\method{coefCov}{multigroup}(object, value = FALSE, keep.var = FALSE,
+  ...)
 
-coefExtra(object, ...)
+coefExtra(object, value, ...)
 
 \method{coefExtra}{lvm}(object, value = FALSE, ...)
 
@@ -57,7 +58,7 @@ coefIndexModel(object, ...)
 
 \method{coefIndexModel}{multigroupfit}(object, ...)
 
-coefIntercept(object, ...)
+coefIntercept(object, value, ...)
 
 \method{coefIntercept}{lvm}(object, value = FALSE, ...)
 
@@ -65,11 +66,11 @@ coefIntercept(object, ...)
 
 \method{coefIntercept}{multigroup}(object, value = FALSE, ...)
 
-coefRef(object, ...)
+coefRef(object, value, ...)
 
 \method{coefRef}{lvmfit}(object, value = FALSE, ...)
 
-coefReg(object, ...)
+coefReg(object, value, ...)
 
 \method{coefReg}{lvm}(object, value = FALSE, ...)
 
@@ -77,7 +78,7 @@ coefReg(object, ...)
 
 \method{coefReg}{multigroup}(object, value = FALSE, ...)
 
-coefVar(object, ...)
+coefVar(object, value, ...)
 
 \method{coefVar}{lvm}(object, value = FALSE, ...)
 
@@ -88,11 +89,11 @@ coefVar(object, ...)
 \arguments{
 \item{object}{a lvm model or a fitted lvm model}
 
-\item{...}{arguments to be passed to \code{}}
-
 \item{value}{should the name of the coefficient be returned? Else return the coefficients}
 
 \item{keep.var}{should the variance coefficients be returned?}
+
+\item{...}{arguments to be passed to \code{}}
 }
 \value{
 A vector containing the names of the positions of the coefficients.
@@ -171,6 +172,4 @@ eG <- estimate(list(m,m), list(lava::sim(m, 1e2), lava::sim(m, 1e2)))
 coefIndexModel(eG)
 
 }
-\concept{
-extractor
-}
+\concept{extractor}

@@ -14,8 +14,8 @@
 \usage{
 vcov2(object, ...)
 
-\method{vcov2}{lm}(object, param = NULL, data = NULL, bias.correct = TRUE,
-  ...)
+\method{vcov2}{lm}(object, param = NULL, data = NULL,
+  bias.correct = TRUE, ...)
 
 \method{vcov2}{gls}(object, param = NULL, data = NULL,
   bias.correct = TRUE, ...)
@@ -80,6 +80,4 @@ vcov.tempo/vcov(e.lvm)
 \seealso{
 \code{\link{sCorrect}} to obtain \code{lm2}, \code{gls2}, \code{lme2}, or \code{lvmfit2} objects.
 }
-\concept{
-small sample inference
-}
+\concept{small sample inference}

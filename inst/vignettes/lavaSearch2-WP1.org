@@ -1,193 +1,102 @@
-#+TITLE: Assessing the effect of an exposure on multiple outcomes (with R code)
+#+TITLE: Assessing the effect of an exposure on multiple outcomes (with \Rlogo{} code)
 #+Author: Brice Ozenne
 
-* Abstract
+#+BEGIN_SRC R :exports none :results output :session *R* :cache no
+options(width = 120)
+path <-  "c:/Users/hpl802/Documents/GitHub/lavaSearch2/inst/vignettes/"
+#+END_SRC
+
+#+RESULTS:
+
+* Summary
 :PROPERTIES:
 :UNNUMBERED: t
 :END:
 
-We propose two strategies to assess the relationship between an
-exposure (e.g. a disease, a genetic factor) and a set of outcomes
-(e.g. a set of psychological outcomes or the binding potential
-measured in several brain regions) while accounting for possible risk
-factors and confounders. The outcomes can be continuous, categorical,
-or a mixture of the two but their number should be smaller than the
-number of observations (low-dimensional setting). This document
-intends to give a basic understanding of the two strategies, their
-limitations, and how to implement them. @@latex:\textcolor{red}{For
-now, only the "multiple univariate regressions" is presented in this
-document.}@@ In particular we don't claim that the proposed strategies
-give valid or optimal results in every application (they probably do
-not). Many other approaches exists (e.g. MANOVA) but won't be
-discussed here.
-
-\bigskip
-
-*Strategies*: 
-- /Multiple univariate regressions/: for each outcome we use a
-  separate model to model its relationship to the exposure. An
-  adjustment for multiple comparisons is used for drawing inference.
+We propose two strategies to assess the effect of an exposure (e.g. a
+disease, a genetic factor) on several outcomes (e.g. psychological
+outcomes, the binding potential measured in several brain regions)
+while accounting for possible risk factors and confounders:
+- /Multiple univariate regressions/: we use a separate model to model
+  the relationship between an outcome and the exposure. 
 - /Joint model/: we model the relationship between the outcomes and
-  the exposure in a single model. A single test can be used to test
-  whether there is an association between the exposure and any of the
-  outcomes.
-By explicitly modeling the correlation between the outcomes, the
-"joint model" strategy, when valid, will provide more powerful tests
-compared to the "multiple univariate regressions" strategy. Another
-benefit of the "joint model" strategy is the use of latent variables
-that may reflect unmeasured biological mechanisms and therefore help
-the interpretation of the results. There are however drawbacks with
-this approach: it relies on more assumptions and a more complex
-statistical modeling. 
+  the exposure in a single latent variable model
+  citep:holst2013linear. 
+Once the model(s) has(have) been correctly fitted, a global test can
+  be used to test whether there is any effect of the exposure on the
+  outcomes. After that, multiple tests are performed to test
+  outcome-specific effects of the exposure where the Dunnett
+  adjustment is used to control the type 1 error
+  citep:pipper2012versatile. An adjustment is used to improved the
+  control of the type 1 error in small sample sizes (e.g. n<100). This
+  adjustment has been shown to beneficial in several settings (using
+  simulation studies) but does not always perfectly control the type 1
+  error rate. It is advised to check that validity of the adjustment
+  when using very small samples or models with many parameters.
 
 \bigskip
 
-*Inference*: The two strategies enable to quantify the association
-between the exposure and the outcomes and to test hypotheses such as:
-- there no association between the exposure and the outcomes. When
-  rejected, it can further test for which outcomes there is evidence for an
-  association while adjusting for multiple comparisons in an efficient
-  way.
-- the association between the exposure and the outcomes is the same for all outcomes.
-An adjustment is proposed in small sample sizes (e.g. n<100) to
-improve the control of the type 1 error rate. This adjustment
-has been shown to beneficial in several settings (using simulation
-studies) but does not always perfectly control the type 1 error
-rate. It is advised to check that validity of the adjustment when
-using very small samples or models with many parameters. Resampling
-methods (permutation or bootstrap citep:carpenter2000bootstrap) may be
-preferable in some settings.
+The proposed strategies can be used with continuous outcomes,
+  categorical outcomes, or a mixture of the two. The number of
+  outcomes should be smaller than the number of observations
+  (low-dimensional setting). By explicitly modeling the correlation
+  between the outcomes, the /joint model/ strategy, when valid, will
+  provide more powerful tests compared to the /multiple univariate
+  regressions/ strategy. Another benefit of the /joint model/ strategy
+  is the use of latent variables that may reflect unmeasured
+  biological mechanisms and therefore help the interpretation of the
+  results. The drawbacks with this approach is that it relies on more
+  assumptions and a more complex statistical modeling.
 
 \bigskip
 
-*Diagnostics*: The proposed strategies uses on parametric models that
-rely on a set of assumptions. The violation of some of the assumptions
-can be tested using the observed data (often with limited
-power). Tools to test these assumptions are presented.
+This document we aim at giving a basic understanding of the two
+  strategies[fn:1], how to implement them, and their limitations. In
+  particular, we don't claim that the proposed strategies give valid
+  or optimal results in every application (they probably do not) and
+  many other approaches exists (e.g. MANOVA) but won't be discussed
+  here. The document is organized as follow: first section
+  [[#sec:Rsoftware]] present how to install and set up the \Rlogo{}
+  software. Then basic functions to import and process the data are
+  presented in section [[#sec:dataManagement]]. The goals, a minima, of
+  the descriptive analysis are presented in section [[#sec:descriptive]],
+  as well as code to export figures and tables to Word
+  documents. Section [[#sec:LM]] recalls how to perform a univariate
+  linear regression in \Rlogo{} and present tools to assess the
+  parametric assumptions and section [[#sec:multipleLM]] presents the
+  /multiple univariate regressions/ strategy. Finally appendix
+  [[#SM:statistics]] recalls some statistical concepts about modeling and
+  hypothesis testing.
 
-\bigskip
+[fn:1] For now, only the "multiple univariate regressions" is
+presented in this document.
 
-*Software*: we advise to use the R software to implement these
-strategies. It can be downloaded at https://cloud.r-project.org/. R
-studio provide a convenient user interface that can be downloaded at
-https://www.rstudio.com/products/rstudio/.  The R code used to carry
-out the two strategies will be display in boxes:
-#+BEGIN_SRC R :exports both :results output :session *R* :cache no
-1+1 ## comment about the code
-#+END_SRC
-
-#+RESULTS:
-: [1] 2
-
-while the R output will be displayed in dark red below the box. 
-
-
-\bigskip
-
-We also recommend the following packages:
-- /data.table/: for data management. See
-  https://cran.r-project.org/web/packages/data.table/vignettes/datatable-intro.html
-  for an introduction and
-  https://github.com/Rdatatable/data.table/wiki for more
-  documentation.  A synthetic description of the functionalities can
-  be found at
-  https://s3.amazonaws.com/assets.datacamp.com/img/blog/data+table+cheat+sheet.pdf
-- /ggplot2/: for data visualization. See
-  http://r4ds.had.co.nz/data-visualisation.html for an introduction. A
-  synthetic description of the functionalities can be found at
-  https://www.rstudio.com/wp-content/uploads/2015/03/ggplot2-cheatsheet.pdf
-- /lava/: for defining and estimating latent variable models.
-- /multcomp/: for adjustments for multiple comparisons.
-Note that this document should be understandable even though the
-reader is not familiar with these packages.
 
 
 \clearpage
 
-\tableofcontents
-
-\clearpage
-
-* R settings
-
-#+BEGIN_SRC R :exports none :results output :session *R* :cache no
-options(width = 120)
-#+END_SRC
-
-#+RESULTS:
-
-When starting a fresh R session, only the core functionalities of R
-are available. Additional functionalities called packages can be
-downloaded from the CRAN using the command =install.packages= and from
-github using the command =devtools::install_github= (you need to
-install the package /devtools/ to be able to use this functionality). We
-will need the following packages:
-#+BEGIN_SRC R :exports code :results silent :session *R* :cache no
-## data management
-library(data.table)
-
-## graphical display
-library(ggplot2)
-
-## latent variable model
-library(lava)
-
-## mixed models
-library(nlme)
-library(lme4)
-
-## small sample correction for variable models
-library(lava)
-library(lavaSearch2)
-
-## adjustment for multiple comparisons
-library(multcomp)
-
-## diagnostics
-library(qqtest) ## qqplot
-library(car) ## levene test
-library(butils) ## cor.testDT 
-## install using devtools::install_github("bozenne/butils")
-library(gof) ## diagnostics based on cumulative residuals
-
-## other 
-library(pbapply)
-#+END_SRC
-
-#+RESULTS:
-
-Even though we will not use it explicitly, it is also useful to
-specify the working directory:
-#+BEGIN_SRC R :exports both :results output :session *R* :cache no
-path <- "c:/Users/hpl802/Documents/Github/lavaSearch2/vignettes/"
-setwd(path)
-#+END_SRC
-
-#+RESULTS:
-
-This is the directory where, by default, R will export and import
-files and pictures.
-
-\clearpage
-
-* Data
+* Simulation of the data :noexport:
 
 To be able to assess the validity of the proposed strategies, we will
 use simulated data containing:
 - a variable identifying each patient: =Id=
 - 10 outcomes per patient: =Y1= to =Y10=.
-- 3 possible exposures per patient: =E0= that is not related to the outcomes, =E1=
-  that has the same effect on all outcomes, and =E2= that has a
+- 3 possible exposures per patient: =age= that is not related to the outcomes, =BMI=
+  that has the same effect on all outcomes, and =MDI= that has a
   different effect per outcome.
 We use the =lvm= function from the /lava/ package to define these variables:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
-m.sim <- lvm(Y1 ~ 0*E0 + 0.25*E1 + 0.1*E2 + 1*eta,
-             Y2[0:2] ~ 0*E0 + 0.25*E1 + 0.2*E2 + 2*eta,
-             Y3 ~ 0*E0 + 0.25*E1 + 0.15*E2 + 3*eta,
-             Y4[0:0.5] ~ 0*E0 + 0.25*E1 + 0.175*E2 + 1*eta,
-             Y5[0:3] ~ 0*E0 + 0.25*E1 + 0.075*E2 + 2*eta
-             )
-transform(m.sim, Id ~ eta) <- function(x){paste0("n",1:NROW(x))}
+m.sim <- lava::lvm(Y1 ~ 0*age + 0.25*BMI + 0.1*MDI + 1*eta,
+                   Y2[0:2] ~ 0*age + 0.25*BMI + 0.2*MDI + 2*eta,
+                   Y3 ~ 0*age + 0.25*BMI + 0.15*MDI + 3*eta,
+                   Y4[0:0.5] ~ 0*age + 0.25*BMI + 0.175*MDI + 1*eta,
+                   Y5[0:3] ~ 0*age + 0.25*BMI + 0.075*MDI + 2*eta 
+                   )
+transform(m.sim, Id ~ eta) <- function(x){paste0("Subj",1:NROW(x))}
+categorical(m.sim, labels = c("male","female")) <-  ~ Gender
+distribution(m.sim, ~age) <-  gaussian.lvm(mean = 35, sd = 5)
+distribution(m.sim, ~BMI) <-  gaussian.lvm(mean = 22, sd = 3)
+distribution(m.sim, ~MDI) <-  gaussian.lvm(mean = 20, sd = 5)
 latent(m.sim) <- ~eta
 #+END_SRC
 
@@ -202,280 +111,611 @@ dfW <- lava::sim(m.sim, n = 50, latent = FALSE)
 #+END_SRC
 
 #+RESULTS:
-
-We convert the resulting dataset into a =data.table= object:
+We round the values to 2 digits:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
-dtW <- as.data.table(dfW) 
+digit.cols <- c("age","BMI","MDI",paste0("Y",1:5))
+dfW[,digit.cols] <- round(dfW[,digit.cols],2)
 #+END_SRC
 
 #+RESULTS:
 
 and re-order its columns:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
-setcolorder(dtW, neworder = c("Id",setdiff(sort(names(dtW)),"Id")))
+dfW <- dfW[,c("Id","Gender",digit.cols)]
 #+END_SRC
 
 #+RESULTS:
 
 We can now display first lines of the dataset:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
-head(dtW)
+head(dfW)
 #+END_SRC
 #+RESULTS:
-:    Id         E0         E1         E2         Y1         Y2        Y3        Y4        Y5
-: 1: n1 -0.4006375 -0.7618043 -0.3911042  1.0046984  3.6867259  4.899969 0.3295657  2.073620
-: 2: n2 -0.3345566  0.4193754 -0.2498675  0.2264810  2.0343610  1.650403 1.2908295  2.794710
-: 3: n3  1.3679540 -1.0399434  1.1551047 -0.1255308  0.6857108  3.453420 0.1974658  6.393710
-: 4: n4  2.1377671  0.7115740 -0.8647272  0.3643000  0.4676576  3.456675 1.6921803  2.560649
-: 5: n5  0.5058193 -0.6332130 -0.8666783 -1.0312430 -3.4554301 -3.405372 0.1354576 -3.663814
-: 6: n6  0.7863424  0.5631747 -2.3210170  0.7943079  2.1717773  1.602861 0.5332534 -2.430374
+:      Id Gender   age   BMI   MDI   Y1    Y2    Y3    Y4   Y5
+: 1 Subj1 female 30.57 21.76 25.82 7.64  8.73  7.72 10.42 8.44
+: 2 Subj2 female 41.36 25.55 12.38 7.11  8.79  6.99  8.45 8.26
+: 3 Subj3   male 26.97 28.56  7.41 7.88  9.89 13.51 10.79 7.90
+: 4 Subj4 female 40.61 23.22 16.46 8.99 14.38 13.82 11.44 9.75
+: 5 Subj5 female 45.79 19.78 18.56 7.60  8.77  8.38  7.94 6.17
+: 6 Subj6 female 37.14 16.13 17.82 6.99  9.97  6.74  8.29 8.78
 
+and export the data using =write.csv=:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+write.csv(dfW, file = file.path(path,"data.csv"), row.names = FALSE)
+write.table(dfW, file = file.path(path,"data.txt"), row.names = FALSE)
+xlsx::write.xlsx(dfW, file = file.path(path,"data.xlsx"), row.names = FALSE)
+#+END_SRC
+
+#+RESULTS:
 
 \clearpage
 
-* Definitions and notations
-
-** Variables
-
-We can differentiate several types of random variables: outcomes,
-exposure, risk factors, confounders, and mediators. To explicit the
-difference between these types of variables we consider a set of
-random variables \((Y,E,X_1,X_2,M)\) whose relationships are
-displayed on autoref:fig:pathDiagram:
-- *outcome* (\(Y\)): random variables that are observed with noise. It
-  can be for instance the 5HT-4 binding in a specific brain
-  region. When considering several outcomes we will denote in bold
-  variable that stands for a vector of random variables:
-  \(\mathbf{Y}=(Y_1,Y_2,\ldots,Y_m)\). This happens for instance when
-  studying the binding in several brain regions. In such a case we
-  expect the outcomes to be correlated.
-- *exposure* (\(E\)): a variable that may affect the outcome or be
-  associated with the outcome /and/ we are interested in studying this
-  effect/association. It can for instance be a genetic factor that is
-  hypothesized to increase the 5HT-4 binding, or a disease like
-  depression that is associated with a change in binding (we don't
-  know whether one causes the other or whether they have a common
-  cause, e.g. a genetic variant).
-- *risk factor/confounder* (\(X_1,X_2\)): a variable that
-  may affect the outcome or be associated with the outcomes /but/ we
-  are /not/ interested in studying their effect/association. Risk
-  factors (denoted by \(X_1\)) are only associated with the outcomes
-  and confounders that are both associated with the outcome and the
-  exposure. We usually need to account for confounders the statistical
-  model in order to obtain unbiased estimates while accounting for
-  risk factors only enables to obtain more precise estimates (at least
-  in linear models).
-- *mediator* (\(M\)): a variable that modulate the effect of the
-  exposure, i.e. stands on the causal pathway between the exposure and
-  the outcome. For instance, the permeability of the blood-brain
-  barrier may modulate the response to drugs and can act as a
-  mediator. It is important to keep in mind that when we are
-  interested in the (total) effect of \(E\) on \(Y\), we should /not/
-  adjust the analysis on \(M\)[fn:1]. Doing so we would remove the effect of
-  \(E\) mediated by \(M\) and therefore bias the estimate of the total
-  effect (we would only get the direct effect).
-
-In the following we will assume that we do not measure any mediator
-variable and therefore ignore this type of variable. Also we will call
-covariates the variables \(E,X_1,X_2\).
-
-[fn:1] This may not be true in specific types of confounding but we
-will ignore that.
-
-#+header: :width 3 :height 3 :R-dev-args bg="lightgrey"
-#+BEGIN_SRC R :results graphics :file "c:/Users/hpl802/Documents/GitHub/lavaSearch2/vignettes/figures/pathDiagram.pdf" :exports results :session *R* :cache no
-m <- lvm(Y~E+X1+X2+M,M~E,E~X2)
-plot(m, plot.engine="rgraphviz") ## visnetwork ## igraph
+* Software
+:PROPERTIES:
+:CUSTOM_ID: sec:Rsoftware
+:END:
+We advise to use the \Rlogo{} software to implement these strategies. It can
+be downloaded at https://cloud.r-project.org/. R studio provide a
+convenient user interface that can be downloaded at
+https://www.rstudio.com/products/rstudio/.  The \Rlogo{} code used to carry
+out the two strategies will be display in boxes:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+1+1 ## comment about the code
 #+END_SRC
 
-#+name: fig:pathDiagram
-#+ATTR_LATEX: :width 0.7\textwidth
-#+CAPTION: Path diagram relating the variables Y, E, M, \(X_1\) and \(X_2\)
 #+RESULTS:
-[[file:c:/Users/hpl802/Documents/GitHub/lavaSearch2/vignettes/figures/pathDiagram.pdf]]
+: [1] 2
 
-** Statistical model
-
-We will use a statistical model to relate the observed variables based
-a priori assumptions:
-- *causal assumptions*: saying which variables are related and in
-  which direction. This can be done by drawing a path diagram similar
-  to autoref:fig:pathDiagram. In simple univariate models it may seems
-  unnecessary to draw the path diagram since the system of variables is
-  very simple to visualize. In multivariate model, it is often very
-  useful to draw it. Some of these assumptions are untestable,
-  e.g. often we cannot decide whether it is \(E\) that impacts \(Y\)
-  or whether it is \(Y\) that impacts \(E\) just based on the data.
-- *modeling assumptions*: specifying the type of relationship between
-  variables (e.g. linear) and the marginal or joint distribution
-  (e.g. Gaussian). Often these assumptions can be tested and relaxed
-  using a more flexible model. While appealing, there are some
-  drawbacks with using a very flexible model: more data are needed to
-  get precise estimates and the interpretation of the results is more
-  complex.
-
-A statistical model \(\model\) is set of possible probability
-distributions. For instance when we fit a Gaussian linear model for
-\(Y_1\) with just an intercept \(\model=\left\{\Gaus[\mu,\sigma^2];\mu
-\in \Real, \; \sigma^2 \in \Real^+ \right\}\): \(\model\) is the set
-containing all possible univariate normal distributions.
+while the \Rlogo{} output will be displayed in dark red below the box. 
 
 \bigskip
 
-The model parameters are the (non random) variables that enable the
-statistical model to "adapt" to different settings. They will be
-denoted \(\Theta\). They are the one that are estimated when we fit
-the statistical model using the data or that we specify when we
-simulate data. In the previous example, we could simulate data
-corresponding to a Gaussian linear model using the =rnorm= function in R:
+When starting a fresh \Rlogo{} session, only the core functionalities of
+\Rlogo{} are available. Additional functionalities called packages can
+be downloaded from the CRAN using the command =install.packages=. We
+will need the following packages:
+#+BEGIN_SRC R :exports code :results silent :session *R* :eval never
+install.packages(pkgs = c("lava","lavaSearch2","multcomp","qqtest","gof","reshape2"))
+#+END_SRC
+
+After having installed the packages, one needs to load them using the
+command =library= to use them in the current \Rlogo{} session:
+#+BEGIN_SRC R  :results silent   :exports both  :session *R* :cache no
+library(lava) ## definition and estimation of latent variable models
+library(lavaSearch2) ## small sample correction 
+library(multcomp) ## adjustment for multiple comparisons
+library(qqtest) ## diagnostics: qqplots
+library(gof) ## diagnostics: linearity assumption
+library(reshape2) ## data management
+#+END_SRC
+
+I also recommend the following packages:
+- /data.table/: for data management. See
+  https://cran.r-project.org/web/packages/data.table/vignettes/datatable-intro.html
+  for an introduction and
+  https://github.com/Rdatatable/data.table/wiki for more
+  documentation.  A synthetic description of the functionalities can
+  be found at
+  https://s3.amazonaws.com/assets.datacamp.com/img/blog/data+table+cheat+sheet.pdf
+- /ggplot2/: for data visualization. See
+  http://r4ds.had.co.nz/data-visualisation.html for an introduction. A
+  synthetic description of the functionalities can be found at
+  https://www.rstudio.com/wp-content/uploads/2015/03/ggplot2-cheatsheet.pdf
+
+\clearpage
+
+* Data management
+:PROPERTIES:
+:CUSTOM_ID: sec:dataManagement
+:END:
+
+** Working directory
+
+The working directory is where R, by default, look for files
+to import and export data or figures. The current working directory
+can be accessed using:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
-rnorm
+getwd()
 #+END_SRC
 
 #+RESULTS:
-: function (n, mean = 0, sd = 1) 
-: .Call(C_rnorm, n, mean, sd)
-: <bytecode: 0x000000001d7eb938>
-: <environment: namespace:stats>
+: [1] "c:/Users/hpl802/AppData/Roaming/R"
 
-We would need to specify:
-- \(n\) the sample size
-- \(\Theta=(\mu,\sigma^2)\) the model parameters, here \(\mu\) corresponds to =mean= and \(\sigma\) to =sd=.
-
-\bigskip
-
-The true model parameters are the model parameters that have generated
-the observed data. They will be denoted \(\Theta_0\). For instance if
-in reality the binding potential is normally distributed with mean 5
-and variance \(2^2=4\), then
-\(\Theta_0=(\mu_0,\sigma_0^2)=(5,4)\). Then doing our experiment we
-observed data such as:
+It can be changed using the function =setwd()=:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
-set.seed(10)
-Y_1.XP1 <- rnorm(10, mean = 5, sd = 2)
-Y_1.XP1
+path <- "c:/Users/hpl802/Documents/GitHub/lavaSearch2/inst/vignettes/"
+setwd(path)
 #+END_SRC
 
 #+RESULTS:
-:  [1] 5.037492 4.631495 2.257339 3.801665 5.589090 5.779589 2.583848 4.272648 1.746655 4.487043
 
-If we were to re-do the experiment we would observe new data but \(\Theta_0\) would not change:
+We can check that the working directory has indeed changed calling
+again =getwd()=:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
-Y_1.XP2 <- rnorm(10, mean = 5, sd = 2)
-Y_1.XP2
+getwd()
 #+END_SRC
 
 #+RESULTS:
-:  [1] 7.203559 6.511563 4.523533 6.974889 6.482780 5.178695 3.090112 4.609699 6.851043 5.965957
+: [1] "c:/Users/hpl802/Documents/GitHub/lavaSearch2/inst/vignettes"
 
-The estimated parameters are the parameters that we estimate when we
-fit the statistical model. They will be denoted \(\Theta_0\). We
-usually try to find parameters whose value maximize the chance of
-simulating the observed data under the estimated model (maximum
-likelihood estimation, MLE). For instance in the first experiment all
-values are positive so we would not estimate a negative mean value. In
-our example, \(\hat{\mu}\) the MLE of \(\mu\) reduces to the empirical
-average and \(\hat{\sigma}^2\) the MLE of \(\sigma^2\) to the
-empirical variance:
+** Importing the data
+
+It is a good idea to start by checking that the working directory
+contains the data we want to import. For instance the file =data.csv=
+is storing the data, we can use:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
-Theta_hat.XP1 <- c(mu_hat = mean(Y_1.XP1),
-                   sigma2_hat = var(Y_1.XP1))
-Theta_hat.XP1
+file.exists("data.csv")
 #+END_SRC
 
 #+RESULTS:
-:     mu_hat sigma2_hat 
-:   4.018686   1.959404
+: [1] TRUE
 
-Clearly the estimated coefficients vary across experiments:
+We can also list all files in the current directory with a =.csv= extension using:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
-Theta_hat.XP2 <- c(mu_hat = mean(Y_1.XP2),
-                   sigma2_hat = var(Y_1.XP2))
-Theta_hat.XP2
+list.files(pattern = ".csv") 
 #+END_SRC
 
 #+RESULTS:
-:     mu_hat sigma2_hat 
-:   5.739183   1.799311
+: [1] "data.csv"
 
-** Parameter of interest
+We can also display the first lines of the file using:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+readLines("data.csv")[1:3]
+#+END_SRC
 
-The statistical model may contain many parameters, most of them are
-often not of interest but are needed to obtain valid estimates
-(e.g. account for confounders). In most settings, the parameter of
-interest is one (or several) model parameter(s) - or simple
-transformation of them. For instance if we are interested in the
-average binding potential in the population our parameter of interest
-is \(\mu\).
+#+RESULTS:
+: [1] "\"Id\",\"Gender\",\"age\",\"BMI\",\"MDI\",\"Y1\",\"Y2\",\"Y3\",\"Y4\",\"Y5\""
+: [2] "\"Subj1\",\"female\",30.57,21.76,25.82,7.64,8.73,7.72,10.42,8.44"            
+: [3] "\"Subj2\",\"female\",41.36,25.55,12.38,7.11,8.79,6.99,8.45,8.26"
 
-\bigskip
+We can see that the columns are separated with =,= and that the =.=
+indicates the decimal values. Moreover the words such as the columns
+names or the subject identities are surrounded by =\"= (e.g. =\"Id\"=
+stand for Id). Finally in this example there is no missing values but
+if there was it is important to know how they are encoded. The command
+to import the data depends on the type of file. Here for a =.csv= file
+we use =read.csv=. Luckily the default arguments =sep=, =dec=, =quote=
+are correctly specified:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+args(read.csv)
+#+END_SRC
 
-Often, the aim of a study is to obtain the best estimate of the
-parameter of interest \(\mu\). Best means:
-- *unbiased*: if we were able to replicate the study many times,
-  i.e. get several estimates \(\hat{\mu}_1,\hat{\mu}_2,\ldots,\hat{\mu}_K\), the
-  average estimate \(<\hat{\mu}>=\frac{\hat{\mu}_1+\hat{\mu}_2+\ldots+\hat{\mu}_K}{K}\) would coincide with the true one \(\mu_0\).
-- *minimal variance*: if we were able to replicate the study many
-  times, the variance of the estimates
-  \(\frac{(\hat{\mu}_1-<\hat{\mu}>)^2+\ldots+(\hat{\mu}_K-<\hat{\mu}>)^2}{K-1}\)
-  should be as low as possible.
+#+RESULTS:
+: function (file, header = TRUE, sep = ",", quote = "\"", dec = ".", 
+:     fill = TRUE, comment.char = "", ...) 
+: NULL
 
-There will often be a trade-off between these two objectives. A very
-flexible method is more likely to give an unbiased estimate
-(e.g. being able to model non-linear relationship) at the price of
-greater uncertainty about the estimates. Often we favor unbiasedness
-over minimal variance. Indeed, if several studies are published with
-the same parameter of interest, one can pool the results to obtain an
-estimate with lower variance. Note that we have no guarantee that it
-will reduce the bias.
+The argument =header= set to =TRUE= indicates that the first line of
+the dataset contains the column names (and not the actual data). The
+=...= indicates there are additional arguments that are not shown here
+(see the documentation using =help(read.csv)=). For instance, in
+presence of missing values, one would need to specify the argument
+=na.string=. Here it is sufficient to do:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+dfW <- read.csv("data.csv")
+#+END_SRC
 
-** Inference
+#+RESULTS:
 
-In addition to estimate the parameter(s) of interest, we often want to
-test hypotheses about the parameter(s) of interest. 
+Other functions exists to import other types of data,
+e.g. =read.table= for =.txt= files, =read.xlsx= from the xlsx package
+for =.xlsx= file, or =read.spss= from the foreign package for spss
+data files. One should always inspect if R has correctly imported the
+data, e.g. using:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+str(dfW)
+#+END_SRC
 
-*** One parameter
+#+RESULTS:
+#+begin_example
+'data.frame':	50 obs. of  10 variables:
+ $ Id    : Factor w/ 50 levels "Subj1","Subj10",..: 1 12 23 34 45 47 48 49 50 2 ...
+ $ Gender: Factor w/ 2 levels "female","male": 1 1 2 1 1 1 2 1 2 2 ...
+ $ age   : num  30.6 41.4 27 40.6 45.8 ...
+ $ BMI   : num  21.8 25.6 28.6 23.2 19.8 ...
+ $ MDI   : num  25.82 12.38 7.41 16.46 18.56 ...
+ $ Y1    : num  7.64 7.11 7.88 8.99 7.6 6.99 3.76 6.94 6.57 6.89 ...
+ $ Y2    : num  8.73 8.79 9.89 14.38 8.77 ...
+ $ Y3    : num  7.72 6.99 13.51 13.82 8.38 ...
+ $ Y4    : num  10.42 8.45 10.79 11.44 7.94 ...
+ $ Y5    : num  8.44 8.26 7.9 9.75 6.17 8.78 2.41 5.38 5.04 5.22 ...
+#+end_example
 
-Imagine we fit a univariate linear model relating outcome 1 (\(Y1\))
-to exposure 1 (\(E1\)):
+In this example, the two columns contain character strings (=Factor=
+is a type of character strings in R) and the rest contains numerical
+values.
+
+** Data processing
+
+Often the raw data needs to be transformed before being analyzed:
+- A typical example is when one need to deal with the variable:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+gender <- c(1,0,1,0,1) ## what is 1? what is 0?
+#+END_SRC
+
+#+RESULTS:
+This is already better:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+female <- c(1,0,1,0,1) ## we can guess that 1: female and 0: male
+#+END_SRC
+but it is a good practice in such situation to rename the actual
+values into something understandable:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+factor(gender, levels = 0:1, labels = c("Female","Male")) 
+#+END_SRC
+
+#+RESULTS:
+: [1] Male   Female Male   Female Male  
+: Levels: Female Male
+
+- With repeated measurements per individual, one often needs to
+  reshape his dataset from the wide format (one line per individual)
+  to the long format (one line per measurement). This can be done
+  using the =melt= method:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+dfL <- melt(dfW, 
+            id.vars = c("Id","Gender","age","BMI","MDI"),
+            value.name = "score",
+            variable.name = "outcome")
+head(dfL)
+#+END_SRC
+
+#+RESULTS:
+:      Id Gender   age   BMI   MDI outcome score
+: 1 Subj1 female 30.57 21.76 25.82      Y1  7.64
+: 2 Subj2 female 41.36 25.55 12.38      Y1  7.11
+: 3 Subj3   male 26.97 28.56  7.41      Y1  7.88
+: 4 Subj4 female 40.61 23.22 16.46      Y1  8.99
+: 5 Subj5 female 45.79 19.78 18.56      Y1  7.60
+: 6 Subj6 female 37.14 16.13 17.82      Y1  6.99
+
+The opposite operation can be performed using =dcast=.
+
+- It is often a good idea to restrict the dataset to the relevant
+  variables (e.g. remove genetic data if they are not of interest). It
+  is easier to work with and to display in the next steps. This can
+  for instance be done by defining the variables of interest:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+keep.var <- c("Id","BMI","MDI","Y1","Y2","Y3","Y4","Y5")
+#+END_SRC
+
+#+RESULTS:
+
+and subsetting the initial dataset:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+dfW.red <- dfW[,keep.var]
+head(dfW.red)
+#+END_SRC
+
+#+RESULTS:
+:      Id   BMI   MDI   Y1    Y2    Y3    Y4   Y5
+: 1 Subj1 21.76 25.82 7.64  8.73  7.72 10.42 8.44
+: 2 Subj2 25.55 12.38 7.11  8.79  6.99  8.45 8.26
+: 3 Subj3 28.56  7.41 7.88  9.89 13.51 10.79 7.90
+: 4 Subj4 23.22 16.46 8.99 14.38 13.82 11.44 9.75
+: 5 Subj5 19.78 18.56 7.60  8.77  8.38  7.94 6.17
+: 6 Subj6 16.13 17.82 6.99  9.97  6.74  8.29 8.78
+
+Many of the other data processing steps are specific to each study and
+we won't discuss them in this document. 
+
+\clearpage
+
+* Descriptive statistics
+:PROPERTIES:
+:CUSTOM_ID: sec:descriptive
+:END:
+
+Before doing any analysis, it is a good practice to describe the data
+that are to be analyzed. The has several aims:
+- *check that that database contains the population of interest*,
+  i.e. individuals in the database are indeed those the we want to
+  study and we have all of them.
+- *check that the collected values are plausible*, e.g. if the inclusion
+  criteria include that the age range is between 18 and 99 years, then
+  one should check that this is indeed the case.
+- *check that the collected values are coded as expected*, e.g. age is
+  usually coded in years (and not in months). 
+- *check that the collected values are distributed as expected*,
+  e.g. is there missing values? Are the values uniformly spread?
+  Bimodal? Concentrated at low or high values?
+
+Note: one should checks that for all the variables of interest. This
+can appear time-consuming but can really save you time at latter
+stages. 
+
+- *produce your table 1* i.e. a descriptive table of your cohort that
+  is almost always included in an article. You can for instance use
+  the function =univariateTable= from the Publish package:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+library(Publish)
+myTable1 <- univariateTable(Gender ~ age + BMI + MDI + Y1 + Y2 + Y3 + Y4 + Y5, 
+                            data = dfW)
+myTable1
+#+END_SRC
+
+#+RESULTS:
+:   Variable     Level female (n=30) male (n=20) Total (n=50) p-value
+: 1      age mean (sd)    36.2 (5.8)  34.6 (5.0)   35.6 (5.5) 0.31204
+: 2      BMI mean (sd)    21.5 (3.3)  23.1 (3.2)   22.2 (3.4) 0.09325
+: 3      MDI mean (sd)    19.2 (5.8)  19.2 (5.7)   19.2 (5.7) 0.97596
+: 4       Y1 mean (sd)     7.2 (1.6)   7.2 (2.0)    7.2 (1.8) 0.93155
+: 5       Y2 mean (sd)     9.6 (2.9)   9.5 (2.1)    9.6 (2.6) 0.82411
+: 6       Y3 mean (sd)     8.5 (3.4)   8.4 (3.2)    8.4 (3.3) 0.91260
+: 7       Y4 mean (sd)     8.8 (2.1)   9.3 (1.7)    9.0 (1.9) 0.39083
+: 8       Y5 mean (sd)     7.4 (2.9)   7.0 (2.9)    7.2 (2.9) 0.65171
+
+You can also export this table in a word document with the package
+officer:
+#+BEGIN_SRC R :exports code :results output :session *R* :cache no
+library(officer)
+myTable1.doc <- body_add_table(x = read_docx(), 
+                               value =  summary(myTable1)) 
+print(myTable1.doc, target = "./Table1.docx")
+#+END_SRC
+
+#+RESULTS:
+: [1] "c:/Users/hpl802/Documents/GitHub/lavaSearch2/inst/vignettes/Table1.docx"
+
+To keep the code simple, we only present here a very basic application
+of these tools. More complex tables with a nicer display in word can
+be obtain with a bit of coding.
+
+- *make synthetic representations of your data* using graphs or
+  images. This can be useful to visualize your data and help your
+  collaborators to understand what you have collected or what you are
+  trying to show.
+
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+library(ggplot2)
+gg <- ggplot(dfL, aes(x = MDI, y = score, color = Gender, group = Gender))
+gg <- gg + geom_point()
+gg <- gg + facet_wrap(~outcome, labeller = label_both)
+gg <- gg + geom_smooth(method = "lm", se = FALSE)
+gg
+#+END_SRC
+
+#+RESULTS:
+
+[[./figures/descriptive.pdf]]
+
+You can then export the figure using:
+#+BEGIN_SRC R :exports code :results output :session *R* :cache no
+pdf("./figures/descriptive.pdf")
+gg
+dev.off()
+#+END_SRC
+
+#+RESULTS:
+: null device 
+:           1
+   
+\clearpage
+
+* Univariate analysis using a univariate linear regression
+:PROPERTIES:
+:CUSTOM_ID: sec:LM
+:END:
+
+Imagine we want to assess the effect of MDI on \(Y_1\)
+adjusting for age and BMI using a univariate linear
+regression. Mathematically the model can be written:
 #+BEGIN_EXPORT latex
-\begin{align*}
-Y1 = \alpha + \beta E1 + \varepsilon
-\end{align*}
+\begin{align}
+Y_1 = \alpha + \beta_{age} age + \beta_{BMI} BMI + \beta_{MDI} MDI + \varepsilon \label{eq:lm}
+\end{align}
 #+END_EXPORT
-where \(\varepsilon\) are the residuals that are assumed to be
- independent and identically distributed (iid) as well as normally
- distributed. Under causal assumptions (mainly no unobserved
- confounder) \(\beta\) denotes the effect of exposure 1, i.e. the
- change in \(Y1\) for each unit increase in \(E1\). In R code we can
- fit the linear model using:
+where \(\varepsilon\) are the residuals. that are assumed to be:
+- A0: independent and identically distributed (iid)
+- A1: normally distributed.
+Note that for equation eqref:eq:lm to be valid we assume:
+- A2: linear effect of the covariates (e.g. no interaction)
+(A0-A2) are modeling assumptions and only (A1-A2) can be tested in
+practice. Univariate linear regression are also not recommended in
+presence of extreme values (A3) or very correlated covariates (A4).
+
+** Fitting a univariate linear regression in \Rlogo{}
+
+We can use:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
-e.lm <- lm(Y1 ~ E1, data = dtW)
+e.lm <- lm(Y1 ~ age + BMI + MDI, data = dfW)
 #+END_SRC
 
 #+RESULTS:
-: 
-: Call:
-: lm(formula = Y1 ~ E1, data = dtW)
-: 
-: Coefficients:
-: (Intercept)           E1  
-:    -0.34331     -0.08887
 
-and output the estimated \(\alpha\) and \(\beta\) using =coef=:
+We can extract the value of the model coefficients using =coef=:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 coef(e.lm)
 #+END_SRC
 
 #+RESULTS:
-: (Intercept)          E1 
-: -0.34330792 -0.08886769
+:  (Intercept)          age          BMI          MDI 
+: -1.413215636  0.006305252  0.247124506  0.151044284
 
-Imagine we want to test whether there is any association between the
-exposure and the exposure. We want to test the null hypothesis:
+** Interpretation of the regression coefficients
+:PROPERTIES:
+:CUSTOM_ID: sec:interpretationLM
+:END:
+If the assumptions (A0-A2) hold we can interpret \(\beta_{MDI}\) as a
+correlation coefficient. This means that for fixed age and BMI, if we
+observe an individual A with value of MDI higher by one unit compared
+to individuals B then we would also expect that its value for \(Y_1\)
+differ by \(\beta_{MDI}\) compared the other individual. If we in
+addition make causal assumptions (mainly no unobserved confounder)
+then we can interpret \(\beta_{MDI}\) as the effect of MDI on the
+outcome. This means that if we could change the MDI of an individual
+by one unit then its variation in outcome should be \(\beta_{MDI}\).
+
+** Diagnostics tools for univariate linear regression in \Rlogo{}
+:PROPERTIES:
+:CUSTOM_ID: sec:diagLM
+:END:
+
+\Rlogo{} provides a graphical display that giving an overview of the
+model fit:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+par(mfrow = c(2,2))
+plot(e.lm)
+#+END_SRC
+
+#+RESULTS:
+      
+#+BEGIN_SRC R :results graphics :file "./figures/diag-lm.pdf" :exports results :session *R* :cache no
+par(mfrow = c(2,2))
+plot(e.lm)
+#+END_SRC
+
+#+RESULTS:
+[[file:./figures/diag-lm.pdf]]
+
+The top left plot is useful to detect a misspecification of the linear
+predictor (e.g. a U shape would indicate a missing quadratic
+effect). The top right plot enable to check the normality of the
+residuals, we will describe a more informative qqplot below. The
+bottom left can be used to detect heteroschedasticity (e.g. a trumpet
+shape) and the bottom right plot can be used to identify observation
+that have a huge influence on the fitted values.
+
+*** Testing (A1)
+
+The qqtest package provides a more readable qqplot. To use it, we
+first need to extract the residuals. This can be achieved using the
+=residuals= method:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+dfW$resid.lm <- residuals(e.lm, type = "response")
+#+END_SRC
+
+#+RESULTS:
+
+The =type= argument indicates the type of residuals we want to
+extract. Raw residuals are \(\hat{\varepsilon} = Y-\hat{Y}\), i.e. the
+observed minus the fitted values. In models more complex than a
+univariate linear regression, the raw residuals may not be iid. This
+makes it difficult to assess the validity of the assumptions. In such
+cases we display instead diagnostics for normalized residuals that, if
+the assumptions of the model are correct, should follow a standard
+normal distribution.
+
+\bigskip
+
+Having extracted the residuals, we can then obtain the qqplot using
+the =qqtest= function:
+#+BEGIN_SRC R :exports code :results output :session *R* :cache no
+qqtest(dfW$resid.lm)
+#+END_SRC
+
+#+RESULTS:
+
+#+BEGIN_SRC R :results graphics :file "./figures/qqplot-lm.pdf" :exports results :session *R* :cache no
+qqtest(dfW$resid.lm)
+#+END_SRC
+
+#+RESULTS:
+[[file:./figures/qqplot-lm.pdf]]
+
+The shaded area indicates where, if the normality assumption was
+correct, we would expect to observe the points. Alternatively, an
+histogram of the residuals can be used to assess the normality of the
+residuals:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+hist(dfW$resid.lm, prob=TRUE, ylim = c(0,0.4))
+curve(dnorm(x, mean=0, sd=1), add=TRUE, col = "red")
+#+END_SRC
+
+#+RESULTS:
+   
+#+BEGIN_SRC R :results graphics :file "./figures/hist-lm.pdf" :exports results :session *R* :cache no
+hist(dfW$resid.lm, prob=TRUE, ylim = c(0,0.4))
+curve(dnorm(x, mean=0, sd=1), add=TRUE, col = "red")
+#+END_SRC
+
+#+RESULTS:
+[[file:./figures/hist-lm.pdf]]
+
+Statistical tests can also be used to assess deviation from normality:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+shapiro.test(dfW$resid.lm)
+#+END_SRC
+
+#+RESULTS:
+: 
+: 	Shapiro-Wilk normality test
+: 
+: data:  dfW$resid.lm
+: W = 0.98104, p-value = 0.5967
+Here the null hypothesis is that the residuals follow a normal
+distribution.
+
+*** Testing (A2)
+
+A statistical test can also be used to assess whether there is
+evidence for a more complex functional form for the linear predictor:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+cumres(e.lm)
+#+END_SRC
+
+#+RESULTS:
+#+begin_example
+
+Kolmogorov-Smirnov-test: p-value=0.195
+Cramer von Mises-test: p-value=0.06
+Based on 1000 realizations. Cumulated residuals ordered by predicted-variable.
+---
+Kolmogorov-Smirnov-test: p-value=0.016
+Cramer von Mises-test: p-value=0.021
+Based on 1000 realizations. Cumulated residuals ordered by age-variable.
+---
+Kolmogorov-Smirnov-test: p-value=0.151
+Cramer von Mises-test: p-value=0.29
+Based on 1000 realizations. Cumulated residuals ordered by BMI-variable.
+---
+Kolmogorov-Smirnov-test: p-value=0.708
+Cramer von Mises-test: p-value=0.833
+Based on 1000 realizations. Cumulated residuals ordered by MDI-variable.
+---
+#+end_example
+
+*** Testing (A3)
+
+The =influence= method can be used to output what is the impact of
+each observation on each estimated parameter:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+head(influence(e.lm)$coefficient)
+#+END_SRC
+
+#+RESULTS:
+:   (Intercept)           age           BMI           MDI
+: 1 -0.06431419  0.0021223892  0.0011037299 -0.0023268582
+: 2 -0.02333311  0.0005276379  0.0007260234 -0.0005075087
+: 3  0.02225432 -0.0037807751  0.0134437130 -0.0084481492
+: 4 -0.31091908  0.0087011324  0.0065717767 -0.0053971745
+: 5 -0.16703438  0.0080674308 -0.0026717037 -0.0019605965
+: 6  0.43406252  0.0002100576 -0.0176591598 -0.0008988258
+
+Large values (positive or negative) indicate influential observations.
+
+*** Testing (A4)
+
+The correlation among the explanatory variables can be assessed using
+the VIF (variance inflation factor):
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+car::vif(e.lm)
+#+END_SRC
+
+#+RESULTS:
+:      age      BMI      MDI 
+: 1.076066 1.034264 1.051645
+Values higher than 5 are considered as high (the threshold of 5 is
+arbitrary).
+
+
+** Hypothesis testing
+
+We want to formally test whether there is an effect of MDI on the
+outcome. This is equivalent to test the null hypothesis:
 #+BEGIN_EXPORT latex
 \begin{align*}
-(\Hypothesis[0]) \; \beta = 0
+(\Hypothesis[0]) \; \beta_{MDI,0} = 0
 \end{align*}
 #+END_EXPORT
  Since the parameters are estimated by ML and assuming that the model
@@ -489,10 +729,10 @@ instance:
 \end{align*}
 #+END_EXPORT
 where \(\sigma^2_\beta\) is the variance of the MLE, i.e. the
-incertainty surrounding our estimation of the association. It follows that:
+uncertainty surrounding our estimation of the association. It follows that:
 #+BEGIN_EXPORT latex
 \begin{align}
-t_{\beta} = \frac{\hat{\beta}-\beta}{\sigma^2_\beta} \underset{n \rightarrow \infty}{\sim} \Gaus[0,1] \label{eq:uniWald}
+t_{\beta} = \frac{\hat{\beta}-\beta_0}{\sigma^2_\beta} \underset{n \rightarrow \infty}{\sim} \Gaus[0,1] \label{eq:uniWald}
 \end{align}
 #+END_EXPORT
 So under the null hypothesis of no association between the outcome and
@@ -500,643 +740,181 @@ the exposure the statistic \(t_{\beta}\) should follow a standard
 normal distribution. Very low or very large values are unlikely to be
 observed and would indicate that the null hypothesis does not
 hold. This is called a (univariate) Wald test. The result of this
-tests can be obtained using the =summary= method:
+tests can be obtained using the =summary= method [fn:2]:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 summary(e.lm)$coef
 #+END_SRC
 
 #+RESULTS:
-:                Estimate Std. Error    t value   Pr(>|t|)
-: (Intercept) -0.34330792  0.1720656 -1.9952158 0.05171268
-: E1          -0.08886769  0.1787466 -0.4971712 0.62133806
+:                 Estimate Std. Error    t value     Pr(>|t|)
+: (Intercept) -1.413215636 1.95732599 -0.7220134 4.739407e-01
+: age          0.006305252 0.03613264  0.1745030 8.622360e-01
+: BMI          0.247124506 0.05790521  4.2677422 9.756957e-05
+: MDI          0.151044284 0.03441289  4.3891775 6.598863e-05
 
-/Note:/ in reality R is automatically performing a correction that
+[fn:2] In reality R is automatically performing a correction that
 improves the control of the type 1 error. Indeed we usually don't know
 \(\sigma^2_\beta\) and plugging-in its estimate in equation
 eqref:eq:uniWald modifies the distribution of \(t_{\beta}\) in small
 samples. The correction uses a Student's t distribution instead of a
 Gaussian distribution.
 
-*** Linear combination of parameters
-
-Imagine we now want to test whether the effect of exposure 1 is
-different from the effect of exposure 2. We consider the following
-univariate linear model:
-#+BEGIN_EXPORT latex
-\begin{align*}
-Y1 = \alpha + \beta_1 E1 + \beta_2 E2 + \varepsilon
-\end{align*}
-#+END_EXPORT
-where \(\varepsilon\) are assumed to be iid and normally
- distributed. In R code we can fit the linear model using:
-#+BEGIN_SRC R :exports both :results output :session *R* :cache no
-e.lm <- lm(Y1 ~ E1 + E2, data = dtW)
-#+END_SRC
-
-#+RESULTS:
-
-We want to test the null hypothesis:
-#+BEGIN_EXPORT latex
-\begin{align*}
-(\Hypothesis[0]) \; \beta_2 - \beta_1 = 0
-\end{align*}
-#+END_EXPORT
-Once more we use that the asymptotic distribution of the parameters is
-a normal distribution:
-#+BEGIN_EXPORT latex
-\begin{align*}
-\begin{bmatrix}
-\hat{\beta}_1 \\ \hat{\beta}_2 \\
-\end{bmatrix}
-\underset{n \rightarrow \infty}{\sim}
-\Gaus \left(\begin{bmatrix}
-\hat{\beta}_1 \\ \hat{\beta}_2 \\
-\end{bmatrix},
-\begin{bmatrix}
-\sigma^2_1 & \sigma^2_{12} \\
-\sigma^2_{12} & \sigma^2_2 \\
-\end{bmatrix}
-\right)
-\end{align*}
-#+END_EXPORT
-Then \(\beta_1 - \beta_2\) also follows a normal distribution:
-#+BEGIN_EXPORT latex
-\begin{align*}
-\hat{\beta}_B - \hat{\beta}_A  \underset{n \rightarrow \infty}{\sim} \Gaus[\beta_B - \beta_A,\sigma^2_B+\sigma^2_A-2\sigma^2_{AB}]
-\end{align*}
-#+END_EXPORT
-so:
-#+BEGIN_EXPORT latex
-\begin{align*}
-t_{\beta_B-\beta_A} = \frac{\hat{\beta}_B - \hat{\beta}_A - (\beta_B - \beta_A)}{\sigma^2_B+\sigma^2_A-2\sigma^2_{AB}}  \underset{n \rightarrow \infty}{\sim} \Gaus[0,1]
-\end{align*}
-#+END_EXPORT
-As before we can compute \(t_{\beta_B-\beta_A}\) under the
- \(\Hypothesis[0]\) and large or low values would be evidence for
- rejecting \(\Hypothesis[0]\). The package /multcomp/ provides a
- convenient interface to test linear combinations of parameters. First
- we specify the null hypothesis using the =glht= method:
-#+BEGIN_SRC R :exports both :results output :session *R* :cache no
-e.glht <- glht(e.lm, linfct = c("E2 - E1 = 0"))
-#+END_SRC
-
-#+RESULTS:
-
-Then we can use the =summary= method to obtain perform the test:
-#+BEGIN_SRC R :exports both :results output :session *R* :cache no
-summary(e.glht)
-#+END_SRC
-#+RESULTS:
-: 
-: 	 Simultaneous Tests for General Linear Hypotheses
-: 
-: Fit: lm(formula = Y1 ~ E1 + E2, data = dtW)
-: 
-: Linear Hypotheses:
-:              Estimate Std. Error t value Pr(>|t|)
-: E2 - E1 == 0 -0.05015    0.21814   -0.23    0.819
-: (Adjusted p values reported -- single-step method)
-
-*** Linear combination of parameters - using a contrast matrix
-
-Null hypotheses can be defined using a contrast matrix. If we denote
-by:
-#+BEGIN_EXPORT latex
-\begin{align*}
-\Theta=[\alpha \; \beta_1 \; \beta_2]
-\end{align*}
-#+END_EXPORT
-the vector of parameters, we can define a 1-row contrast matrix:
-#+BEGIN_EXPORT latex
-\begin{align*}
-c=[0 \; -1 \; 1]
-\end{align*}
-#+END_EXPORT
-such that: 
-#+BEGIN_EXPORT latex
-\begin{align*}
-(\Hypothesis[0]) \; c \Theta = \beta_2 - \beta_1 = 0
-\end{align*}
-#+END_EXPORT
-Indeed
-#+BEGIN_EXPORT latex
-\begin{align*}
-\trans{c} \Theta = 0 * \alpha + -1 * \beta_1 + 1 * \beta_2 = \mu_B - \mu_A
-\end{align*}
-#+END_EXPORT
-So in the previous example we could have also defined a contrast
-matrix, e.g. using =createContrast=:
-#+BEGIN_SRC R :exports both :results output :session *R* :cache no
-C <- createContrast(e.lm, par = c("E2 - E1 = 0"),
-                    add.variance = FALSE, rowname.rhs = FALSE)
-C$contrast
-#+END_SRC
-
-#+RESULTS:
-:           (Intercept) E1 E2
-: - E1 + E2           0 -1  1
-
-and then call =glht= using this contrast matrix:
-#+BEGIN_SRC R :exports both :results output :session *R* :cache no
-ebis.glht <- glht(e.lm, linfct = C$contrast)
-summary(ebis.glht)
-#+END_SRC
-
-#+RESULTS:
-: 
-: 	 Simultaneous Tests for General Linear Hypotheses
-: 
-: Fit: lm(formula = Y1 ~ E1 + E2, data = dtW)
-: 
-: Linear Hypotheses:
-:                Estimate Std. Error t value Pr(>|t|)
-: - E1 + E2 == 0 -0.05015    0.21814   -0.23    0.819
-: (Adjusted p values reported -- single-step method)
-
-*** Testing simultaneously several combination of parameters
-:PROPERTIES:
-:CUSTOM_ID: sec:introMultComp
-:END:
-
-When we want to test several hypotheses we can stack the contrast
-vector of each hypothesis into the contrast matrix:
-#+BEGIN_EXPORT latex
-\begin{align*}
-C = \begin{bmatrix}
-0 & 1 & 0 \\
-0 & 0 & 1 \\
-\end{bmatrix}
-\end{align*}
-#+END_EXPORT
-Then \(C \Theta = 0\) is equivalent to:
-#+BEGIN_EXPORT latex
-\begin{align*}
-(\Hypothesis[0,I]) \; \beta_1 = 0 \\
-(\Hypothesis[0,II]) \; \beta_2 = 0
-\end{align*}
-#+END_EXPORT
-
-For instance we could want to test the null hypothesis that the effect
-of both exposures is null:
-#+BEGIN_SRC R :exports both :results output :session *R* :cache no
-C <- createContrast(e.lm, par = c("E1 = 0","E2 = 0"),
-                    add.variance = FALSE, rowname.rhs = FALSE)$contrast
-C
-#+END_SRC
-
-#+RESULTS:
-:    (Intercept) E1 E2
-: E1           0  1  0
-: E2           0  0  1
-
-We can then call =glht= with this new contrast matrix:
-#+BEGIN_SRC R :exports both :results output :session *R* :cache no
-e.glht <- glht(e.lm, linfct = C)
-e.glht
-#+END_SRC
-
-#+RESULTS:
-: 
-: 	 General Linear Hypotheses
-: 
-: Linear Hypotheses:
-:         Estimate
-: E1 == 0  -0.1628
-: E2 == 0  -0.2130
-
-Since we perform multiple tests, we need to say to the software how to
-adjust for multiple comparisons. The /multcomp/ package implement several approaches such as:
-- *no adjustment*:
-#+BEGIN_SRC R :exports both :results output :session *R* :cache no
-summary(e.glht, test = adjusted("none"))
-#+END_SRC
-
-#+RESULTS:
-#+begin_example
-
-	 Simultaneous Tests for General Linear Hypotheses
-
-Fit: lm(formula = Y1 ~ E1 + E2, data = dtW)
-
-Linear Hypotheses:
-        Estimate Std. Error t value Pr(>|t|)
-E1 == 0  -0.1628     0.1905  -0.855    0.397
-E2 == 0  -0.2130     0.1925  -1.107    0.274
-(Adjusted p values reported -- none method)
-#+end_example
-
-- *Bonferroni* adjustment (conservative approach)
-#+BEGIN_SRC R :exports both :results output :session *R* :cache no
-summary(e.glht, test = adjusted("bonferroni"))
-#+END_SRC
-
-#+RESULTS:
-#+begin_example
-
-	 Simultaneous Tests for General Linear Hypotheses
-
-Fit: lm(formula = Y1 ~ E1 + E2, data = dtW)
-
-Linear Hypotheses:
-        Estimate Std. Error t value Pr(>|t|)
-E1 == 0  -0.1628     0.1905  -0.855    0.794
-E2 == 0  -0.2130     0.1925  -1.107    0.548
-(Adjusted p values reported -- bonferroni method)
-#+end_example
-
-- *single step Dunnett* adjustment (more efficient approach relying on
-  asymptotic results)
-#+BEGIN_SRC R :exports both :results output :session *R* :cache no
-summary(e.glht, test = adjusted("single-step"))
-#+END_SRC
-
-#+RESULTS:
-#+begin_example
-
-	 Simultaneous Tests for General Linear Hypotheses
-
-Fit: lm(formula = Y1 ~ E1 + E2, data = dtW)
-
-Linear Hypotheses:
-        Estimate Std. Error t value Pr(>|t|)
-E1 == 0  -0.1628     0.1905  -0.855    0.620
-E2 == 0  -0.2130     0.1925  -1.107    0.456
-(Adjusted p values reported -- single-step method)
-#+end_example
-
-/multcomp/ also implements approaches that are more powerful than the
-single step Dunnett but does not propose the corresponding confidence
-intervals (e.g. =adjusted("free")=). For this reason, they will not be
-presented here.
-
-\clearpage
-
-* Using a separate model for each outcome
-
-In this section, we will model the relationship between each of the
-five outcomes and the covariates using a separate linear model:
-
-#+BEGIN_EXPORT latex
-\begin{align*}
-\begin{bmatrix} 
-Y_1  &= \alpha_{X_{1}} + \beta_{Y_1,X_0} X_{0} + \beta_{Y_1,X_1} X_{1} + \beta_{Y_1,X_2} X_{2} + \varepsilon_{Y_1} \\
-Y_2  &= \alpha_{X_{2}} + \beta_{Y_2,X_0} X_{0} + \beta_{Y_2,X_1} X_{1} + \beta_{Y_2,X_2} X_{2} + \varepsilon_{Y_2} \\
-Y_3  &= \alpha_{X_{3}} + \beta_{Y_3,X_0} X_{0} + \beta_{Y_3,X_1} X_{1} + \beta_{Y_3,X_2} X_{2} + \varepsilon_{Y_3} \\
-Y_4  &= \alpha_{X_{4}} + \beta_{Y_4,X_0} X_{0} + \beta_{Y_4,X_1} X_{1} + \beta_{Y_4,X_2} X_{2} + \varepsilon_{Y_4} \\
-Y_5  &= \alpha_{X_{5}} + \beta_{Y_5,X_0} X_{0} + \beta_{Y_5,X_1} X_{1} + \beta_{Y_5,X_2} X_{2} + \varepsilon_{Y_5} 
-\end{bmatrix} 
-\end{align*}
-#+END_EXPORT
-where
-\(\varepsilon_{1},\varepsilon_{2},\varepsilon_{3},\varepsilon_{4},\varepsilon_{5}\)
-are the residual errors. The outcomes are assumed to have zero mean
-and finite variance, respectively,
-\(\sigma^2_{1},\sigma^2_{2},\sigma^2_{3},\sigma^2_{4},\sigma^2_{5}\). Here
-we make no assumption on the correlation structure between the
-residuals.
 
 
-** Univariate linear regression
 
-First, we focus on the first outcome, i.e. the first equation:
-#+BEGIN_EXPORT latex
-\begin{align*}
-Y_{1} = \alpha_{X_{1}} + \beta_{Y_1,X_0} X_{0} + \beta_{Y_1,X_1} X_{1} + \beta_{Y_1,X_2} X_{2} + \varepsilon_{Y_1} 
-\end{align*}
-#+END_EXPORT
-
-
-*** Estimation of the model
-
-We can estimate the model parameters
-(\(\alpha_{X_{1}},\beta_{Y_1,X_0},\beta_{Y_1,X_1},\beta_{Y_1,X_2},\sigma^2_{Y_1}\))
-using =lm=:
-#+BEGIN_SRC R :exports both :results output :session *R* :cache no
-e.lm <- lm(Y1 ~ E0+E1+E2, data = dtW)
-#+END_SRC
-
-#+RESULTS:
-
-The estimate model parameters
-(\(\hat{\alpha}_{X_{1}},\hat{\beta}_{Y_1,X_0},\hat{\beta}_{Y_1,X_1},\hat{\beta}_{Y_1,X_2},\hat{\sigma}^2_{Y_1}\))
-can be output using =summary=:
-#+BEGIN_SRC R :exports both :results output :session *R* :cache no
-summary(e.lm)$coef
-#+END_SRC
-
-#+RESULTS:
-:                Estimate Std. Error     t value   Pr(>|t|)
-: (Intercept) -0.38648123  0.1783576 -2.16689009 0.03545788
-: E0          -0.01097614  0.1799681 -0.06098939 0.95163188
-: E1          -0.16366671  0.1929686 -0.84815191 0.40074529
-: E2          -0.21367875  0.1948854 -1.09643293 0.27859637
-
-or =coef=:
-#+BEGIN_SRC R :exports both :results output :session *R* :cache no
-coef(e.lm)
-#+END_SRC
-
-#+RESULTS:
-: (Intercept)          E0          E1          E2 
-: -0.38648123 -0.01097614 -0.16366671 -0.21367875
-
-Confidence intervals can be obtained with the =confint= method:
+95% confidence intervals for the model parameters can then be obtained
+using the =confint= method:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 confint(e.lm)
 #+END_SRC
 
 #+RESULTS:
-:                  2.5 %      97.5 %
-: (Intercept) -0.7454964 -0.02746608
-: E0          -0.3732331  0.35128081
-: E1          -0.5520924  0.22475899
-: E2          -0.6059627  0.17860517
+:                   2.5 %     97.5 %
+: (Intercept) -5.35310851 2.52667723
+: age         -0.06642598 0.07903648
+: BMI          0.13056736 0.36368165
+: MDI          0.08177473 0.22031384
 
-*** Fitted values
+\clearpage
 
-A fitted value, denoted \(\hat{Y}\), is the expected outcome value
-estimated by the model. When there are covariates included in the
-model (e.g. \(X_{0}\), \(X_{1}\), \(X_{2}\)), the fitted value depends
-on the value of the covariates. In a linear model, the fitted values
-can be computed using:
-#+BEGIN_EXPORT latex
-\begin{align*}
-\hat{Y} = \hat{\alpha}_{X_{1}} + \hat{\beta}_{Y_1,X_0} X_{0} + \hat{\beta}_{Y_1,X_1} X_{1} + \hat{\beta}_{Y_1,X_2} X_{2}
-\end{align*}
-#+END_EXPORT
-This can be done in R using the =fitted= method:
-#+BEGIN_SRC R :exports both :results output :session *R* :cache no
-dtW$fit.lm <- fitted(e.lm)
-dtW$fit.lm[1]
-#+END_SRC
-
-#+RESULTS:
-: [1] -0.1738311
-
-One can also compute them using:
-#+BEGIN_SRC R :exports both :results output :session *R* :cache no
-coef(e.lm)["(Intercept)"] + coef(e.lm)["E0"] * dtW$E0[1] + coef(e.lm)["E1"] * dtW$E1[1] + coef(e.lm)["E2"] * dtW$E2[1]
-#+END_SRC
-
-#+RESULTS:
-: (Intercept) 
-:  -0.1738311
-
-*** Diagnostics
+* Multivariate analysis using multiple univariate linear regressions 
 :PROPERTIES:
-:CUSTOM_ID: sec:diagLM
+:CUSTOM_ID: sec:multipleLM
 :END:
 
-Inference using a univariate linear model rely on several assumptions:
-- residuals independent and identically distributed (iid).
-- residuals normally distributed.
-- correct specification of the linear predictor, e.g. linearity of the effect, no interaction.
-- no unobserved confounders (this is usually an untestable
-  assumption).
-Moreover, explanatory variables that are very correlated may lead to
-instable results.
-
-\bigskip
-
-By default R provides a graphical display that enables to check
-several of these assumptions:
-#+BEGIN_SRC R :exports both :results output :session *R* :cache no
-par(mfrow = c(2,2))
-plot(e.lm)
-#+END_SRC
-
-   
-      
-#+BEGIN_SRC R :results graphics :file "c:/Users/hpl802/Documents/GitHub/lavaSearch2/vignettes/figures/diag-lm.pdf" :exports results :session *R* :cache no
-par(mfrow = c(2,2))
-plot(e.lm)
-#+END_SRC
-
-#+RESULTS:
-[[file:c:/Users/hpl802/Documents/GitHub/lavaSearch2/vignettes/figures/diag-lm.pdf]]
-
-The top left plot is useful to detect a misspecification of the linear
-predictor (e.g. a U shape would indicate a missing quadratic
-effect). The top right plot enable to check the normality of the
-residuals, we will describe a more informative qqplot below. The
-bottom left can be used to detect heteroschedasticity (e.g. a trumpet
-shape) and the bottom right plot can be used to identify observation
-that have a huge influence on the fitted values.
-
-\bigskip
-
-The *qqtest* package provides a more readable qqplot. To use it, we
-first need to extract the residuals. This can be achieved using the
-=residuals= method:
-#+BEGIN_SRC R :exports both :results output :session *R* :cache no
-dtW$resid.lm <- residuals(e.lm, type = "response")
-#+END_SRC
-
-#+RESULTS:
-
-The =type= argument indicates the type of residuals we want to
-extract. Raw residuals are \(\hat{\varepsilon} = Y-\hat{Y}\), i.e. the observed minus the
-fitted values. In models more complex than a univariate linear
-regression, the raw residuals may not be iid. This makes it difficult
-to assess the validity of the assumptions. This is why we usually
-display diagnostics for normalized residuals that, if the assumptions
-of the model are correct, should follow a standard normal
-distribution. For instance in the case of a univariate linear model,
-we can use the Pearson residuals:
-
+We now want to simultaneously test the effect of MDI on all the five
+outcomes. To achieve it, we fit separately for each outcome a
+univariate linear regression. Mathematically the model can be written:
 #+BEGIN_EXPORT latex
 \begin{align*}
-\hat{\varepsilon}^{Pearson} = \frac{Y-\hat{Y}}{\sqrt{\Var[\hat{Y}]}} \sim \Gaus[0,1]
+\begin{bmatrix} 
+Y_1  &= \alpha_{Y_{1}} + \beta_{Y_1,age} age + \beta_{Y_1,BMI} BMI + \beta_{Y_1,MDI} MDI + \varepsilon_{Y_1} \\
+Y_2  &= \alpha_{Y_{2}} + \beta_{Y_2,age} age + \beta_{Y_2,BMI} BMI + \beta_{Y_2,MDI} MDI + \varepsilon_{Y_2} \\
+Y_3  &= \alpha_{Y_{3}} + \beta_{Y_3,age} age + \beta_{Y_3,BMI} BMI + \beta_{Y_3,MDI} MDI + \varepsilon_{Y_3} \\
+Y_4  &= \alpha_{Y_{4}} + \beta_{Y_4,age} age + \beta_{Y_4,BMI} BMI + \beta_{Y_4,MDI} MDI + \varepsilon_{Y_4} \\
+Y_5  &= \alpha_{Y_{5}} + \beta_{Y_5,age} age + \beta_{Y_5,BMI} BMI + \beta_{Y_5,MDI} MDI + \varepsilon_{Y_5} 
+\end{bmatrix} 
 \end{align*}
 #+END_EXPORT
-In R:
+where
+\(\varepsilon_{1},\varepsilon_{2},\varepsilon_{3},\varepsilon_{4},\varepsilon_{5}\)
+are the residual errors. The residuals are assumed to have zero mean
+and finite variance, respectively,
+\(\sigma^2_{1},\sigma^2_{2},\sigma^2_{3},\sigma^2_{4},\sigma^2_{5}\). Here
+we make no assumption on the correlation structure between the
+residuals.
+
+** Fitting multiple linear regression in \Rlogo{}
+
+We can estimate all the 5 models and store them into a list:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
-sd.resid <- sigma(e.lm)*sqrt(1-lm.influence(e.lm, do.coef = FALSE)$hat)
-dtW$resid.norm.lm <- dtW$resid.lm/sd.resid
-#+END_SRC
-
-#+RESULTS:
-
-We can then obtain the qqplot using the =qqtest= function:
-#+BEGIN_SRC R :exports code :results output :session *R* :cache no
-qqtest(dtW$resid.norm.lm)
-#+END_SRC
-
-#+RESULTS:
-
-#+BEGIN_SRC R :results graphics :file "c:/Users/hpl802/Documents/Projects/Neuropharm/WP1/figures/qqplot-lm.pdf" :exports results :session *R* :cache no
-qqtest(dtW$resid.norm.lm)
-#+END_SRC
-
-#+RESULTS:
-[[file:c:/Users/hpl802/Documents/Projects/Neuropharm/WP1/figures/qqplot-lm.pdf]]
-
-#+name: fig:1
-#+ATTR_LATEX: :width 0.7\textwidth
-#+CAPTION:
-
-The shaded area indicates where, if the normality assumption was
-correct, we would expect to observe the points. Alternatively, an
-histogram of the residuals can be used to assess the normality of the
-residuals:
-#+BEGIN_SRC R :exports both :results output :session *R* :cache no
-hist(dtW$resid.lm, prob=TRUE)
-curve(dnorm(x, mean=0, sd=1), add=TRUE, col = "red")
-#+END_SRC
-
-#+RESULTS:
-   
-#+BEGIN_SRC R :results graphics :file "c:/Users/hpl802/Documents/GitHub/lavaSearch2/vignettes/figures/hist-lm.pdf" :exports results :session *R* :cache no
-hist(dtW$resid.lm, prob=TRUE)
-curve(dnorm(x, mean=0, sd=1), add=TRUE, col = "red")
-#+END_SRC
-
-#+RESULTS:
-[[file:c:/Users/hpl802/Documents/GitHub/lavaSearch2/vignettes/figures/hist-lm.pdf]]
-
-Statistical tests can also be used to assess deviation from normality:
-#+BEGIN_SRC R :exports both :results output :session *R* :cache no
-shapiro.test(dtW$resid.lm)
-#+END_SRC
-
-#+RESULTS:
-: 
-: 	Shapiro-Wilk normality test
-: 
-: data:  dtW$resid.lm
-: W = 0.99284, p-value = 0.9899
-Here the null hypothesis is that the residuals follow a normal
-distribution.
-
-\bigskip
-
-The =influence= method can be used to output what is the impact of
-each observation on each estimated parameter:
-#+BEGIN_SRC R :exports both :results output :session *R* :cache no
-head(influence(e.lm)$coefficient)
-#+END_SRC
-
-#+RESULTS:
-:    (Intercept)           E0           E1           E2
-: 1  0.023113692 -0.014298361 -0.026854342 -0.014861558
-: 2  0.013331967 -0.005188019  0.005660896  0.001314494
-: 3  0.009519952  0.011090606 -0.004793503  0.010612459
-: 4  0.012117058  0.036241781  0.011800078 -0.006132586
-: 5 -0.015026578 -0.007331698  0.020875655  0.021232975
-: 6  0.008123937  0.012157294 -0.003719040 -0.042740303
-
-\bigskip
-
-A statistical test can also be used to assess whether there is
-evidence for a more complex functional form for the linear predictor:
-#+BEGIN_SRC R :exports both :results output :session *R* :cache no
-cumres(e.lm)
-#+END_SRC
-
-#+RESULTS:
-#+begin_example
-
-Kolmogorov-Smirnov-test: p-value=0.749
-Cramer von Mises-test: p-value=0.764
-Based on 1000 realizations. Cumulated residuals ordered by predicted-variable.
----
-Kolmogorov-Smirnov-test: p-value=0.278
-Cramer von Mises-test: p-value=0.27
-Based on 1000 realizations. Cumulated residuals ordered by E0-variable.
----
-Kolmogorov-Smirnov-test: p-value=0.413
-Cramer von Mises-test: p-value=0.529
-Based on 1000 realizations. Cumulated residuals ordered by E1-variable.
----
-Kolmogorov-Smirnov-test: p-value=0.436
-Cramer von Mises-test: p-value=0.762
-Based on 1000 realizations. Cumulated residuals ordered by E2-variable.
----
-#+end_example
-
-\bigskip
-
-Finally, an excessive correlation among the explanatory variables can
-be detected using the VIF (variance inflation factor):
-#+BEGIN_SRC R :exports both :results output :session *R* :cache no
-vif(e.lm)
-#+END_SRC
-
-#+RESULTS:
-:       E0       E1       E2 
-: 1.006096 1.146089 1.144345
-Values higher than 5 are (arbitrarily) considered as high.
-
-** Multiple linear regressions
-
-
-We now estimate all the 5 models and store them into a list:
-#+BEGIN_SRC R :exports both :results output :session *R* :cache no
-ls.lm <- list(Y1 = lm(Y1 ~ E0+E1+E2, data = dtW),
-              Y2 = lm(Y2 ~ E0+E1+E2, data = dtW),
-              Y3 = lm(Y3 ~ E0+E1+E2, data = dtW),
-              Y4 = lm(Y4 ~ E0+E1+E2, data = dtW),
-              Y5 = lm(Y5 ~ E0+E1+E2, data = dtW)
+ls.lm <- list(Y1 = lm(Y1 ~ age + BMI + MDI, data = dfW),
+              Y2 = lm(Y2 ~ age + BMI + MDI, data = dfW),
+              Y3 = lm(Y3 ~ age + BMI + MDI, data = dfW),
+              Y4 = lm(Y4 ~ age + BMI + MDI, data = dfW),
+              Y5 = lm(Y5 ~ age + BMI + MDI, data = dfW)
               )
 #+END_SRC
 
 #+RESULTS:
 
-The next step would be to check the hypotheses relative to each of the
-models (see section [[#sec:diagLM]]). To perform inference in this setting
-we first need to define our null hypothesis or null hypotheses. Let
-imagine that we want to test the effect of the exposure E0 and say
-whether any outcome is related to the exposure. We first define a
-contrast matrix:
+** Interpretation of the regression coefficients
 
+Same as in the univariate case (see section [[#sec:interpretationLM]]).
+
+** Diagnostics tools for univariate linear regression in \Rlogo{}
+
+Same as in the univariate case (see section [[#sec:diagLM]]). This model
+checking needs to be done for each outcome.
+
+** Hypothesis testing
+
+We now want to test:
+#+BEGIN_EXPORT latex
+\begin{align*}
+(\Hypothesis[0]) \; \beta_{Y_1, MDI, 0} = 0
+ \text{ or } \beta_{Y_2, MDI, 0} = 0
+ \text{ or } \beta_{Y_3, MDI, 0} = 0
+ \text{ or } \beta_{Y_4, MDI, 0} = 0
+ \text{ or } \beta_{Y_5, MDI, 0} = 0
+\end{align*}
+#+END_EXPORT
+
+The p-values returned by =summary= are no more valid since we are
+performing multiple tests (here 5 tests). A basic solution would be to
+collect the p-values:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
-resC <- createContrast(ls.lm, var.test = "E1", add.variance = TRUE)
+vec.p.value <- unlist(lapply(ls.lm, function(x){
+    summary(x)$coef["MDI","Pr(>|t|)"]
+}))
 #+END_SRC
 
 #+RESULTS:
 
-Since we consider separate model, we will use the element =mlf= in the
-output of =createContrast=:
+and adjust them for multiple comparisons using Bonferroni:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+p.adjust(vec.p.value, method = "bonferroni")
+#+END_SRC
+
+#+RESULTS:
+:           Y1           Y2           Y3           Y4           Y5 
+: 3.299432e-04 4.218369e-02 3.552579e-01 2.276690e-07 8.565878e-01
+
+While easy to use this approach tends to be too conservative
+(i.e. give to large p-values) when the test statistics are
+correlated. This is usually the case when the outcomes are
+correlated. We will therefore use a more efficient correction called
+the Dunnett approach. First we need to define the null hypothesis
+that we want to test via a contrast matrix. For simple null hypotheses
+like the one we are considering in this example, we can use the
+function =createContrast= that will create the matrix for us:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+resC <- createContrast(ls.lm, var.test = "MDI", add.variance = TRUE)
+#+END_SRC
+
+#+RESULTS:
+
+This function defines for each model the appropriate contrast matrix:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 resC$mlf
 #+END_SRC
 #+RESULTS:
 #+begin_example
 $Y1
-   (Intercept) E0 E1 E2 sigma2
-E1           0  0  1  0      0
+    (Intercept) age BMI MDI sigma2
+MDI           0   0   0   1      0
 
 $Y2
-   (Intercept) E0 E1 E2 sigma2
-E1           0  0  1  0      0
+    (Intercept) age BMI MDI sigma2
+MDI           0   0   0   1      0
 
 $Y3
-   (Intercept) E0 E1 E2 sigma2
-E1           0  0  1  0      0
+    (Intercept) age BMI MDI sigma2
+MDI           0   0   0   1      0
 
 $Y4
-   (Intercept) E0 E1 E2 sigma2
-E1           0  0  1  0      0
+    (Intercept) age BMI MDI sigma2
+MDI           0   0   0   1      0
 
 $Y5
-   (Intercept) E0 E1 E2 sigma2
-E1           0  0  1  0      0
+    (Intercept) age BMI MDI sigma2
+MDI           0   0   0   1      0
 
 attr(,"class")
 [1] "mlf"
 #+end_example
 
-is the left hand side of the null hypothesis and:
+and right hand side of the null hypothesis:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 resC$null
 #+END_SRC
 
 #+RESULTS:
-: Y1: E0 Y2: E0 Y3: E0 Y4: E0 Y5: E0 
-:      0      0      0      0      0
+: Y1: MDI Y2: MDI Y3: MDI Y4: MDI Y5: MDI 
+:       0       0       0       0       0
 
-is the right hand side of the null hypothesis. We can now call
-=glht2=. To do so we first need to convert the list into a =mmm= object:
+We will now call =glht2= to perform the adjustment for multiple
+comparisons but first we need to convert the list into a =mmm= object:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 class(ls.lm) <- "mmm"
 e.glht_lm <- glht2(ls.lm, linfct = resC$contrast, rhs = resC$null)
@@ -1149,16 +927,16 @@ e.glht_lm
 	 General Linear Hypotheses
 
 Linear Hypotheses:
-            Estimate
-Y1: E1 == 0 -0.16367
-Y2: E1 == 0 -0.09144
-Y3: E1 == 0 -0.22923
-Y4: E1 == 0  0.02596
-Y5: E1 == 0 -0.73954
+             Estimate
+Y1: MDI == 0  0.15104
+Y2: MDI == 0  0.16770
+Y3: MDI == 0  0.14907
+Y4: MDI == 0  0.19860
+Y5: MDI == 0  0.09806
 #+end_example
 
-We can now correct for multiple comparisons using the methods
-presented in section [[#sec:introMultComp]]:
+We can now correct for multiple comparisons using the (single-step)
+Dunnett approach:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 summary(e.glht_lm, test = adjusted("single-step"))
 #+END_SRC
@@ -1169,20 +947,48 @@ summary(e.glht_lm, test = adjusted("single-step"))
 	 Simultaneous Tests for General Linear Hypotheses
 
 Linear Hypotheses:
-            Estimate Std. Error t value Pr(>|t|)
-Y1: E1 == 0 -0.16367    0.19297  -0.848    0.766
-Y2: E1 == 0 -0.09144    0.40563  -0.225    0.998
-Y3: E1 == 0 -0.22923    0.44975  -0.510    0.949
-Y4: E1 == 0  0.02596    0.18949   0.137    1.000
-Y5: E1 == 0 -0.73954    0.45807  -1.614    0.284
+             Estimate Std. Error t value Pr(>|t|)    
+Y1: MDI == 0  0.15104    0.03441   4.389   <0.001 ***
+Y2: MDI == 0  0.16770    0.06093   2.752   0.0286 *  
+Y3: MDI == 0  0.14907    0.08067   1.848   0.1996    
+Y4: MDI == 0  0.19860    0.03039   6.535   <0.001 ***
+Y5: MDI == 0  0.09806    0.07057   1.390   0.4208    
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 (Adjusted p values reported -- single-step method)
 #+end_example
 
-When all the linear model have the same number of degrees of freedom,
-the unadjusted p-values of this procedure will match the p-values of
-each model. Otherwise an approximation is made and the results may
-differ slightly, especially if the sample size is small. Confidence
-intervals can be obtained using the =confint= function:
+Note that the p-value for the global test equals to the smallest
+ p-value. This means that we reject the global null hypothesis
+ whenever we reject the null hypothesis for any of the outcome (after
+ adjustment for multiple comparisons!).
+
+
+ For comparison one can change the argument in =adjust= to apply the
+ Bonferroni adjustment:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+summary(e.glht_lm, test = adjusted("bonferroni"))
+#+END_SRC
+
+#+RESULTS:
+#+begin_example
+
+	 Simultaneous Tests for General Linear Hypotheses
+
+Linear Hypotheses:
+             Estimate Std. Error t value Pr(>|t|)    
+Y1: MDI == 0  0.15104    0.03441   4.389  0.00033 ***
+Y2: MDI == 0  0.16770    0.06093   2.752  0.04218 *  
+Y3: MDI == 0  0.14907    0.08067   1.848  0.35526    
+Y4: MDI == 0  0.19860    0.03039   6.535 2.28e-07 ***
+Y5: MDI == 0  0.09806    0.07057   1.390  0.85659    
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+(Adjusted p values reported -- bonferroni method)
+#+end_example
+
+Finally, confidence intervals can be obtained using the =confint=
+function:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 confint(e.glht_lm)
 #+END_SRC
@@ -1194,24 +1000,21 @@ confint(e.glht_lm)
 
 Fit: NULL
 
-Quantile = 2.4946
+Quantile = 2.5215
 95% family-wise confidence level
  
 
 Linear Hypotheses:
-            Estimate lwr      upr     
-Y1: E1 == 0 -0.16367 -0.64505  0.31772
-Y2: E1 == 0 -0.09144 -1.10335  0.92046
-Y3: E1 == 0 -0.22923 -1.35119  0.89272
-Y4: E1 == 0  0.02596 -0.44675  0.49868
-Y5: E1 == 0 -0.73954 -1.88226  0.40318
+             Estimate lwr      upr     
+Y1: MDI == 0  0.15104  0.06427  0.23782
+Y2: MDI == 0  0.16770  0.01407  0.32133
+Y3: MDI == 0  0.14907 -0.05434  0.35248
+Y4: MDI == 0  0.19860  0.12197  0.27524
+Y5: MDI == 0  0.09806 -0.07987  0.27599
 #+end_example
-Note that the =confint= function output confidence intervals using
-the (single step) Dunnett correction.
+Note that by default the =confint= function output confidence
+intervals using the (single-step) Dunnett approach.
 
-** Power and type 1 error of the procedure
-
-See appendix [[#appendix:massUnivariate]]
 
 \clearpage
 
@@ -1404,8 +1207,16 @@ outTest <- cor.testDT(data = dtL, format = "long", col.value = "res.lvm", col.gr
 : ========================================================================================================================
 
 * References
- bibliographystyle:apalike
- [[bibliography:bibliography.bib]]
+
+#+BEGIN_EXPORT latex
+\begingroup
+\renewcommand{\section}[2]{}
+#+END_EXPORT
+bibliographystyle:apalike
+[[bibliography:bibliography.bib]] 
+#+BEGIN_EXPORT latex
+\endgroup
+#+END_EXPORT
 
  # @@latex:any arbitrary LaTeX code@@
 
@@ -1413,14 +1224,344 @@ outTest <- cor.testDT(data = dtL, format = "long", col.value = "res.lvm", col.gr
 
 \appendix
 
-* Power and type 1 error 
+* Statistics: definitions and notations 
+:PROPERTIES:
+:CUSTOM_ID: SM:statistics
+:END:
+
+** Variables
+
+We can differentiate several types of random variables: outcomes,
+exposure, risk factors, confounders, and mediators. To explicit the
+difference between these types of variables we consider a set of
+random variables \((Y,E,X_1,X_2,M)\) whose relationships are
+displayed on autoref:fig:pathDiagram:
+- *outcome* (\(Y\)): random variables that are observed with noise. It
+  can be for instance the 5HT-4 binding in a specific brain
+  region. When considering several outcomes we will denote in bold
+  variable that stands for a vector of random variables:
+  \(\mathbf{Y}=(Y_1,Y_2,\ldots,Y_m)\). This happens for instance when
+  studying the binding in several brain regions. In such a case we
+  expect the outcomes to be correlated.
+- *exposure* (\(E\)): a variable that may affect the outcome or be
+  associated with the outcome /and/ we are interested in studying this
+  effect/association. It can for instance be a genetic factor that is
+  hypothesized to increase the 5HT-4 binding, or a disease like
+  depression that is associated with a change in binding (we don't
+  know whether one causes the other or whether they have a common
+  cause, e.g. a genetic variant).
+- *risk factor/confounder* (\(X_1,X_2\)): a variable that
+  may affect the outcome or be associated with the outcomes /but/ we
+  are /not/ interested in studying their effect/association. Risk
+  factors (denoted by \(X_1\)) are only associated with the outcomes
+  and confounders that are both associated with the outcome and the
+  exposure. We usually need to account for confounders the statistical
+  model in order to obtain unbiased estimates while accounting for
+  risk factors only enables to obtain more precise estimates (at least
+  in linear models).
+- *mediator* (\(M\)): a variable that modulate the effect of the
+  exposure, i.e. stands on the causal pathway between the exposure and
+  the outcome. For instance, the permeability of the blood-brain
+  barrier may modulate the response to drugs and can act as a
+  mediator. It is important to keep in mind that when we are
+  interested in the (total) effect of \(E\) on \(Y\), we should /not/
+  adjust the analysis on \(M\)[fn:3]. Doing so we would remove the effect of
+  \(E\) mediated by \(M\) and therefore bias the estimate of the total
+  effect (we would only get the direct effect).
+
+In the following we will assume that we do not measure any mediator
+variable and therefore ignore this type of variable. Also we will call
+*covariates* the variables \(E,X_1,X_2\).
+
+#+header: :width 3 :height 3 :R-dev-args bg="lightgrey"
+#+BEGIN_SRC R :results graphics :file "./figures/pathDiagram.pdf" :exports results :session *R* :cache no
+m <- lvm(Y~E+X1+X2+M,M~E,E~X2)
+plot(m, plot.engine="rgraphviz") ## visnetwork ## igraph
+#+END_SRC
+
+#+name: fig:pathDiagram
+#+ATTR_LATEX: :width 0.7\textwidth
+#+CAPTION: Path diagram relating the variables Y, E, M, \(X_1\) and \(X_2\)
+[[./figures/pathDiagram.pdf]]
+
+[fn:3] This may not be true in specific types of confounding but we
+will ignore that.
+
+
+
+
+\clearpage 
+
+** Assumptions
+
+We can distinguish two types of assumptions:
+- *causal assumptions*: saying which variables are related and in
+  which direction. This can be done by drawing a path diagram similar
+  to autoref:fig:pathDiagram. In simple univariate models it may seems
+  unnecessary to draw the path diagram since the system of variables is
+  very simple to visualize. In multivariate model, it is often very
+  useful to draw it. Some of these assumptions are untestable,
+  e.g. often we cannot decide whether it is \(E\) that impacts \(Y\)
+  or whether it is \(Y\) that impacts \(E\) just based on the data.
+
+- *modeling assumptions*: specifying the type of relationship between
+  variables (e.g. linear) and the marginal or joint distribution
+  (e.g. Gaussian). Often these assumptions can be tested and relaxed
+  using a more flexible model. While appealing, there are some
+  drawbacks with using a very flexible model: more data are needed to
+  get precise estimates and the interpretation of the results is more
+  complex.
+
+** Statistical model
+A statistical model \(\model\) is set of possible probability
+distributions. For instance when we fit a Gaussian linear model for
+\(Y_1\) with just an intercept \(\model=\left\{\Gaus[\mu,\sigma^2];\mu
+\in \Real, \; \sigma^2 \in \Real^+ \right\}\): \(\model\) is the set
+containing all possible univariate normal distributions.
+
+** Model parameters
+
+The model parameters are the (non random) variables that enable the
+statistical model to "adapt" to different settings. They will be
+denoted \(\Theta\). They are the one that are estimated when we fit
+the statistical model using the data or that we specify when we
+simulate data. In the previous example, we could simulate data
+corresponding to a Gaussian linear model using the =rnorm= function in
+R:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+rnorm
+#+END_SRC
+
+#+RESULTS:
+: function (n, mean = 0, sd = 1) 
+: .Call(C_rnorm, n, mean, sd)
+: <bytecode: 0x000000001d7eb938>
+: <environment: namespace:stats>
+
+We would need to specify:
+- \(n\) the sample size
+- \(\Theta=(\mu,\sigma^2)\) the model parameters, here \(\mu\) corresponds to =mean= and \(\sigma\) to =sd=.
+
+\bigskip
+
+The true model parameters are the model parameters that have generated
+the observed data. They will be denoted \(\Theta_0\). For instance if
+in reality the binding potential is normally distributed with mean 5
+and variance \(2^2=4\), then
+\(\Theta_0=(\mu_0,\sigma_0^2)=(5,4)\). Then doing our experiment we
+observed data such as:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+set.seed(10)
+Y_1.XP1 <- rnorm(10, mean = 5, sd = 2)
+Y_1.XP1
+#+END_SRC
+
+#+RESULTS:
+:  [1] 5.037492 4.631495 2.257339 3.801665 5.589090 5.779589 2.583848 4.272648 1.746655 4.487043
+
+If we were to re-do the experiment we would observe new data but \(\Theta_0\) would not change:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+Y_1.XP2 <- rnorm(10, mean = 5, sd = 2)
+Y_1.XP2
+#+END_SRC
+
+#+RESULTS:
+:  [1] 7.203559 6.511563 4.523533 6.974889 6.482780 5.178695 3.090112 4.609699 6.851043 5.965957
+
+The estimated parameters are the parameters that we estimate when we
+fit the statistical model. They will be denoted \(\hat{\Theta}\). We
+usually try to find parameters whose value maximize the chance of
+simulating the observed data under the estimated model (maximum
+likelihood estimation, MLE). For instance in the first experiment all
+values are positive so we would not estimate a negative mean value. In
+our example, \(\hat{\mu}\) the MLE of \(\mu\) reduces to the empirical
+average and \(\hat{\sigma}^2\) the MLE of \(\sigma^2\) to the
+empirical variance:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+Theta_hat.XP1 <- c(mu_hat = mean(Y_1.XP1),
+                   sigma2_hat = var(Y_1.XP1))
+Theta_hat.XP1
+#+END_SRC
+
+#+RESULTS:
+:     mu_hat sigma2_hat 
+:   4.018686   1.959404
+
+Clearly the estimated coefficients vary across experiments:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+Theta_hat.XP2 <- c(mu_hat = mean(Y_1.XP2),
+                   sigma2_hat = var(Y_1.XP2))
+Theta_hat.XP2
+#+END_SRC
+
+#+RESULTS:
+:     mu_hat sigma2_hat 
+:   5.739183   1.799311
+
+** Parameter of interest
+
+The statistical model may contain many parameters, most of them are
+often not of interest but are needed to obtain valid estimates
+(e.g. account for confounders). In most settings, the parameter of
+interest is one (or several) model parameter(s) - or simple
+transformation of them. For instance if we are interested in the
+average binding potential in the population our parameter of interest
+is \(\mu\).
+
+\bigskip
+
+Often, the aim of a study is to obtain the best estimate of the
+parameter of interest \(\mu\). Best means:
+- *unbiased*: if we were able to replicate the study many times,
+  i.e. get several estimates \(\hat{\mu}_1,\hat{\mu}_2,\ldots,\hat{\mu}_K\), the
+  average estimate \(<\hat{\mu}>=\frac{\hat{\mu}_1+\hat{\mu}_2+\ldots+\hat{\mu}_K}{K}\) would coincide with the true one \(\mu_0\).
+- *minimal variance*: if we were able to replicate the study many
+  times, the variance of the estimates
+  \(\frac{(\hat{\mu}_1-<\hat{\mu}>)^2+\ldots+(\hat{\mu}_K-<\hat{\mu}>)^2}{K-1}\)
+  should be as low as possible.
+
+There will often be a trade-off between these two objectives. A very
+flexible method is more likely to give an unbiased estimate
+(e.g. being able to model non-linear relationship) at the price of
+greater uncertainty about the estimates. Often we favor unbiasedness
+over minimal variance. Indeed, if several studies are published with
+the same parameter of interest, one can pool the results to obtain an
+estimate with lower variance. Note that we have no guarantee that it
+will reduce the bias.
+
+** Contrast matrix
+
+When dealing with many parameters it is convenient to define the null
+hypothesis via a contrast matrix. An example of null hypothesis is:
+#+BEGIN_EXPORT latex
+\begin{align*}
+(\Hypothesis[0]) \; \beta_{MDI,0} = 0
+\end{align*}
+#+END_EXPORT
+If we consider \(\Theta=(\alpha,\beta_{age},\beta_{BMI},\beta_{MDI})\),
+this null hypothesis can be equivalently written:
+
+#+BEGIN_EXPORT latex
+\begin{align*}
+c=[0 \; 0 \; 0 \; 1]
+\end{align*}
+#+END_EXPORT
+such that: 
+#+BEGIN_EXPORT latex
+\begin{align*}
+(\Hypothesis[0]) \; c \trans{\Theta}_{0} = 0
+\end{align*}
+#+END_EXPORT
+Indeed
+#+BEGIN_EXPORT latex
+\begin{align*}
+c \trans{\Theta}_{0} = 0 * \alpha_0 + 0 * \beta_{age,0} + 0 * \beta_{BMI,0} + 1 * \beta_{MDI,0} = \beta_{MDI,0}
+\end{align*}
+#+END_EXPORT
+
+#+RESULTS:
+
+An example where the contrast matrix is useful is
+- when one wish to test linear combination of parameters,
+  e.g. consider the null hypothesis:
+#+BEGIN_EXPORT latex
+\begin{align*}
+(\Hypothesis[0]) \; \beta_{MDI,0} = \beta_{BMI,0}
+\end{align*}
+#+END_EXPORT
+Here the contrast matrix would be:
+#+BEGIN_EXPORT latex
+\begin{align*}
+c=[0 \; 0 \; -1 \; 1]
+\end{align*}
+#+END_EXPORT
+- when one wish to test several hypotheses simultaneously,
+  e.g. consider the null hypothesis:
+#+BEGIN_EXPORT latex
+\begin{align*}
+(\Hypothesis[0]) \; \beta_{BMI,0} = 0 \text{ or } \beta_{MDI,0} = 0 \\
+\end{align*}
+#+END_EXPORT
+Here the contrast matrix would be:
+#+BEGIN_EXPORT latex
+\begin{align*}
+C = \begin{bmatrix}
+0 & 0 & 1 & 0 \\
+0 & 0 & 0 & 1 \\
+\end{bmatrix}
+\end{align*}
+#+END_EXPORT
+ 
+In \Rlogo{}, the method =createContrast= helps to define the contrast
+matrix:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+Clin <- createContrast(e.lm, par = c("MDI - BMI = 0"),
+                       add.variance = FALSE, rowname.rhs = FALSE)
+Clin$contrast
+#+END_SRC
+
+#+RESULTS:
+:             (Intercept) age BMI MDI
+: - BMI + MDI           0   0  -1   1
+
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+Csim <- createContrast(e.lm, par = c("BMI = 0","MDI = 0"),
+                       add.variance = FALSE, rowname.rhs = FALSE)
+Csim$contrast
+#+END_SRC
+
+#+RESULTS:
+:     (Intercept) age BMI MDI
+: BMI           0   0   1   0
+: MDI           0   0   0   1
+
+Then the contrast matrix can be send to =glht= to obtain p-values and
+confidence intervals:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+elin.glht <- glht(e.lm, linfct = Clin$contrast)
+summary(elin.glht)
+#+END_SRC
+
+#+RESULTS:
+: 
+: 	 Simultaneous Tests for General Linear Hypotheses
+: 
+: Fit: lm(formula = Y1 ~ age + BMI + MDI, data = dfW)
+: 
+: Linear Hypotheses:
+:                  Estimate Std. Error t value Pr(>|t|)
+: - BMI + MDI == 0 -0.09608    0.06993  -1.374    0.176
+: (Adjusted p values reported -- single-step method)
+
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+esim.glht <- glht(e.lm, linfct = Csim$contrast)
+summary(esim.glht)
+#+END_SRC
+
+#+RESULTS:
+#+begin_example
+
+	 Simultaneous Tests for General Linear Hypotheses
+
+Fit: lm(formula = Y1 ~ age + BMI + MDI, data = dfW)
+
+Linear Hypotheses:
+         Estimate Std. Error t value Pr(>|t|)    
+BMI == 0  0.24712    0.05791   4.268 0.000195 ***
+MDI == 0  0.15104    0.03441   4.389 0.000132 ***
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+(Adjusted p values reported -- single-step method)
+#+end_example
+
+* Power and type 1 error :noexport:
 
 ** Multiple linear regression: no adjustment vs. Bonferroni vs. Dunnett
 :PROPERTIES:
 :CUSTOM_ID: appendix:massUnivariate
 :END:
 
-Fonction replicating the analysis for a given sample size:
+Function replicating the analysis for a given sample size:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 warper_type1power <- function(n.sample){
 
@@ -1591,9 +1732,6 @@ colMeans(M.pLVM[,5:8]<=0.05)
 #+RESULTS:
 :      power.Ftest       power.none power.bonferroni    power.dunnett 
 :            0.276            0.400            0.168            0.199
-
-
-
 
 * Different parametrisations of Gaussian models :noexport:
 
@@ -1812,12 +1950,17 @@ sample estimates:
 #+LATEX_HEADER: \RequirePackage{colortbl} % arrayrulecolor to mix colors
 #+LATEX_HEADER: \RequirePackage{setspace} % to modify the space between lines - incompatible with footnote in beamer
 #+LaTeX_HEADER:\usepackage{authblk} % enable several affiliations (clash with beamer)
+#+LaTeX_HEADER:\renewcommand{\baselinestretch}{1.1}
+#+LATEX_HEADER:\geometry{top=2cm}
 
 ** Image
 #+LATEX_HEADER: \RequirePackage{epstopdf} % to be able to convert .eps to .pdf image files
+#+LATEX_HEADER: \RequirePackage{capt-of}
+#+LATEX_HEADER: \RequirePackage{caption} 
 
-** Latex command
+** Notations
 #+LaTeX_HEADER: \newcommand\model{\mathcal{M}}
+#+LaTeX_HEADER: \newcommand\Rlogo{\textbf{\textsf{R}}}
 
 ** Algorithm
 #+LATEX_HEADER: \RequirePackage{amsmath}
@@ -1927,3 +2070,5 @@ sample estimates:
 #+LaTeX_HEADER: \newcommand\half{\frac{1}{2}}
 #+LaTeX_HEADER: \newcommand\normMax[1]{\left|\left|#1\right|\right|_{max}}
 #+LaTeX_HEADER: \newcommand\normTwo[1]{\left|\left|#1\right|\right|_{2}}
+
+

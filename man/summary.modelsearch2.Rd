@@ -16,3 +16,7 @@
 \description{
 summary method for modelsearch2 objects.
 }
+\details{
+The column \code{dp.Info} contains the percentage of extended models (i.e. model with one additional link)
+for which the information matrix evaluated at the value of the parameters of the initial model is non positive definie.
+}

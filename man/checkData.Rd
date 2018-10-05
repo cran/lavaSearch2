@@ -37,6 +37,4 @@ checkData(m, data = d[,-4])
 try(checkData(m, data = d[,-(3:4)])) # return an error
 
 }
-\concept{
-diagnostic
-}
+\concept{diagnostic}

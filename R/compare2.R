@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: jan 30 2018 (14:33) 
 ## Version: 
-## Last-Updated: jul 16 2018 (16:35) 
+## Last-Updated: okt  4 2018 (16:17) 
 ##           By: Brice Ozenne
-##     Update #: 379
+##     Update #: 382
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -101,7 +101,7 @@
 #' @concept small sample inference
 #' @export
 `compare2` <-
-  function(object, ...) UseMethod("compare2")
+  function(object, df, bias.correct, ...) UseMethod("compare2")
 
 ## * compare2.lm
 #' @rdname compare2
@@ -114,7 +114,7 @@ compare2.lm <- function(object, df = TRUE, bias.correct = TRUE, ...){
 ## * compare2.gls
 #' @rdname compare2
 #' @export
-compare2.gls <- function(object, cluster = NULL, df = TRUE, bias.correct = TRUE, ...){
+compare2.gls <- function(object, df = TRUE, bias.correct = TRUE, cluster = NULL, ...){
     sCorrect(object, df = df, cluster = cluster) <- bias.correct
     return(.compare2(object, ...))
 }
@@ -127,7 +127,7 @@ compare2.lme <- compare2.lm
 ## * compare2.lvmfit
 #' @rdname compare2
 #' @export
-compare2.lvmfit <- function(object, cluster = NULL, df = TRUE, bias.correct = TRUE, ...){
+compare2.lvmfit <- function(object, df = TRUE, bias.correct = TRUE, cluster = NULL, ...){
     sCorrect(object, df = df) <- bias.correct
     return(.compare2(object, cluster = cluster, ...))
 }

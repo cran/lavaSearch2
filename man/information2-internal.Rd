@@ -5,9 +5,10 @@
 \alias{.information2}
 \title{Compute the Expected Information Matrix From the Conditional Moments}
 \usage{
-.information2(dmu, dOmega, Omega, n.corrected, index.Omega, leverage, n.cluster,
-  grid.meanparam, n.grid.meanparam, grid.varparam, n.grid.varparam, name.param,
-  name.meanparam, name.varparam, param2index, n.param)
+.information2(dmu, dOmega, Omega, n.corrected, index.Omega, leverage,
+  n.cluster, grid.meanparam, n.grid.meanparam, grid.varparam,
+  n.grid.varparam, name.param, name.meanparam, name.varparam, param2index,
+  n.param)
 }
 \description{
 Compute the expected information matrix from the conditional moments.

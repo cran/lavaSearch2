@@ -43,6 +43,4 @@ m2 <- setLink(m, y1 ~ y2, value = 0.5)
 estimate(m2, lava::sim(m,1e2))
 
 }
-\concept{
-setter
-}
+\concept{setter}

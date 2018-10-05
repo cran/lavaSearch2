@@ -7,9 +7,9 @@
 \alias{coefType.multigroup}
 \title{Extract the Type of Each Coefficient}
 \usage{
-coefType(object, ...)
+coefType(object, as.lava, ...)
 
-\method{coefType}{lvm}(object, data = NULL, as.lava = TRUE, ...)
+\method{coefType}{lvm}(object, as.lava = TRUE, data = NULL, ...)
 
 \method{coefType}{lvmfit}(object, as.lava = TRUE, ...)
 
@@ -18,11 +18,11 @@ coefType(object, ...)
 \arguments{
 \item{object}{a \code{lvm} or \code{lvmfit} object.}
 
+\item{as.lava}{[logical] export the type of coefficients mimicking \code{lava:::coef}.}
+
 \item{...}{arguments to be passed to \code{lava::coef}}
 
 \item{data}{[data.frame, optional] the dataset. Help to identify the categorical variables.}
-
-\item{as.lava}{[logical] export the type of coefficients mimicking \code{lava:::coef}.}
 }
 \value{
 \code{coefType} returns a \code{data.frame} when \code{as.lava=FALSE}:
@@ -105,6 +105,4 @@ eG <- estimate(list(m,m), list(lava::sim(m, 1e2), lava::sim(m, 1e2)))
 coefType(eG)
 
 }
-\concept{
-extractor
-}
+\concept{extractor}

@@ -93,6 +93,4 @@ e <- estimate(m, dW)
 getVarCov2(e)
 
 }
-\concept{
-extractor
-}
+\concept{extractor}

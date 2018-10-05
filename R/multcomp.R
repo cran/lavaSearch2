@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: nov 29 2017 (12:56) 
 ## Version: 
-## Last-Updated: maj 28 2018 (23:42) 
+## Last-Updated: okt  4 2018 (16:09) 
 ##           By: Brice Ozenne
-##     Update #: 383
+##     Update #: 479
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -82,8 +82,7 @@ estfun.lvmfit <- function(x, ...){
 #' @param df [logical] should the degree of freedoms of the Wald statistic be computed using the Satterthwaite correction?
 #' @param robust [logical] should robust standard error be used? 
 #' Otherwise rescale the influence function with the standard error obtained from the information matrix.
-##' @param cluster  [integer vector] the grouping variable relative to which the observations are iid.
-#' @param ... [internal] Only used by the generic method.
+#' @param cluster  [integer vector] the grouping variable relative to which the observations are iid.
 #'
 #' @details
 #' Whenever the argument linfct is not a matrix, it is passed to the function \code{createContrast} to generate the contrast matrix and, if not specified, rhs. \cr \cr
@@ -135,24 +134,19 @@ estfun.lvmfit <- function(x, ...){
 #' @concept multiple comparison
 #' @export
 `glht2` <-
-  function(model, ...) UseMethod("glht2")
+    function(model, linfct, rhs,
+             bias.correct, df, robust, cluster) UseMethod("glht2")
+
 
 ## * glht2.lvmfit
 #' @rdname glht2
 #' @export
 glht2.lvmfit <- function(model, linfct, rhs = 0,
-                         bias.correct = TRUE, df = TRUE, robust = FALSE, cluster = NULL, ...){
+                         bias.correct = TRUE, df = TRUE, robust = FALSE, cluster = NULL){
 
     if(robust==FALSE && !is.null(cluster)){
         stop("Argument \'cluster\' must be NULL when argument \'robust\' is FALSE \n")
     }
-    dots <- list(...)
-    if(length(dots)>0){
-        txt.names <- names(dots)
-        warning("Argument",if(length(txt.names)>1){"s"}else{""},
-                " \'",paste(txt.names, collapse = "\' \'"),"\' are ignored\n")
-    }
-
     
     ### ** define contrast matrix
     if(!is.matrix(linfct)){
@@ -213,17 +207,11 @@ glht2.lvmfit <- function(model, linfct, rhs = 0,
 #' @rdname glht2
 #' @export
 glht2.mmm <- function (model, linfct, rhs = 0,
-                       bias.correct = TRUE, df = TRUE, robust = FALSE, cluster = NULL, ...){
+                       bias.correct = TRUE, df = TRUE, robust = FALSE, cluster = NULL){
 
 
     if(robust==FALSE && !is.null(cluster)){
         stop("Argument \'cluster\' must be NULL when argument \'robust\' is FALSE \n")
-    }
-    dots <- list(...)
-    if(length(dots)>0){
-        txt.names <- names(dots)
-        warning("Argument",if(length(txt.names)>1){"s"}else{""},
-                " \'",paste(txt.names, collapse = "\' \'"),"\' are ignored\n")
     }
     
     ### ** check the class of each model
@@ -323,3 +311,84 @@ glht2.mmm <- function (model, linfct, rhs = 0,
     return(out)    
 }
 
+
+## * .calcClosure
+.calcClosure <- function(name, estimate, covariance, type, df){
+
+    n.hypo <- length(name)
+    correlation <- stats::cov2cor(covariance)
+
+    ## ** create all possible hypotheses
+    ls.closure <- lapply(n.hypo:1, function(iNtest){ ## iNtest <- 1  
+        iList <- list(M = utils::combn(name, m = iNtest))
+        iList$vec <- apply(iList$M, 2, paste, collapse = ",")
+        return(iList)
+    })
+
+    ## ** compute all p.values
+    for(iLevel in 1:length(ls.closure)){ ## iLevel <- 1
+        ls.closure[[iLevel]]$test <- t(apply(ls.closure[[iLevel]]$M, 2, function(iHypo){
+            index <- which(name %in% iHypo)
+            if(type == "chisq"){
+                return(.ChisqTest(estimate[index], covariance = covariance[index,index,drop=FALSE], df = df))
+            }else if(type == "max"){
+                return(.tTest(estimate[index],
+                              covariance = covariance[index,index,drop=FALSE],
+                              correlation = correlation[index,index,drop=FALSE], df = df))
+            }
+        }))
+        rownames(ls.closure[[iLevel]]$test) <- ls.closure[[iLevel]]$vec
+    }
+    
+    ## ** find all hypotheses in the closure related to an individual hypothesis
+    ls.hypo <- vector(mode = "list", length = n.hypo)
+    for(iHypo in 1:n.hypo){ ## iHypo <- 1
+        ls.hypo[[iHypo]] <- do.call(rbind,lapply(ls.closure, function(iClosure){ ## iClosure <- 1
+            iIndex <- which(colSums(iClosure$M==name[iHypo])>0)
+            data.frame(hypothesis = iClosure$vec[iIndex],
+                       statistic = as.double(iClosure$test[iIndex,"statistic"]),
+                       p.value = as.double(iClosure$test[iIndex,"p.value"]))
+        }))
+    }
+    names(ls.hypo) <- name
+        
+    ## ** adjusted p.values
+    vec.p.value <- unlist(lapply(ls.hypo, function(x){max(x$p.value)}))
+    return(list(closure = ls.closure,
+                test = ls.hypo,
+                p.value = vec.p.value))
+    
+}
+
+## * .tTest
+.tTest <- function(estimate, covariance, correlation, df, ...){
+    df1 <- length(estimate)
+    statistic <- max(abs(estimate/sqrt(diag(covariance))))
+    if(is.null(df)){
+        distribution <-  "gaussian"
+    }else{
+        distribution <- "student"
+    }
+    p.value <- .calcPmaxIntegration(statistic, p = df1, Sigma = correlation, df = df,
+                                    distribution = distribution)
+    return(c("statistic" = statistic,
+             "p.value" = p.value))
+}
+
+## * .ChisqTest
+.ChisqTest <- function(estimate, covariance, df, ...){
+    df1 <- length(estimate)
+    ## q * statistic ~ chisq or fisher
+    statistic <- as.double(matrix(estimate, nrow = 1) %*% solve(covariance) %*% matrix(estimate, ncol = 1)) / df1
+    if(!is.null(df)){
+        return(c("statistic" = statistic,
+                 "p.value" = 1-stats::pf(statistic, df1 = df1, df2 = df)))
+    }else{
+        return(c("statistic" = statistic,
+                 "p.value" = 1-stats::pchisq(statistic, df = df1)))
+        
+    }
+}
+
+
+ 

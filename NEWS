@@ -1,5 +1,9 @@
 # -*- mode: org -*-
 
+* Version 1.4 <2018-09-21 Fri>
+** User visible change
+- modelsearch2 is now only based on the score statistic.
+
 * Version 1.3.5 <2018-05-01 Tue>
 ** User visible change
 - add arguments df, cluster to glht2

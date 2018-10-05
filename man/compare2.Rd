@@ -13,17 +13,17 @@
 \alias{.compare2}
 \title{Test Linear Hypotheses with small sample correction}
 \usage{
-compare2(object, ...)
+compare2(object, df, bias.correct, ...)
 
 \method{compare2}{lm}(object, df = TRUE, bias.correct = TRUE, ...)
 
-\method{compare2}{gls}(object, cluster = NULL, df = TRUE,
-  bias.correct = TRUE, ...)
+\method{compare2}{gls}(object, df = TRUE, bias.correct = TRUE,
+  cluster = NULL, ...)
 
 \method{compare2}{lme}(object, df = TRUE, bias.correct = TRUE, ...)
 
-\method{compare2}{lvmfit}(object, cluster = NULL, df = TRUE,
-  bias.correct = TRUE, ...)
+\method{compare2}{lvmfit}(object, df = TRUE, bias.correct = TRUE,
+  cluster = NULL, ...)
 
 \method{compare2}{lm2}(object, ...)
 
@@ -33,19 +33,19 @@ compare2(object, ...)
 
 \method{compare2}{lvmfit2}(object, ...)
 
-.compare2(object, par = NULL, contrast = NULL, null = NULL, rhs = NULL,
-  robust = FALSE, cluster = NULL, df = TRUE, as.lava = TRUE,
-  F.test = TRUE, level = 0.95)
+.compare2(object, par = NULL, contrast = NULL, null = NULL,
+  rhs = NULL, robust = FALSE, cluster = NULL, df = TRUE,
+  as.lava = TRUE, F.test = TRUE, level = 0.95)
 }
 \arguments{
 \item{object}{an object that inherits from lm/gls/lme/lvmfit.}
-
-\item{...}{[internal] only used by the generic method.}
 
 \item{df}{[logical] should the degree of freedoms of the Wald statistic be computed using the Satterthwaite correction?
 Otherwise the degree of freedoms are set to \code{Inf}, i.e. a normal distribution is used instead of a Student's t distribution when computing the p-values.}
 
 \item{bias.correct}{[logical] should the standard errors of the coefficients be corrected for small sample bias? Argument passed to \code{sCorrect}.}
+
+\item{...}{[internal] only used by the generic method.}
 
 \item{cluster}{[integer vector] the grouping variable relative to which the observations are iid.}
 
@@ -134,6 +134,4 @@ compare2(e.lvm, par = c("-Y","Y~X1b+Y~X1c"))
 \code{\link{createContrast}} to create contrast matrices. \cr
 \code{\link{sCorrect}} to pre-compute quantities for the small sample correction.
 }
-\concept{
-small sample inference
-}
+\concept{small sample inference}

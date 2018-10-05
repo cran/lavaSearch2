@@ -90,9 +90,6 @@ res2 <- conditionalMoment(e, param = coef(e), data = d,
 res2$value$Sigma
 
 }
-\concept{
-small sample inference
-
-derivative of the score equation
-}
+\concept{derivative of the score equation}
+\concept{small sample inference}
 \keyword{internal}

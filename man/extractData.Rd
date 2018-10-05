@@ -95,6 +95,4 @@ fct2 <- function(m){
 }
 g <- fct1(m.gls)
 }
-\concept{
-extractor
-}
+\concept{extractor}

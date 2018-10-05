@@ -3,9 +3,9 @@
 ## author: Brice Ozenne
 ## created: okt 26 2017 (16:35) 
 ## Version: 
-## last-updated: feb  5 2018 (18:17) 
+## last-updated: aug  6 2018 (15:32) 
 ##           By: Brice Ozenne
-##     Update #: 153
+##     Update #: 156
 #----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -73,7 +73,7 @@ defineCategoricalLink.lvm <- function(object, link = NULL, data = NULL){
         link <- stats::coef(object)
     }
     if(is.null(data)){
-        data <- lava::sim(object, 1)
+        data <- lava::sim(object, 1e2)
     }
     
     ### ** identify the type of regression variable (continuous or categorical)

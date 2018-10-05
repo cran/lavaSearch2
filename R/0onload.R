@@ -2,10 +2,9 @@
 .onLoad <- function(lib, pkg="lavaSearch2") {
 
     # available methods to compute the distribution of the max statistic
-    lava::lava.options(search.calcMaxDist = c("integration","boot-naive","boot-residual","boot-wild"),
-                       search.statistic = c("Wald","score","LR"),
+    lava::lava.options(search.calcMaxDist = c("integration","boot-residual","boot-wild"),
                        search.p.adjust = c("fastmax", "max", "holm", "hochberg", "hommel", "bonferroni", "BH", "BY", "fdr", "none"),
-                       search.calc.quantile.int = TRUE
+                       search.calc.quantile.int = FALSE
                        )
 }
 

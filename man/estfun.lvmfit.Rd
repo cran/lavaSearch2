@@ -53,6 +53,4 @@ e.glht <- glht(e.mmm, linfct = resC$mlf)
 summary(e.glht)
 
 }
-\concept{
-multiple comparison
-}
+\concept{multiple comparison}

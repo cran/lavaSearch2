@@ -83,7 +83,7 @@ extractData.lm <- function(object, design.matrix = FALSE, as.data.frame = TRUE,
         ## this is not enougth for modelsearch2
         ## data <- try(model.frame(object), silent = TRUE)
         ## data <- object$model
-        data <- evalInParentEnv(object$call$data, envir = envir)
+        data <- evalInParentEnv(object$call$data)
         if("function" %in% class(data)){
             stop("data has the same name as a function \n",
                  "consider renaming data before generating object \n")
@@ -132,12 +132,12 @@ extractData.coxph <- function(object, design.matrix = FALSE, as.data.frame = TRU
         } 
       
         if(length(strataVar)>0){         
-            data2 <- evalInParentEnv(object$call$data, envir)
+            data2 <- evalInParentEnv(object$call$data)
             data <- cbind(as.data.frame(data),
                           as.data.frame(data2)[,strataVar,drop=FALSE])        
         }
     }else{
-        data <- evalInParentEnv(object$call$data, envir = environment())
+        data <- evalInParentEnv(object$call$data)
         
         if("function" %in% class(data)){
             stop("data has the same name as a function \n",
@@ -175,10 +175,10 @@ extractData.lvmfit <- function(object, design.matrix = FALSE, as.data.frame = TR
     ## ** extract data
     if(design.matrix){
         data <- object$data$model.frame
-        keep.cols <- intersect(c("(Intercept)",vars(object)), names(data))
+        keep.cols <- intersect(c("(Intercept)",lava::vars(object)), names(data))
         data <- data[,keep.cols,drop=FALSE]
     }else{
-        data <- evalInParentEnv(object$call$data, envir = envir)
+        data <- evalInParentEnv(object$call$data)
         
         if("function" %in% class(data)){
             stop("data has the same name as a function \n",
@@ -215,13 +215,13 @@ extractData.gls <- function(object, design.matrix = FALSE, as.data.frame = TRUE,
         # assign the dataset to the object if not in the current environment
         name.data <- as.character(object$call$data)
         if((length(name.data) == 1) && (name.data %in% ls() == FALSE)){
-            object$data <- evalInParentEnv(object$call$data, environment())
+            object$data <- evalInParentEnv(object$call$data)
         }
       
         data <- try(nlme::getData(object), silent = TRUE)
 
     }else{
-        data <- evalInParentEnv(object$call$data, envir = envir)
+        data <- evalInParentEnv(object$call$data)
         
         if("function" %in% class(data)){
             stop("data has the same name as a function \n",

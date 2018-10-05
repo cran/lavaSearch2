@@ -4,7 +4,8 @@
 \alias{matrixPower}
 \title{Power of a Matrix}
 \usage{
-matrixPower(object, power, symmetric, tol = 1e-12)
+matrixPower(object, power, symmetric, tol = 1e-12,
+  print.warning = TRUE)
 }
 \arguments{
 \item{object}{a matrix.}
@@ -14,6 +15,8 @@ matrixPower(object, power, symmetric, tol = 1e-12)
 \item{symmetric}{[logical] is the matrix symmetric? Argument passed to the function \code{eigen}.}
 
 \item{tol}{[numeric >0] the threshold under which the eigenvalues are set to 0.}
+
+\item{print.warning}{[logical] should a warning be print when some or the eigenvalues are not strictly positive.}
 }
 \value{
 A matrix.

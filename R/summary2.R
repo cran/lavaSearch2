@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: nov 10 2017 (10:57) 
 ## Version: 
-## Last-Updated: jul 16 2018 (16:37) 
+## Last-Updated: okt  4 2018 (15:57) 
 ##           By: Brice Ozenne
-##     Update #: 295
+##     Update #: 296
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -69,7 +69,7 @@
 #' @concept small sample inference
 #' @export
 `summary2` <-
-  function(object,...) UseMethod("summary2")
+  function(object, ...) UseMethod("summary2")
 
 ## * summary2.lm
 #' @rdname summary2

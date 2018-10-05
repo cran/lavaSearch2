@@ -35,7 +35,5 @@
 \description{
 Reconstruct the marginal variance covariance matrix from a nlme model.
 }
-\concept{
-extractor
-}
+\concept{extractor}
 \keyword{internal}

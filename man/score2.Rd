@@ -81,6 +81,4 @@ range(score.tempo-score(e.lvm, indiv = TRUE))
 \seealso{
 \code{\link{sCorrect}} to obtain \code{lm2}, \code{gls2}, \code{lme2}, or \code{lvmfit2} objects.
 }
-\concept{
-small sample inference
-}
+\concept{small sample inference}

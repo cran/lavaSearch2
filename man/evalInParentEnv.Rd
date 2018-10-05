@@ -4,17 +4,13 @@
 \alias{evalInParentEnv}
 \title{Find Object in the Parent Environments}
 \usage{
-evalInParentEnv(name, envir)
+evalInParentEnv(name)
 }
 \arguments{
 \item{name}{[character] the name of the object to get.}
-
-\item{envir}{[environments] the environment from which to look for the object.}
 }
 \description{
 Search an object in the parent environments. For internal use.
 }
-\concept{
-extractor
-}
+\concept{extractor}
 \keyword{internal}

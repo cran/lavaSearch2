@@ -77,7 +77,5 @@ gridExtZ2_4d <- createGrid(5, d.y = 3, xmin = 0, xmax = 4,
                            d.z = 2, zmax = 2, fine = FALSE, double = TRUE)
 
 }
-\concept{
-post-selection inference
-}
+\concept{post-selection inference}
 \keyword{internal}

@@ -44,7 +44,5 @@ the index of the endogenous variable relative to each observation.
 \description{
 Extract the name of the endogenous variables from a nlme model.
 }
-\concept{
-extractor
-}
+\concept{extractor}
 \keyword{internal}

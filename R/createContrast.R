@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: jan 31 2018 (12:05) 
 ## Version: 
-## Last-Updated: jun 26 2018 (09:06) 
+## Last-Updated: sep 10 2018 (15:37) 
 ##           By: Brice Ozenne
-##     Update #: 228
+##     Update #: 234
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -246,6 +246,9 @@ createContrast.list <- function(object, par = NULL, add.variance = NULL, var.tes
 
     ## ** find the names of the coefficients
     name.model <- names(object)
+    if(is.null(name.model)){
+        stop("Each element of the argument \'object\' must be named \n")
+    }
     
     ls.coefname <- lapply(name.model, function(iModel){ ## list by model
         iResC <- createContrast(object[[iModel]],

@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: nov  8 2017 (09:05) 
 ## Version: 
-## Last-Updated: jun  4 2018 (14:24) 
+## Last-Updated: okt  4 2018 (15:56) 
 ##           By: Brice Ozenne
-##     Update #: 932
+##     Update #: 934
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -27,7 +27,6 @@
 #' \code{"normalized"} for normalized residuals.
 #' @param param [named numeric vector] the fitted parameters.
 #' @param data [data.frame] the data set.
-#' @param ... arguments to be passed to \code{sCorrect}.
 #'
 #' @seealso \code{\link{sCorrect}} to obtain \code{lm2}, \code{gls2}, \code{lme2}, or \code{lvmfit2} objects.
 #'
@@ -71,12 +70,12 @@
 #' @concept small sample inference
 #' @export
 `residuals2` <-
-    function(object, ...) UseMethod("residuals2")
+    function(object, param, data, type) UseMethod("residuals2")
 
 ## * residuals2.lm2
 #' @rdname residuals2
 #' @export
-residuals2.lm2 <- function(object, param = NULL, data = NULL, type = "response", ...){
+residuals2.lm2 <- function(object, param = NULL, data = NULL, type = "response"){
 
     type <- match.arg(type, choices = c("response","studentized","normalized"), several.ok = FALSE)
 

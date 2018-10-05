@@ -8,24 +8,22 @@
 \alias{residuals2.lvmfit2}
 \title{Extract Corrected Residuals}
 \usage{
-residuals2(object, ...)
+residuals2(object, param, data, type)
 
 \method{residuals2}{lm2}(object, param = NULL, data = NULL,
-  type = "response", ...)
+  type = "response")
 
 \method{residuals2}{gls2}(object, param = NULL, data = NULL,
-  type = "response", ...)
+  type = "response")
 
 \method{residuals2}{lme2}(object, param = NULL, data = NULL,
-  type = "response", ...)
+  type = "response")
 
 \method{residuals2}{lvmfit2}(object, param = NULL, data = NULL,
-  type = "response", ...)
+  type = "response")
 }
 \arguments{
 \item{object}{a \code{lm2}, \code{gls2}, \code{lme2}, or \code{lvmfit2} object.}
-
-\item{...}{arguments to be passed to \code{sCorrect}.}
 
 \item{param}{[named numeric vector] the fitted parameters.}
 
@@ -83,6 +81,4 @@ mean(residuals2(e.lvm)^2)
 \seealso{
 \code{\link{sCorrect}} to obtain \code{lm2}, \code{gls2}, \code{lme2}, or \code{lvmfit2} objects.
 }
-\concept{
-small sample inference
-}
+\concept{small sample inference}

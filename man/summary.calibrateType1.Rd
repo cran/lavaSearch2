@@ -5,8 +5,8 @@
 \title{Display the Type 1 Error Rate}
 \usage{
 \method{summary}{calibrateType1}(object, robust = FALSE,
-  type = "type1error", alpha = 0.05, log.transform = TRUE, digits = 5,
-  print = TRUE, ...)
+  type = "type1error", alpha = 0.05, log.transform = TRUE,
+  digits = 5, print = TRUE, ...)
 }
 \arguments{
 \item{object}{output of the \code{calibrateType1} function.}

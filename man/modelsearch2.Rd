@@ -3,49 +3,38 @@
 \name{modelsearch2}
 \alias{modelsearch2}
 \alias{modelsearch2.lvmfit}
-\alias{modelsearch2.default}
 \title{Data-driven Extension of a Latent Variable Model}
 \usage{
-modelsearch2(object, ...)
+modelsearch2(object, link, data, method.p.adjust, type.information, alpha,
+  nStep, na.omit, trace, cpus)
 
 \method{modelsearch2}{lvmfit}(object, link = NULL, data = NULL,
-  statistic = "Wald", method.p.adjust = "max", typeSD = "information",
-  df = TRUE, bias.correct = TRUE, trace = TRUE, ...)
-
-\method{modelsearch2}{default}(object, link, data = NULL,
-  statistic = "Wald", method.p.adjust = "max", typeSD = "information",
-  df = TRUE, bias.correct = TRUE, trace = TRUE, ...)
+  method.p.adjust = "fastmax", type.information = "E", alpha = 0.05,
+  nStep = NULL, na.omit = TRUE, trace = TRUE, cpus = 1)
 }
 \arguments{
 \item{object}{a \code{lvmfit} object.}
-
-\item{...}{additional arguments to be passed to \code{\link{findNewLink}} and \code{.modelsearch2}, see details.}
 
 \item{link}{[character, optional for \code{lvmfit} objects] the name of the additional relationships to consider when expanding the model. Should be a vector containing strings like "Y~X". See the details section.}
 
 \item{data}{[data.frame, optional] the dataset used to identify the model}
 
-\item{statistic}{[character] statistic used to perform the test.
-Can the likelihood ratio test (\code{"LR"}),
-the score (\code{"score"}),
-or the max statistic (\code{"max"}).}
-
 \item{method.p.adjust}{[character] the method used to adjust the p.values for multiple comparisons.
-Ignored when using the max statistic.
-Can be any method that is valid for the \code{stats::p.adjust} function (e.g. \code{"fdr"}).}
+Can be any method that is valid for the \code{stats::p.adjust} function (e.g. \code{"fdr"}), or \code{"max"} or \code{"fastmax"}.}
 
-\item{typeSD}{[character]
-the type of standard error to be used to compute the Wald statistic.
-Can be \code{"information"}, \code{"robust"} or \code{"jackknife"}.}
+\item{type.information}{[character] the method used by \code{lava::information} to compute the information matrix.}
 
-\item{df}{[logical]
-should the degree of freedom be computed using the Satterthwaite approximation?
-Only relevant when the argument \code{statistic} is set to \code{"Wald"}.}
+\item{alpha}{[numeric 0-1] the significance cutoff for the p-values.
+When the p-value is below, the corresponding link will be added to the model
+and the search will continue. Otherwise the search will stop.}
 
-\item{bias.correct}{[logical] should the standard errors of the coefficients be corrected for small sample bias?
-Only relevant when the argument \code{statistic} is set to \code{"Wald"}.}
+\item{nStep}{the maximum number of links that can be added to the model.}
+
+\item{na.omit}{should tests leading to NA for the test statistic be ignored. Otherwise this will stop the selection process.}
 
 \item{trace}{[logical] should the execution of the function be traced?}
+
+\item{cpus}{the number of cpus that can be used for the computations.}
 }
 \value{
 A list containing:
@@ -55,9 +44,9 @@ A list containing:
 \item sequenceQuantile: the sequence of rejection threshold. Optional. 
 \item sequenceIID: the influence functions relative to each test. Optional. 
 \item sequenceSigma: the covariance matrix relative to each test. Optional. 
+\item initialModel: the model before the sequential search.
 \item statistic: the argument \code{statistic}.
 \item method.p.adjust: the argument \code{method.p.adjust}.
-\item typeSD: the argument \code{typeSD}.
 \item alpha: [numeric 0-1] the significance cutoff for the p-values.
 \item cv: whether the procedure has converged.
 }
@@ -66,63 +55,18 @@ A list containing:
 Procedure adding relationship between variables that are supported by the data.
 }
 \details{
-Argument \code{link}:
-\itemize{
-\item \code{lvmfit} object: when not specified all possible additional links are considered.
-\item other objects: this argument must be specified.
-}
+method.p.adjust = \code{"max"} computes the p-values based on the distribution of the max statistic.
+This max statistic is the max of the square root of the score statistic.
+The p-value are computed integrating the multivariate normal distribution.
 
-Argument \code{...} passed to \code{\link{findNewLink}}, see the documentation of this function:
-\itemize{
-\item exclude.var
-\item rm.latent_latent
-\item rm.endo_endo
-\item rm.latent_endo
-}
-
-Argument \code{...} passed to \code{\link{modelsearch2}}:
-\itemize{
-\item alpha: the significance threshold for retaining a new link.
-\item method.max: the method used to compute the distribution of the max statistic. See lava.options()$search.calcMaxDist.
-\item cpus: the number of cpus that can be used for the computations.
-\item nStep: the maximum number of links that can be added to the model.
-\item na.omit: should model leading to NA for the test statistic be ignored. Otherwise this will stop the selection process.
-}
+method.p.adjust = \code{"fastmax"} only compute the p-value for the largest statistic.
+It is faster than \code{"max"} and lead to identical results.
 }
 \examples{
 
-#### linear regression ####
-set.seed(10)
-mSim <- lvm(Y~X1+X2+X3+X4)
-addvar(mSim) <- ~Z1+Z2
-df.data <- lava::sim(mSim, n = 1e2)
-eLM <- lm(Y~X1, data = df.data)
-possible.link <- c("Y~X2","Y~X3","Y~X4","Y~Z1","Y~Z2")
-
-res <- modelsearch2(eLM, link = possible.link, data = df.data,
-             statistic = "LR", method.p.adjust = "holm")
-res <- modelsearch2(eLM, link = possible.link, data = df.data,
-             statistic = "Wald", method.p.adjust = "holm", nStep = 1)
-\dontrun{ 
-res <- modelsearch2(eLM, data = df.data, link = possible.link)
-}
-
-
-#### Cox model ####
-\dontrun{
-library(survival)
-data(Melanoma, package = "riskRegression")
-m <- coxph(Surv(time,status==1)~ici+age, data = Melanoma, x = TRUE, y = TRUE)
-
-res <- modelsearch2(m, link = c(status~epicel,status~sex),
-                    packages = "survival", nStep = 1)
-res
-}
-
-#### LVM ####
-\dontrun{
+## simulate data
 mSim <- lvm()
-regression(mSim) <- c(y1,y2,y3)~u
+regression(mSim) <- c(y1,y2,y3,y4)~u
 regression(mSim) <- u~x1+x2
 categorical(mSim,labels=c("A","B","C")) <- "x2"
 latent(mSim) <- ~u
@@ -130,22 +74,48 @@ covariance(mSim) <- y1~y2
 transform(mSim, Id~u) <- function(x){1:NROW(x)}
 df.data <- lava::sim(mSim, n = 1e2, latent = FALSE)
 
+## only identifiable extensions
+m <- lvm(c(y1,y2,y3,y4)~u)
+latent(m) <- ~u
+addvar(m) <- ~x1+x2
+
+e <- estimate(m, df.data)
+
+\dontrun{
+resSearch <- modelsearch(e)
+resSearch
+
+resSearch2 <- modelsearch2(e, nStep = 2)
+resSearch2
+}
+\dontshow{
+search.link <- c("u~x1","u~x2","y1~x1","y1~x2","y1~~y2","y1~~y3")
+resSearch2 <- modelsearch2(e, nStep = 2, link = search.link)
+resSearch2
+}
+
+## some extensions are not identifiable
 m <- lvm(c(y1,y2,y3)~u)
 latent(m) <- ~u
 addvar(m) <- ~x1+x2 
 
 e <- estimate(m, df.data)
 
-links <- c(u~x1,u~x2C,y3~x2C)
-resScore <- modelsearch2(e, statistic = "score", link = links, method.p.adjust = "holm")
-resLR <- modelsearch2(e, statistic = "LR", link = links, method.p.adjust = "holm", nStep = 1)
-resMax <- modelsearch2(e, rm.endo_endo = TRUE, statistic = "Wald", link = links, nStep = 1)
-resScore <- modelsearch2(e, statistic = "score", method.p.adjust = "holm")
-resLR <- modelsearch2(e, statistic = "LR", method.p.adjust = "holm")
-resMax <- modelsearch2(e, rm.endo_endo = TRUE, statistic = "Wald")
+\dontrun{
+resSearch <- modelsearch(e)
+resSearch
+resSearch2 <- modelsearch2(e)
+resSearch2
 }
 
+## for instance
+mNI <- lvm(c(y1,y2,y3)~u)
+latent(mNI) <- ~u
+covariance(mNI) <- y1~y2
+## estimate(mNI, data = df.data)
+## does not converge
+
+
+
 }
-\concept{
-modelsearch
-}
+\concept{modelsearch}

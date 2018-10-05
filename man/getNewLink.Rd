@@ -5,14 +5,12 @@
 \alias{getNewLink.modelsearch2}
 \title{Extract the Links that Have Been Found by the modelsearch2.}
 \usage{
-getNewLink(object, ...)
+getNewLink(object, step)
 
-\method{getNewLink}{modelsearch2}(object, step = 1:nStep(object), ...)
+\method{getNewLink}{modelsearch2}(object, step = 1:nStep(object))
 }
 \arguments{
 \item{object}{a \code{modelsearch2} object.}
-
-\item{...}{[internal] only used by the generic method.}
 
 \item{step}{[logical] which test should be extracted?}
 }
@@ -23,19 +21,19 @@ A character vector.
 Extract the links that have been found relevant by modelsearch2.
 }
 \examples{
+\dontrun{
 mSim <- lvm(Y~G+X1+X2)
 addvar(mSim) <- ~Z1+Z2+Z3+Z4+Z5+Z6
+
+set.seed(10)
 df.data <- lava::sim(mSim, 1e2)
 
 mBase <- lvm(Y~G)
 addvar(mBase) <- ~X1+X2+Z1+Z2+Z3+Z4+Z5+Z6
 e.lvm <- estimate(mBase, data = df.data)
-res <- modelsearch2(e.lvm, statistic = "score", method.p.adjust = "holm")
+res <- modelsearch2(e.lvm, method.p.adjust = "holm")
 getNewLink(res)
-
 }
-\concept{
-modelsearch
-
-extractor
 }
+\concept{extractor}
+\concept{modelsearch}

@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: jan 22 2018 (11:45) 
 ## Version: 
-## Last-Updated: maj  2 2018 (09:55) 
+## Last-Updated: sep 21 2018 (17:45) 
 ##           By: Brice Ozenne
-##     Update #: 18
+##     Update #: 22
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -40,34 +40,16 @@ test_that("Score 1 link",{
     GS.score <- modelsearch(e.base, silent = TRUE)
     index.coef <- which(GS.score$res[,"Index"]=="Y~X1")
 
-    test.score <- summary(modelsearch2(e.base, statistic = "score", method.p.adjust = "holm", trace = 0), print = FALSE)
+    test.score <- summary(modelsearch2(e.base, method.p.adjust = "holm", trace = 0), print = FALSE)
 
+    ## c("E", "hessian", "varS", "outer", "sandwich", "robust", "num"),   "outer"
     
-    expect_equivalent(GS.score$test[index.coef,"Test Statistic"],test.score$data[1,"statistic"])
-    expect_equivalent(GS.score$test[index.coef,"P-value"],test.score$data[1,"p.value"])
+    expect_equal(as.double(GS.score$test[index.coef,"Test Statistic"]),
+                 as.double(test.score$table[1,"statistic"]^2), tol = 1e-9)
+    expect_equal(as.double(GS.score$test[index.coef,"P-value"]),
+                 as.double(test.score$table[1,"p.value"]), tol = 1e-9)
 })
 
-test_that("Wald 1 link",{
-    ## no adjustement
-    e.GS <-  estimate(lvm(Y~E+X1), data = df.sim)
-    test.GS <- compare2(e.GS, par = "Y~X1" , bias.correct = FALSE, as.lava = FALSE)
-    
-    test.Wald <- summary(modelsearch2(e.base, link = "Y~X1", df = FALSE, bias.correct = FALSE,
-                                       statistic = "Wald", method.p.adjust = "max", trace = 0), print = FALSE)
-
-    expect_equivalent(abs(test.GS[1,"statistic"]), test.Wald$data[1,"statistic"])
-    expect_equal(test.GS[1,"p-value"], test.Wald$data[1,"p.value"], tolerance = 1e-5)
-
-    ## with adjustment
-    e.GS <-  estimate(lvm(Y~E+X1), data = df.sim)
-    test.GS <- compare2(e.GS, par  = "Y~X1", bias.correct = TRUE, as.lava = FALSE)
-    
-    test.Wald <- summary(modelsearch2(e.base, link = "Y~X1", df = TRUE, bias.correct = TRUE,
-                                       statistic = "Wald", method.p.adjust = "max", trace = 0), print = FALSE)
-
-    expect_equivalent(abs(test.GS[1,"statistic"]), test.Wald$data[1,"statistic"])
-    expect_equal(test.GS[1,"p-value"], test.Wald$data[1,"p.value"], tolerance = 1e-5)
-})
 
 ##----------------------------------------------------------------------
 ### test2-modelsearch2.R ends here

@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: mar 27 2018 (09:55) 
 ## Version: 
-## Last-Updated: jun 12 2018 (16:28) 
+## Last-Updated: aug  3 2018 (16:29) 
 ##           By: Brice Ozenne
-##     Update #: 15
+##     Update #: 21
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -173,8 +173,7 @@ getVarCov2.lvmfit <- function(object, ...){
         }else{
             Omega <- object$conditionalMoment$value$Sigma
         }
-        
-        message("uncorrected variance-covariance matrix \n")
+
         return(Omega)
     }
 }

@@ -12,8 +12,8 @@ calcDistMaxIntegral(statistic, iid, df, iid.previous = NULL,
   cpus = 1, cl = NULL, trace)
 
 calcDistMaxBootstrap(statistic, iid, iid.previous = NULL,
-  quantile.previous = NULL, method, alpha, cpus = 1, cl = NULL, n.sim,
-  trace, n.repmax = 100)
+  quantile.previous = NULL, method, alpha, cpus = 1, cl = NULL,
+  n.sim, trace, n.repmax = 100)
 }
 \arguments{
 \item{statistic}{[numeric vector] the observed Wald statistic.
@@ -81,10 +81,6 @@ statistic <- setNames(1:p,link)
 r1 <- calcDistMaxIntegral(statistic = statistic, iid = X.iid, 
             trace = FALSE, alpha = 0.05, df = 1e6) 
 
-r2 <- calcDistMaxBootstrap(statistic = statistic, iid = X.iid,
-            method = "naive",
-            trace = FALSE, alpha = 0.05, n.sim = n.sim)
-
 r3 <- calcDistMaxBootstrap(statistic = statistic, iid = X.iid,
             method = "residual",
             trace = FALSE, alpha = 0.05, n.sim = n.sim)
@@ -94,7 +90,6 @@ r4 <- calcDistMaxBootstrap(statistic = statistic, iid = X.iid,
             trace = FALSE, alpha = 0.05, n.sim = n.sim)
 
 rbind(integration = c(r1$p.adjust, quantile = r1$z),
-      bootNaive    = c(r2$p.adjust, quantile = r2$z),
       bootResidual = c(r3$p.adjust, quantile = r3$z),
       bootWild    = c(r4$p.adjust, quantile = r4$z))
 
@@ -108,10 +103,6 @@ r1c <- calcDistMaxIntegral(statistic = statistic, iid = X.iid,
             iid.previous = Z.iid, quantile.previous =  seqQuantile, 
             trace = FALSE, alpha = 0.05, df = NULL)
 
-r2c <- calcDistMaxBootstrap(statistic = statistic, iid = X.iid,
-            iid.previous = Z.iid, quantile.previous =  seqQuantile, method = "naive",
-            trace = FALSE, alpha = 0.05, n.sim = n.sim)
-
 r3c <- calcDistMaxBootstrap(statistic = statistic, iid = X.iid,
             iid.previous = Z.iid, quantile.previous =  seqQuantile, method = "residual",
             trace = FALSE, alpha = 0.05, n.sim = n.sim)
@@ -121,13 +112,9 @@ r4c <- calcDistMaxBootstrap(statistic = statistic, iid = X.iid,
             trace = FALSE, alpha = 0.05, n.sim = n.sim)
 
 rbind(integration = c(r1c$p.adjust, quantile = r1c$z),
-      bootNaive    = c(r2c$p.adjust, quantile = r2c$z),
       bootResidual = c(r3c$p.adjust, quantile = r3c$z),
       bootWild    = c(r4c$p.adjust, quantile = r4c$z))
 }
 }
-\concept{
-modelsearch
-
-post-selection inference
-}
+\concept{modelsearch}
+\concept{post-selection inference}

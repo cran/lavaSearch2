@@ -3,9 +3,9 @@
 ## author: Brice Ozenne
 ## created: okt 26 2017 (14:25) 
 ## Version: 
-## last-updated: mar 26 2018 (17:09) 
+## last-updated: aug  7 2018 (10:54) 
 ##           By: Brice Ozenne
-##     Update #: 37
+##     Update #: 38
 #----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -55,8 +55,8 @@ checkData.lvm <- function(object, data, trace = TRUE){
     data <- as.data.frame(data)
         
     ## ** check missing names
-    vars <- vars(object)
-    latent <- latent(object)    
+    vars <- lava::vars(object)
+    latent <- lava::latent(object)    
     missingVars <- vars[vars %in% names(data) == FALSE]
 
     if(length(latent) == 0){

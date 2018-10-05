@@ -3,9 +3,9 @@
 ## author: Brice Ozenne
 ## created: jun 21 2017 (16:44) 
 ## Version: 
-## last-updated: jul 17 2018 (09:27) 
+## last-updated: sep 21 2018 (16:24) 
 ##           By: Brice Ozenne
-##     Update #: 505
+##     Update #: 615
 #----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -23,11 +23,11 @@
 #' @param statistic [numeric vector] the observed Wald statistic.
 #' Each statistic correspond to a null hypothesis (i.e. a coefficient) that one wish to test.
 #' @param iid [matrix] zero-mean iid decomposition of the coefficient used to compute the statistic.
+#' @param df [numeric] the degree of freedom defining the multivariate Student's t distribution.
+#' If \code{NULL} the multivariate Gaussian distribution will be used instead.
 #' @param iid.previous [matrix, EXPERIMENTAL] zero-mean iid decomposition of previously tested coefficient.
 #' @param quantile.compute [logical] should the rejection quantile be computed?
 #' @param quantile.previous [numeric, EXPERIMENTAL] rejection quantiles of the previously tested hypotheses. If not \code{NULL} the values should correspond the variable in to the first column(s) of the argument \code{iid.previous}.
-#' @param df [numeric] the degree of freedom defining the multivariate Student's t distribution.
-#' If \code{NULL} the multivariate Gaussian distribution will be used instead.
 #' @param method [character] the method used to compute the p-values.
 #' See the output of \code{lava.options()$search.calcMaxDist} for the possible values.
 #' @param alpha [numeric 0-1] the significance cutoff for the p-values.
@@ -69,10 +69,6 @@
 #' r1 <- calcDistMaxIntegral(statistic = statistic, iid = X.iid, 
 #'             trace = FALSE, alpha = 0.05, df = 1e6) 
 #' 
-#' r2 <- calcDistMaxBootstrap(statistic = statistic, iid = X.iid,
-#'             method = "naive",
-#'             trace = FALSE, alpha = 0.05, n.sim = n.sim)
-#'
 #' r3 <- calcDistMaxBootstrap(statistic = statistic, iid = X.iid,
 #'             method = "residual",
 #'             trace = FALSE, alpha = 0.05, n.sim = n.sim)
@@ -82,7 +78,6 @@
 #'             trace = FALSE, alpha = 0.05, n.sim = n.sim)
 #' 
 #' rbind(integration = c(r1$p.adjust, quantile = r1$z),
-#'       bootNaive    = c(r2$p.adjust, quantile = r2$z),
 #'       bootResidual = c(r3$p.adjust, quantile = r3$z),
 #'       bootWild    = c(r4$p.adjust, quantile = r4$z))
 #'
@@ -96,10 +91,6 @@
 #'             iid.previous = Z.iid, quantile.previous =  seqQuantile, 
 #'             trace = FALSE, alpha = 0.05, df = NULL)
 #' 
-#' r2c <- calcDistMaxBootstrap(statistic = statistic, iid = X.iid,
-#'             iid.previous = Z.iid, quantile.previous =  seqQuantile, method = "naive",
-#'             trace = FALSE, alpha = 0.05, n.sim = n.sim)
-#' 
 #' r3c <- calcDistMaxBootstrap(statistic = statistic, iid = X.iid,
 #'             iid.previous = Z.iid, quantile.previous =  seqQuantile, method = "residual",
 #'             trace = FALSE, alpha = 0.05, n.sim = n.sim)
@@ -109,7 +100,6 @@
 #'             trace = FALSE, alpha = 0.05, n.sim = n.sim)
 #'
 #' rbind(integration = c(r1c$p.adjust, quantile = r1c$z),
-#'       bootNaive    = c(r2c$p.adjust, quantile = r2c$z),
 #'       bootResidual = c(r3c$p.adjust, quantile = r3c$z),
 #'       bootWild    = c(r4c$p.adjust, quantile = r4c$z))
 #' }
@@ -208,7 +198,7 @@ calcDistMaxIntegral <- function(statistic, iid, df,
         
         value <- NULL # [:for CRAN check] foreach
         out$p.adjust <- foreach::`%dopar%`(
-                                     foreach::foreach(value = 1:length(index.new),
+                                     foreach::foreach(value = 1:length(statistic),
                                                       .export = c(".calcPmaxIntegration"),
                                                       .combine = "c"),
                                      {
@@ -221,9 +211,9 @@ calcDistMaxIntegral <- function(statistic, iid, df,
     }else{
         ## *** sequential computations
         if(trace>0){      
-            out$p.adjust <- pbapply::pbsapply(index.new, warperP)            
+            out$p.adjust <- pbapply::pbsapply(1:length(statistic), function(iStat){ warperP(index.new[iStat]) })            
         }else{
-            out$p.adjust <- sapply(index.new, warperP)
+            out$p.adjust <- sapply(1:length(statistic), function(iStat){ warperP(index.new[iStat]) })
         }
                         
     }
@@ -329,7 +319,7 @@ calcDistMaxBootstrap <- function(statistic, iid, iid.previous = NULL, quantile.p
     out$correctedLevel <- NA
     return(out)
 }
-    
+
 ## * .calcQmaxIntegration: numerical integration to compute the critical threshold
 .calcQmaxIntegration <- function(alpha, p, Sigma, df, distribution){
 
@@ -393,9 +383,7 @@ calcDistMaxBootstrap <- function(statistic, iid, iid.previous = NULL, quantile.p
     while(iRep < n.repmax && cv == FALSE){
 
         ## ** resample to obtain a new influence function
-        if(method == "naive"){
-            iid.sim <- iid[sample.int(n, replace = TRUE),]
-        }else if(method == "residual"){
+        if(method == "residual"){
             iid.sim <- MASS::mvrnorm(n,rep(0,NCOL(sigma)),sigma)                    
         }else if(method == "wild"){
             e <- stats::rnorm(n,mean=0,sd=1)
@@ -424,7 +412,6 @@ calcDistMaxBootstrap <- function(statistic, iid, iid.previous = NULL, quantile.p
     }
     return(max(abs(Test)))
 }
-
 
 #----------------------------------------------------------------------
 ### calcDistMax.R ends here

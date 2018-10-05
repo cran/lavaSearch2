@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: feb  5 2018 (11:37) 
 ## Version: 
-## Last-Updated: mar 26 2018 (17:11) 
+## Last-Updated: okt  4 2018 (17:42) 
 ##           By: Brice Ozenne
-##     Update #: 24
+##     Update #: 32
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -104,7 +104,7 @@
 #' @rdname coefByType
 #' @export
 `coefCov` <-
-  function(object,...) UseMethod("coefCov")
+  function(object, value, keep.var, ...) UseMethod("coefCov")
 
 ## ** coefCov.lvm
 #' @rdname coefByType
@@ -133,7 +133,7 @@ coefCov.multigroup <- coefCov.lvm
 #' @rdname coefByType
 #' @export
 `coefExtra` <-
-  function(object,...) UseMethod("coefExtra")
+  function(object, value, ...) UseMethod("coefExtra")
 
 ## ** coefExtra.lvm
 #' @rdname coefByType
@@ -217,7 +217,7 @@ coefIndexModel.multigroupfit <- function(object, ...){
 #' @rdname coefByType
 #' @export
 `coefIntercept` <-
-  function(object,...) UseMethod("coefIntercept")
+  function(object, value, ...) UseMethod("coefIntercept")
 
 ## ** coefIntercept.lvm
 #' @rdname coefByType
@@ -245,7 +245,7 @@ coefIntercept.multigroup <- coefIntercept.lvm
 #' @rdname coefByType
 #' @export
 `coefRef` <-
-  function(object,...) UseMethod("coefRef")
+  function(object, value, ...) UseMethod("coefRef")
 
 ## ** coefRef.lvmfit
 #' @rdname coefByType
@@ -263,7 +263,7 @@ coefRef.lvmfit <- function(object, value = FALSE, ...){
 #' @rdname coefByType
 #' @export
 `coefReg` <-
-  function(object,...) UseMethod("coefReg")
+  function(object, value, ...) UseMethod("coefReg")
 
 ## ** coefReg.lvm
 #' @rdname coefByType
@@ -292,7 +292,7 @@ coefReg.multigroup <- coefReg.lvm
 #' @rdname coefByType
 #' @export
 `coefVar` <-
-  function(object,...) UseMethod("coefVar")
+  function(object, value, ...) UseMethod("coefVar")
 
 ## ** coefVar.lvm
 #' @rdname coefByType

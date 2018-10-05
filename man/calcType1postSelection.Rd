@@ -4,8 +4,8 @@
 \alias{calcType1postSelection}
 \title{Compute the Type 1 Error After Selection}
 \usage{
-calcType1postSelection(level, mu, Sigma, quantile.previous, distribution, df,
-  n = 10, correct = TRUE, ...)
+calcType1postSelection(level, mu, Sigma, quantile.previous, distribution,
+  df, n = 10, correct = TRUE, ...)
 }
 \arguments{
 \item{level}{[numeric 0-1] expected coverage.}
@@ -91,6 +91,4 @@ calcType1postSelection(levelC, quantile.previous = z2, distribution = "gaussian"
 \author{
 Brice Ozenne
 }
-\concept{
-post-selection inference
-}
+\concept{post-selection inference}

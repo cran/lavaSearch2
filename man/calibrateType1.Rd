@@ -6,14 +6,14 @@
 \alias{calibrateType1.lvmfit}
 \title{Simulation Study Assessing Bias and Type 1 Error}
 \usage{
-calibrateType1(object, ...)
+calibrateType1(object, null, n.rep, ...)
 
-\method{calibrateType1}{lvm}(object, null, n, n.rep, F.test = FALSE,
+\method{calibrateType1}{lvm}(object, null, n.rep, n, F.test = FALSE,
   cluster = NULL, generative.object = NULL, generative.coef = NULL,
-  true.coef = NULL, n.true = 1e+06, round.true = 2, bootstrap = FALSE,
-  n.bootstrap = 1000, checkType1 = FALSE, checkType2 = FALSE,
-  dir.save = NULL, label.file = NULL, seed = NULL, cpus = 1,
-  trace = 2, ...)
+  true.coef = NULL, n.true = 1e+06, round.true = 2,
+  bootstrap = FALSE, n.bootstrap = 1000, checkType1 = FALSE,
+  checkType2 = FALSE, dir.save = NULL, label.file = NULL,
+  seed = NULL, cpus = 1, trace = 2, ...)
 
 \method{calibrateType1}{lvmfit}(object, null, n.rep, F.test = FALSE,
   bootstrap = FALSE, n.bootstrap = 1000, seed = NULL, trace = 2,
@@ -22,13 +22,13 @@ calibrateType1(object, ...)
 \arguments{
 \item{object}{a \code{lvm} object defining the model to be fitted.}
 
-\item{...}{[internal] Only used by the generic method.}
-
 \item{null}{[character vector] names of the coefficient whose value will be tested against 0.}
 
-\item{n}{[integer vector, >0] sample size(s) considered in the simulation study.}
-
 \item{n.rep}{[integer, >0] number of simulations per sample size.}
+
+\item{...}{[internal] Only used by the generic method.}
+
+\item{n}{[integer vector, >0] sample size(s) considered in the simulation study.}
 
 \item{F.test}{[logical] should a multivariate Wald test be perform testing simultaneously all the null hypotheses?}
 

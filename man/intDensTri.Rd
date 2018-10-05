@@ -111,6 +111,4 @@ res2$grid
 }
 
 }
-\concept{
-post-selection inference
-}
+\concept{post-selection inference}

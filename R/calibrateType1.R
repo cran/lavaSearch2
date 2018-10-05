@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr  5 2018 (10:23) 
 ## Version: 
-## Last-Updated: maj 28 2018 (23:47) 
+## Last-Updated: okt  4 2018 (16:16) 
 ##           By: Brice Ozenne
-##     Update #: 518
+##     Update #: 520
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -84,12 +84,12 @@
 ##' 
 ##' @export
 `calibrateType1` <-
-  function(object, ...) UseMethod("calibrateType1")
+    function(object, null, n.rep, ...) UseMethod("calibrateType1")
 
 ## * calibrateType1.lvm
 ##' @rdname calibrateType1
 ##' @export
-calibrateType1.lvm <- function(object, null, n, n.rep, F.test = FALSE, cluster = NULL,
+calibrateType1.lvm <- function(object, null, n.rep, n, F.test = FALSE, cluster = NULL,
                                generative.object = NULL, generative.coef = NULL, 
                                true.coef = NULL, n.true = 1e6, round.true = 2,              
                                bootstrap = FALSE, n.bootstrap = 1e3,

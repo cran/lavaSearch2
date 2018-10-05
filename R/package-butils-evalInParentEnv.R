@@ -3,9 +3,9 @@
 ## author: Brice Ozenne
 ## created: okt  5 2017 (10:48) 
 ## Version: 
-## last-updated: feb  5 2018 (15:58) 
+## last-updated: sep 28 2018 (12:05) 
 ##           By: Brice Ozenne
-##     Update #: 11
+##     Update #: 12
 #----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -20,11 +20,10 @@
 #' @description Search an object in the parent environments. For internal use.
 #' 
 #' @param name [character] the name of the object to get.
-#' @param envir [environments] the environment from which to look for the object.
 #'
 #' @concept extractor
 #' @keywords internal
-evalInParentEnv <- function(name, envir){
+evalInParentEnv <- function(name){
   
   ### ** find parent environments
   frames <- sys.status()

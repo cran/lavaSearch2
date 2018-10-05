@@ -5,7 +5,6 @@
 \alias{lavaSearch2}
 \alias{lavaSearch2,}
 \alias{lavaSearch2-package}
-\alias{lavaSearch2-package}
 \title{Tools for Model Specification in the Latent Variable Framework}
 \description{
 The package contains three main functionalities:

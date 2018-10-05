@@ -55,7 +55,5 @@ defineCategoricalLink(m)
 }
 
 }
-\concept{
-setter
-}
+\concept{setter}
 \keyword{internal}
