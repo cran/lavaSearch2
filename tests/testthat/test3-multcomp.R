@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: nov 29 2017 (15:22) 
 ## Version: 
-## Last-Updated: maj 17 2018 (13:18) 
+## Last-Updated: nov  1 2018 (13:30) 
 ##           By: Brice Ozenne
-##     Update #: 114
+##     Update #: 115
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -74,7 +74,7 @@ test_that("glht vs. glht2 (list lm): information std", {
     expect_equivalent(e.glht$linfct,e.glht2$linfct[,name.mean])
 
     eS.glht <- summary(e.glht)
-    eS.glht2 <- summary(e.glht2, print = FALSE)
+    eS.glht2 <- summary(e.glht2)
 
     expect_equal(eS.glht$test$tstat, 1/sqrt(n/(n-2))*eS.glht2$test$tstat)
 })
@@ -94,7 +94,7 @@ test_that("glht vs. glht2 (list ml): robust std", {
     expect_equivalent(e.glht$linfct,e.glht2$linfct[,name.mean])
 
     eS.glht <- summary(e.glht)
-    eS.glht2 <- summary(e.glht2, print = FALSE)
+    eS.glht2 <- summary(e.glht2)
 
     expect_equal(eS.glht$test$tstat, eS.glht2$test$tstat)
     ## cannot compare p.values
@@ -189,7 +189,7 @@ test_that("glht vs. glht2 (list lvm): information std", {
     lvm2.sglht <- summary(lvm2.glht)    
 
     lvm3.glht <- glht2(mmm.lvm, linfct = resC$contrast,
-                       rhs = rnorm(10),
+                       rhs = rnorm(4),
                        bias.correct = FALSE, robust = FALSE)
     lvm3.sglht <- summary(lvm3.glht)    
 

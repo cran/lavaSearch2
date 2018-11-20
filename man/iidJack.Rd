@@ -55,11 +55,11 @@ colSums(iid2^2)
 colSums(iid1^2)
 
 #### Cox model ####
+\dontrun{
 library(survival)
 data(Melanoma, package = "riskRegression")
 m <- coxph(Surv(time,status==1)~ici+age, data = Melanoma, x = TRUE, y = TRUE)
 
-\dontrun{
 ## require riskRegression > 1.4.3
 if(utils::packageVersion("riskRegression") > "1.4.3"){
 library(riskRegression)
@@ -75,6 +75,7 @@ apply(iid2,2,sd)
 }
 
 #### LVM ####
+\dontrun{
 set.seed(10)
 
 mSim <- lvm(c(Y1,Y2,Y3,Y4,Y5) ~ 1*eta)
@@ -90,7 +91,7 @@ m1 <- lvm(c(Y1,Y2,Y3,Y4,Y5) ~ 1*eta)
 latent(m1) <- ~eta
 regression(m1) <- eta ~ G
 e <- estimate(m1, data = dW)
-\dontrun{
+
 iid1 <- iidJack(e)
 iid2 <- iid(e)
 attr(iid2, "bread") <- NULL
@@ -100,10 +101,12 @@ apply(iid2,2,sd)
 quantile(iid2 - iid1)
 }
 
+#### lme ####
+\dontrun{
 library(nlme)
 e2 <- lme(Y~G+time, random = ~1|Id, weights = varIdent(form =~ 1|Id), data = dL)
 e2 <- lme(Y~G, random = ~1|Id, data = dL)
-\dontrun{
+
 iid3 <- iidJack(e2)
 apply(iid3,2,sd)
 }

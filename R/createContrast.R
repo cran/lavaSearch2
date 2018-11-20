@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: jan 31 2018 (12:05) 
 ## Version: 
-## Last-Updated: sep 10 2018 (15:37) 
+## Last-Updated: nov 20 2018 (14:38) 
 ##           By: Brice Ozenne
-##     Update #: 234
+##     Update #: 235
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -60,9 +60,9 @@
 #' df.data <- lava::sim(mSim,n)
 #'
 #' ## Estimate separate models
-#' lmX <- estimate(lvm(X ~ -1 + Age + Treatment), data = df.data)
-#' lmY <- estimate(lvm(Y ~ -1 + Gender + Treatment), data = df.data)
-#' lvmZ <- estimate(lvm(c(Z1,Z2,Z3) ~ -1 + 1*eta, eta ~ -1 + Treatment), 
+#' lmX <- lava::estimate(lvm(X ~ -1 + Age + Treatment), data = df.data)
+#' lmY <- lava::estimate(lvm(Y ~ -1 + Gender + Treatment), data = df.data)
+#' lvmZ <- lava::estimate(lvm(c(Z1,Z2,Z3) ~ -1 + 1*eta, eta ~ -1 + Treatment), 
 #'                  data = df.data)
 #'
 #' ## Contrast matrix for a given model
@@ -76,10 +76,13 @@
 #' createContrast(ls.lvm, par = character(0), add.variance = FALSE)
 #'
 #' ## Contrast for multigroup models
-#' m <- lvm(Y~Age+Treatment)
-#' e <- estimate(list(m,m), data = split(df.data, df.data$Gender))
+#' \dontrun{
+#' m <- lava::lvm(Y~Age+Treatment)
+#' e <- lava::estimate(list(m,m), data = split(df.data, df.data$Gender))
+#' print(coef(e))
 #' createContrast(e, par = "1@Y~TreatmentSSRI - 2@Y~TreatmentSSRI = 0")
 #' createContrast(e, par = "2@Y~TreatmentSSRI - 1@Y~TreatmentSSRI = 0")
+#' }
 #' @concept small sample inference
 #' 
 #' @export

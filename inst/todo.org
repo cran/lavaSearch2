@@ -1,2 +1,1 @@
 * change argument null into rhs in compare2 - should match compare, glht, glht2
-* TODO in modelsearch, set adjusted p.value to NA when computed with fastmax

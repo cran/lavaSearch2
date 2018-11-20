@@ -14,8 +14,6 @@ Load *lavaSearch2* in the R session:
 library(lavaSearch2)
 #+END_SRC 
 
-#+RESULTS:
-
 * Inference
 ** Introductory example
 You may have noticed that for simple linear regression, the p-values
@@ -31,10 +29,22 @@ summary(lm(Y~X1+X2, data = df.data))$coef
 #+END_SRC
 
 #+RESULTS:
-:              Estimate Std. Error   t value    Pr(>|t|)
-: (Intercept) 0.7967775  0.2506767 3.1785069 0.005495832
-: X1          0.1550938  0.2205080 0.7033477 0.491360483
-: X2          0.4581556  0.2196785 2.0855736 0.052401103
+#+begin_example
+lava version 1.6.3
+Loading required package: ggplot2
+
+Attaching package: 'ggplot2'
+
+The following object is masked from 'package:lava':
+
+    vars
+
+lavaSearch2 version 1.4.1
+             Estimate Std. Error   t value    Pr(>|t|)
+(Intercept) 0.7967775  0.2506767 3.1785069 0.005495832
+X1          0.1550938  0.2205080 0.7033477 0.491360483
+X2          0.4581556  0.2196785 2.0855736 0.052401103
+#+end_example
 
 differ from those obtained with lava:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
@@ -194,7 +204,7 @@ system.time(
 
 #+RESULTS:
 :    user  system elapsed 
-:    0.24    0.00    0.24
+:    0.36    0.00    0.37
 
 In such a case one can pre-compute the main terms of the correction
 (e.g. the derivative of the variance-covariance matrix) once for all
@@ -214,6 +224,7 @@ slot of the object. It also adds the class =lvmfit2= to the object:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 class(e2)
 #+END_SRC
+
 #+RESULTS:
 : [1] "lvmfit2" "lvmfit"
 
@@ -242,7 +253,7 @@ system.time(
 
 #+RESULTS:
 :    user  system elapsed 
-:    0.10    0.00    0.09
+:    0.19    0.00    0.19
 
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 system.time(
@@ -252,7 +263,7 @@ system.time(
 
 #+RESULTS:
 :    user  system elapsed 
-:    0.08    0.00    0.08
+:    0.22    0.00    0.22
 
 ** Single multivariate Wald test
 
@@ -499,6 +510,7 @@ and estimate the coefficients of the model using =estimate=:
 e <- estimate(myModel, data = d)
 e
 #+END_SRC
+
 #+RESULTS:
 :                     Estimate Std. Error  Z-value  P-value
 : Regressions:                                             
@@ -521,6 +533,7 @@ mySimulation <- calibrateType1(e,
 #+END_SRC
 
 #+RESULTS:
+
 To save time we only make 50 simulations but much more are necessary
 to really assess the type 1 error rate. Then we can use the =summary=
 method to display the results:
@@ -582,6 +595,7 @@ resC$contrast
 e.glht <- multcomp::glht(e.lvm, linfct = resC$contrast, rhs = resC$null)
 summary(e.glht)
 #+END_SRC
+
 #+RESULTS:
 #+begin_example
 
@@ -657,6 +671,7 @@ Y~X6 == 0   0.3758     0.1447   2.597   0.0645 .
 Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 (Adjusted p values reported -- free method)
 #+end_example
+
 Indeed, here there is no relations between the hypotheses. See the
 book: "Multiple Comparisons Using R" by Frank Bretz, Torsten Hothorn,
 and Peter Westfall (2011, CRC Press) for details about the theory
@@ -897,7 +912,8 @@ indicates which links should be investigated by =modelsearch2=. This
 can be done via the argument =link=:
 
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
-modelsearch2(e.lvm, link = c("y1~~y2","y1~~y3","y2~~y3"), trace = FALSE)
+resRed <- modelsearch2(e.lvm, link = c("y1~~y2","y1~~y3","y2~~y3"), trace = FALSE)
+print(resRed)
 #+END_SRC
 
 #+RESULTS:
@@ -1006,7 +1022,7 @@ attached base packages:
 [1] stats     graphics  grDevices utils     datasets  methods   base     
 
 other attached packages:
-[1] lavaSearch2_1.4 ggplot2_3.0.0   lava_1.6.3     
+[1] lavaSearch2_1.4.1 ggplot2_3.0.0     lava_1.6.3       
 
 loaded via a namespace (and not attached):
  [1] Rcpp_0.12.19      pillar_1.3.0      compiler_3.5.1    plyr_1.8.4       
@@ -1014,12 +1030,12 @@ loaded via a namespace (and not attached):
  [9] lattice_0.20-35   pkgconfig_2.0.2   rlang_0.2.2       Matrix_1.2-14    
 [13] parallel_3.5.1    mvtnorm_1.0-8     bindrcpp_0.2.2    withr_2.1.2      
 [17] dplyr_0.7.6       stringr_1.3.1     grid_3.5.1        tidyselect_0.2.4 
-[21] glue_1.3.0        R6_2.2.2          survival_2.42-6   multcomp_1.4-8   
+[21] glue_1.3.0        R6_2.3.0          survival_2.42-6   multcomp_1.4-8   
 [25] TH.data_1.0-9     purrr_0.2.5       reshape2_1.4.3    magrittr_1.5     
 [29] scales_1.0.0      codetools_0.2-15  MASS_7.3-50       splines_3.5.1    
-[33] assertthat_0.2.0  colorspace_1.3-2  numDeriv_2016.8-1 sandwich_2.5-0   
-[37] stringi_1.2.4     lazyeval_0.2.1    munsell_0.5.0     crayon_1.3.4     
-[41] zoo_1.8-4
+[33] assertthat_0.2.0  colorspace_1.3-2  numDeriv_2016.8-1 labeling_0.3     
+[37] sandwich_2.5-0    stringi_1.2.4     lazyeval_0.2.1    munsell_0.5.0    
+[41] crayon_1.3.4      zoo_1.8-4
 #+end_example
 
 * CONFIG :noexport:

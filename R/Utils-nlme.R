@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: nov 15 2017 (17:29) 
 ## Version: 
-## Last-Updated: maj  3 2018 (09:51) 
+## Last-Updated: nov 11 2018 (14:25) 
 ##           By: Brice Ozenne
-##     Update #: 618
+##     Update #: 637
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -290,11 +290,11 @@
         norm <- FALSE
     }else if("NULL" %in% class.var && "corCompSymm" %in% class.cor){
         ## order of the variables does not matter
-        index.Omega <- attr(object$modelStruct$corStruct, "covariate")
+        index.Omega <- attr(object$modelStruct$corStruct, "covariate")[levels.cluster]
         norm <- TRUE
     }else if(length(varIndex.cor)!=0){ 
         ## order of the variables matters: use index variable in corStruct
-        index.Omega <- attr(object$modelStruct$corStruct, "covariate")
+        index.Omega <- attr(object$modelStruct$corStruct, "covariate")[levels.cluster]
         norm <- TRUE
     }else if(length(varIndex.var)!=0){
         ## order of the variables matters: using index variable in varStruct

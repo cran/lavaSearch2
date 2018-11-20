@@ -3,9 +3,9 @@
 ## author: Brice Ozenne
 ## created: jun 21 2017 (16:44) 
 ## Version: 
-## last-updated: sep 21 2018 (16:24) 
+## last-updated: nov  2 2018 (14:41) 
 ##           By: Brice Ozenne
-##     Update #: 615
+##     Update #: 627
 #----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -200,7 +200,7 @@ calcDistMaxIntegral <- function(statistic, iid, df,
         out$p.adjust <- foreach::`%dopar%`(
                                      foreach::foreach(value = 1:length(statistic),
                                                       .export = c(".calcPmaxIntegration"),
-                                                      .combine = "c"),
+                                                      .combine = "list"),
                                      {
                                          if(trace>0){utils::setTxtProgressBar(pb, value)}
                                          return(warperP(index.new[value]))
@@ -211,13 +211,14 @@ calcDistMaxIntegral <- function(statistic, iid, df,
     }else{
         ## *** sequential computations
         if(trace>0){      
-            out$p.adjust <- pbapply::pbsapply(1:length(statistic), function(iStat){ warperP(index.new[iStat]) })            
+            out$p.adjust <- pbapply::pblapply(1:length(statistic), function(iStat){ warperP(index.new[iStat]) })            
         }else{
-            out$p.adjust <- sapply(1:length(statistic), function(iStat){ warperP(index.new[iStat]) })
+            out$p.adjust <- lapply(1:length(statistic), function(iStat){ warperP(index.new[iStat]) })
         }
                         
     }
-    out$p.adjust <- stats::setNames(out$p.adjust, names(statistic))
+    out$error <- stats::setNames(unlist(lapply(out$p.adjust, function(x){attr(x,"error")})), names(statistic))
+    out$p.adjust <- stats::setNames(unlist(out$p.adjust), names(statistic))
 
     ## ** end parallel computation
     if(init.cpus){
@@ -310,7 +311,7 @@ calcDistMaxBootstrap <- function(statistic, iid, iid.previous = NULL, quantile.p
     if(init.cpus){
         parallel::stopCluster(cl)
     }
-    
+
     ## ** export
     out <- list()
     out$z <- stats::quantile(distMax, probs = 1-alpha, na.rm = TRUE)
@@ -353,20 +354,20 @@ calcDistMaxBootstrap <- function(statistic, iid, iid.previous = NULL, quantile.p
     if(!is.na(value)){
         if(distribution == "gaussian"){
             if(p==1){
-                p <- stats::pnorm(value, mean = 0, sd = Sigma)-stats::pnorm(-value, mean = 0, sd = Sigma)
-            }else{                
-                p <- mvtnorm::pmvnorm(lower = -value, upper = value,
-                                      mean = rep(0, p), corr = Sigma)
+                out <- stats::pnorm(value, mean = 0, sd = Sigma)-stats::pnorm(-value, mean = 0, sd = Sigma)
+            }else{      
+                out <- mvtnorm::pmvnorm(lower = -value, upper = value,
+                                        mean = rep(0, p), corr = Sigma)
             }
         }else if(distribution == "student"){
             if(p==1){
-                p <- stats::pt(value, df = df)-stats::pt(-value, df = df)
+                out <- stats::pt(value, df = df)-stats::pt(-value, df = df)
             }else{
-                p <- mvtnorm::pmvt(lower = -value, upper = value,
+                out <- mvtnorm::pmvt(lower = -value, upper = value,
                                    delta = rep(0, p), corr = Sigma, df = df)
             }
         }
-        return(1-p)
+        return(1-out)
     }else{
         return(NA)
     }   

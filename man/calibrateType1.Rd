@@ -76,6 +76,7 @@ to assess the bias of the estimate
 and the type 1 error of the Wald test and robust Wald test
 }
 \examples{
+\dontrun{
 #### simulate data ####
 m.Sim <- lvm(c(Y1[mu1:sigma]~1*eta,
                Y2[mu2:sigma]~1*eta,
@@ -93,14 +94,10 @@ m <- lvm(Y1~eta,
          Y3~eta,
          eta~Group+Gender)
 e <- lava::estimate(m, data = d)
-\dontshow{
-res <- calibrateType1(e, null = "eta~Group", n.rep = 10)
-}
-\dontrun{
 res <- calibrateType1(e, null = "eta~Group", n.rep = 100)
 res <- calibrateType1(e, null = "eta~Group", n.rep = 100, cpus = 4)
-}
 summary(res)
+}
 
 }
 \seealso{

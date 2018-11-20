@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr  5 2018 (10:23) 
 ## Version: 
-## Last-Updated: okt  4 2018 (16:16) 
+## Last-Updated: okt 23 2018 (13:52) 
 ##           By: Brice Ozenne
-##     Update #: 520
+##     Update #: 521
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -56,6 +56,7 @@
 ##' @author Brice Ozenne
 ##'
 ##' @examples
+##' \dontrun{
 ##' #### simulate data ####
 ##' m.Sim <- lvm(c(Y1[mu1:sigma]~1*eta,
 ##'                Y2[mu2:sigma]~1*eta,
@@ -73,14 +74,10 @@
 ##'          Y3~eta,
 ##'          eta~Group+Gender)
 ##' e <- lava::estimate(m, data = d)
-##' \dontshow{
-##' res <- calibrateType1(e, null = "eta~Group", n.rep = 10)
-##' }
-##' \dontrun{
 ##' res <- calibrateType1(e, null = "eta~Group", n.rep = 100)
 ##' res <- calibrateType1(e, null = "eta~Group", n.rep = 100, cpus = 4)
-##' }
 ##' summary(res)
+##' }
 ##' 
 ##' @export
 `calibrateType1` <-

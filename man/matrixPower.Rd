@@ -25,8 +25,6 @@ A matrix.
 Compute the power of a matrix.
 }
 \examples{
-matrixPower <- lavaSearch2:::matrixPower
-
 ## symmetric matrix
 set.seed(10)
 M <- matrix(rnorm(20*6),20,6)
@@ -52,4 +50,3 @@ iM.half <- matrixPower(M, power = -1/2, symmetric = FALSE)
 round(iM.half \%*\% iM.half \%*\% M,5)
 
 }
-\keyword{internal}

@@ -3,9 +3,9 @@
 ## author: Brice Ozenne
 ## created: okt 23 2017 (16:52) 
 ## Version: 
-## last-updated: sep 28 2018 (11:01) 
+## last-updated: nov  2 2018 (15:00) 
 ##           By: Brice Ozenne
-##     Update #: 56
+##     Update #: 59
 #----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -15,8 +15,10 @@
 ## 
 ### Code:
 
+## * matrixPower (documentation)
 ##' @title Power of a Matrix
 ##' @description Compute the power of a matrix.
+##' @name matrixPower
 ##' 
 ##' @param object a matrix.
 ##' @param power [numeric] power to be applied to the matrix.
@@ -25,10 +27,10 @@
 ##' @param print.warning [logical] should a warning be print when some or the eigenvalues are not strictly positive.
 ##' 
 ##' @return A matrix.
-##' 
+
+## * matrixPower (example)
+##' @rdname matrixPower
 ##' @examples
-##' matrixPower <- lavaSearch2:::matrixPower
-##'
 ##' ## symmetric matrix
 ##' set.seed(10)
 ##' M <- matrix(rnorm(20*6),20,6)
@@ -53,7 +55,10 @@
 ##' iM.half <- matrixPower(M, power = -1/2, symmetric = FALSE)
 ##' round(iM.half %*% iM.half %*% M,5)
 ##' 
-##' @keywords internal
+
+## * matrixPower (code)
+##' @rdname matrixPower
+##' @export
 matrixPower <- function(object, power, symmetric, tol = 1e-12, print.warning = TRUE){
     object.eigen <- eigen(object, symmetric = symmetric)
 

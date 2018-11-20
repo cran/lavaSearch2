@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: jan  3 2018 (14:29) 
 ## Version: 
-## Last-Updated: okt  4 2018 (16:17) 
+## Last-Updated: nov 11 2018 (14:32) 
 ##           By: Brice Ozenne
-##     Update #: 1276
+##     Update #: 1350
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -217,6 +217,10 @@ sCorrect.gls <- function(object, adjust.Omega = TRUE, adjust.n = TRUE,
     if(is.null(data)){
         data <- extractData(object, design.matrix = FALSE, as.data.frame = TRUE,
                             envir = parent.env(environment()))
+        
+        if(length(object$na.action)>0){ ## remove rows corresponding to missing values
+            data <- data[setdiff(1:NROW(data),object$na.action),,drop=FALSE]
+        }
     }
     
     ## *** endogenous variable
@@ -248,6 +252,14 @@ sCorrect.gls <- function(object, adjust.Omega = TRUE, adjust.n = TRUE,
                                 cluster = cluster)
     n.cluster <- res.cluster$n.cluster
     cluster <- res.cluster$cluster
+    if(length(cluster) != NROW(data)){
+        if(length(object$na.action)>0){
+            stop("Number of rows of \'data\' does not match length of cluster \n",
+                 "Consider removing the rows of \'data\' containing NA before fitting the model \n")
+        }else{
+            stop("Number of rows of data does not match length of cluster \n")
+        }
+    }
     if(trace>0){
         cat("- done \n")
     }
@@ -283,25 +295,26 @@ sCorrect.gls <- function(object, adjust.Omega = TRUE, adjust.n = TRUE,
     if(trace>0){
         cat("- done \n")
     }
-  
+    
     ## *** sort data by group
     vec.endogenous <- rep(NA, length(cluster))
-    for(iC in 1:n.cluster){
-        vec.endogenous[cluster==iC] <- index.Omega[[res.cluster$levels.cluster[iC]]]
+    for(iC in 1:n.cluster){ ## iC <- 1        
+        ## vec.endogenous[cluster==res.cluster$levels.cluster[iC]] <- index.Omega[[res.cluster$levels.cluster[iC]]]
+        vec.endogenous[cluster==iC] <- index.Omega[[iC]]
     }
     order.obs <- order(cluster,vec.endogenous)
     if(is.unsorted(order.obs)==TRUE){
+        test.reorder <- TRUE
         data <- data[order.obs,,drop=FALSE]
+
         cluster <- cluster[order.obs]
         vec.endogenous <- vec.endogenous[order.obs]
-    }
-    test.reorder <- is.unsorted(res.cluster$levels.cluster)
-    if(test.reorder==TRUE){
-        index.Omega <- index.Omega[res.cluster$levels.cluster]
+        res.cluster$levels.cluster <- unique(cluster)        
+    }else{
+        test.reorder <- FALSE
     }
     ## for vector format to matrix format (for residuals and fitted values)
     vec.OmegaMat <- cluster + (vec.endogenous-1)*n.cluster
-    
     ## M.check <- matrix(NA, nrow = n.cluster, ncol = n.endogenous)
     ## M.check[vec.endogenous + (cluster-1)*n.endogenous] <- data[["G"]]
     ## M.check[cluster + (vec.endogenous-1)*n.cluster] <- data[["G"]]
@@ -374,9 +387,10 @@ sCorrect.gls <- function(object, adjust.Omega = TRUE, adjust.n = TRUE,
     ## ** export
     ## *** restaure original order
     if(test.reorder==TRUE){
-        out$score <- out$score[res.cluster$levels.cluster,,drop=FALSE]
-        out$residuals <- out$residuals[res.cluster$levels.cluster,,drop=FALSE]
-        out$leverage <- out$leverage[res.cluster$levels.cluster,,drop=FALSE]
+        restaure.order <- order(order.obs[!duplicated(cluster)])
+        out$score <- out$score[restaure.order,,drop=FALSE]
+        out$residuals <- out$residuals[restaure.order,,drop=FALSE]
+        out$leverage <- out$leverage[restaure.order,,drop=FALSE]
     }    
     ##
     return(out)          
