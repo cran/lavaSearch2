@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: feb 19 2018 (17:58) 
 ## Version: 
-## Last-Updated: mar 26 2018 (17:11) 
+## Last-Updated: feb 11 2019 (13:26) 
 ##           By: Brice Ozenne
-##     Update #: 35
+##     Update #: 36
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -68,8 +68,7 @@
 #' @export
 leverage2.lm <- function(object, param = NULL, data = NULL, ...){
 
-    sCorrect(object, param = param, data = data,
-             score = FALSE, df = FALSE, ...) <- TRUE
+    sCorrect(object, param = param, data = data, df = FALSE, ...) <- TRUE
 
     ### ** export
     return(object$sCorrect$leverage)
@@ -98,7 +97,6 @@ leverage2.lm2 <- function(object, param = NULL, data = NULL, ...){
     if(!is.null(param) || !is.null(data)){
         args <- object$sCorrect$args
         args$df <- FALSE
-        args$score <- FALSE
         object$sCorrect <- do.call(sCorrect,
                                    args = c(list(object, param = param, data = data),
                                             args))

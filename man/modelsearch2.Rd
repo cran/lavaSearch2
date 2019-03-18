@@ -20,7 +20,8 @@ modelsearch2(object, link, data, method.p.adjust, type.information, alpha,
 \item{data}{[data.frame, optional] the dataset used to identify the model}
 
 \item{method.p.adjust}{[character] the method used to adjust the p.values for multiple comparisons.
-Can be any method that is valid for the \code{stats::p.adjust} function (e.g. \code{"fdr"}), or \code{"max"} or \code{"fastmax"}.}
+Can be any method that is valid for the \code{stats::p.adjust} function (e.g. \code{"fdr"}).
+Can also be \code{"max"}, \code{"fastmax"}, or \code{"gof"}.}
 
 \item{type.information}{[character] the method used by \code{lava::information} to compute the information matrix.}
 
@@ -61,6 +62,8 @@ The p-value are computed integrating the multivariate normal distribution.
 
 method.p.adjust = \code{"fastmax"} only compute the p-value for the largest statistic.
 It is faster than \code{"max"} and lead to identical results.
+
+method.p.adjust = \code{"gof"} keep adding links until the chi-squared test (of correct specification of the covariance matrix) is no longer significant.
 }
 \examples{
 

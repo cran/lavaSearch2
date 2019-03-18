@@ -3,9 +3,9 @@
 ## author: Brice Ozenne
 ## created: okt 27 2017 (16:59) 
 ## Version: 
-## last-updated: apr  4 2018 (09:52) 
+## last-updated: feb  8 2019 (11:47) 
 ##           By: Brice Ozenne
-##     Update #: 1132
+##     Update #: 1139
 #----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -302,7 +302,7 @@ conditionalMoment.lvm <- function(object, data,
         stop("Cannot pre-compute quantities for the second order derivatives ",
              "without those for the first order derivatives \n")
     }
-    
+
 ### ** Initialize conditional moments   
     Moment <- skeleton(object,
                        name.endogenous = name.endogenous, 
@@ -374,6 +374,7 @@ conditionalMoment.lvmfit <- function(object, data, param,
         object$conditionalMoment$value <- skeleton(object, data = data, param = param,
                                                    name.endogenous = name.endogenous, 
                                                    name.latent = name.latent)
+
         if(object$conditionalMoment$skeleton$toUpdate["param"]){
             object$conditionalMoment$param <- coef(object)
         }
@@ -389,7 +390,7 @@ conditionalMoment.lvmfit <- function(object, data, param,
         }
         
         ## *** first order derivatives
-        if(first.order){
+        if(first.order){            
             out <- skeletonDtheta(object,
                                   name.endogenous = name.endogenous, 
                                   name.latent = name.latent)

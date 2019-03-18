@@ -3,9 +3,9 @@
 ## author: Brice Ozenne
 ## created: sep 22 2017 (16:43) 
 ## Version: 
-## last-updated: okt  4 2018 (17:40) 
+## last-updated: feb 18 2019 (09:33) 
 ##           By: Brice Ozenne
-##     Update #: 213
+##     Update #: 216
 #----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -234,6 +234,7 @@ getNewModel.modelsearch2 <- function(object, step = nStep(object)){
 #' @param object a \code{modelsearch2} object.
 #' @param param [character vector] the name of the coefficient(s) to be displayed.
 #' @param ci [logical] should the confidence intervals of the coefficient(s) be displayed.
+#' @param conf.level [numeric, 0-1] confidence level of the interval.
 #' @param step [integer >0] the steps at which the coefficient value should be displayed.
 #' @param plot [logical] should the graph be displayed?
 #' @param add.0 [logical] should an horizontal line representing no effect be displayed?
@@ -267,7 +268,7 @@ getNewModel.modelsearch2 <- function(object, step = nStep(object)){
 #' @rdname autoplot.modelsearch2
 #' @method autoplot modelsearch2
 #' @export
-autoplot.modelsearch2 <- function(object, param, ci = TRUE, step = 0:nStep(object),
+autoplot.modelsearch2 <- function(object, param, ci = TRUE, step = 0:nStep(object), conf.level = 0.95,
                                   plot = TRUE, add.0 = TRUE, ...){
 
     ## ** check arguments
@@ -287,13 +288,11 @@ autoplot.modelsearch2 <- function(object, param, ci = TRUE, step = 0:nStep(objec
 
     ## ** get data
     n.points <- length(step)
-    alpha <- object$alpha
-    level <- 1-alpha
     df.plot <- NULL
-    
+
     for(iStep in 1:length(step)){
         iModel <- getNewModel(object, step = step[iStep])
-        iCoef <- unname(cbind(coef(iModel)[param],stats::confint(iModel, level = level)[param,,drop=FALSE]))
+        iCoef <- unname(cbind(coef(iModel)[param],stats::confint(iModel, level = conf.level)[param,,drop=FALSE]))
         colnames(iCoef) <- c("estimate", "ci.inf", "ci.sup")
         df.plot  <- rbind(df.plot,
                           data.frame(step = step[iStep], param  = param, iCoef)
@@ -309,7 +308,7 @@ autoplot.modelsearch2 <- function(object, param, ci = TRUE, step = 0:nStep(objec
     gg <- gg + ggplot2::facet_wrap(~param)
     if(ci){
         gg <- gg + ggplot2::geom_errorbar(aes_string(ymin = "ci.inf", ymax = "ci.sup"))        
-        gg <- gg + ggplot2::ylab(paste0("estimate [",round(level*100,2),"% confidence interval]"))
+        gg <- gg + ggplot2::ylab(paste0("estimate [",round(conf.level*100,2),"% confidence interval]"))
     }
     if(plot){
         print(gg)

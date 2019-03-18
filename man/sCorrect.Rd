@@ -21,34 +21,30 @@
 \alias{sCorrect<-.lvmfit2}
 \title{Satterthwaite Correction and Small Sample Correction}
 \usage{
-sCorrect(object, adjust.Omega, adjust.n, score, df, numeric.derivative,
-  param, data, tol, n.iter, trace, ...)
+sCorrect(object, adjust.Omega, adjust.n, df, numeric.derivative, param,
+  data, tol, n.iter, trace, ...)
 
 \method{sCorrect}{lm}(object, adjust.Omega = TRUE, adjust.n = TRUE,
-  score = TRUE, df = TRUE, numeric.derivative = FALSE,
-  param = NULL, data = NULL, tol = 1e-05, n.iter = 20, trace = 0,
-  ...)
+  df = TRUE, numeric.derivative = FALSE, param = NULL, data = NULL,
+  tol = 1e-05, n.iter = 20, trace = 0, ...)
 
 \method{sCorrect}{lm2}(object, ...)
 
 \method{sCorrect}{gls}(object, adjust.Omega = TRUE, adjust.n = TRUE,
-  score = TRUE, df = TRUE, numeric.derivative = FALSE,
-  param = NULL, data = NULL, tol = 1e-05, n.iter = 20, trace = 0,
-  cluster, ...)
+  df = TRUE, numeric.derivative = FALSE, param = NULL, data = NULL,
+  tol = 1e-05, n.iter = 20, trace = 0, cluster, ...)
 
 \method{sCorrect}{gls2}(object, ...)
 
 \method{sCorrect}{lme}(object, adjust.Omega = TRUE, adjust.n = TRUE,
-  score = TRUE, df = TRUE, numeric.derivative = FALSE,
-  param = NULL, data = NULL, tol = 1e-05, n.iter = 20, trace = 0,
-  cluster, ...)
+  df = TRUE, numeric.derivative = FALSE, param = NULL, data = NULL,
+  tol = 1e-05, n.iter = 20, trace = 0, cluster, ...)
 
 \method{sCorrect}{lme2}(object, ...)
 
 \method{sCorrect}{lvmfit}(object, adjust.Omega = TRUE, adjust.n = TRUE,
-  score = TRUE, df = TRUE, numeric.derivative = FALSE,
-  param = NULL, data = NULL, tol = 1e-05, n.iter = 20, trace = 0,
-  ...)
+  df = TRUE, numeric.derivative = FALSE, param = NULL, data = NULL,
+  tol = 1e-05, n.iter = 20, trace = 0, ...)
 
 \method{sCorrect}{lvmfit2}(object, ...)
 
@@ -76,8 +72,6 @@ sCorrect(x, ...) <- value
 \item{adjust.Omega}{[logical] should the standard errors of the coefficients be corrected for small sample bias?}
 
 \item{adjust.n}{[logical] should the correction for the degree of freedom be performed?}
-
-\item{score}{[internal] export the score.}
 
 \item{df}{[logical] should the degree of freedoms of the Wald statistic be computed using the Satterthwaite correction?
 Otherwise the degree of freedoms are set to \code{Inf}, i.e. a normal distribution is used instead of a Student's t distribution when computing the p-values.}

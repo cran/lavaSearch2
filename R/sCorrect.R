@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: jan  3 2018 (14:29) 
 ## Version: 
-## Last-Updated: nov 11 2018 (14:32) 
+## Last-Updated: feb 11 2019 (16:55) 
 ##           By: Brice Ozenne
-##     Update #: 1350
+##     Update #: 1526
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -36,7 +36,6 @@
 #' @param numeric.derivative [logical] should a numerical derivative be used to compute the first derivative of the information matrix?
 #' Otherwise an analytic formula is used.
 #' @param trace [logical] should the execution of the function be traced.
-#' @param score [internal] export the score.
 #' @param ... [internal] only used by the generic method or by the <- methods.
 #'
 #' @details The argument \code{value} is equivalent to the argument \code{bias.correct} of the function \code{summary2}.
@@ -74,7 +73,7 @@
 #' @export
 `sCorrect` <-
     function(object, adjust.Omega, adjust.n,
-             score, df, numeric.derivative,
+             df, numeric.derivative,
              param, data,
              tol, n.iter, trace, ...) UseMethod("sCorrect")
 
@@ -83,7 +82,7 @@
 #' @rdname sCorrect
 #' @export
 sCorrect.lm <- function(object, adjust.Omega = TRUE, adjust.n = TRUE,
-                        score = TRUE, df = TRUE, numeric.derivative = FALSE,
+                        df = TRUE, numeric.derivative = FALSE,
                         param = NULL, data = NULL,
                         tol = 1e-5, n.iter = 20, trace = 0, ...){
     
@@ -175,7 +174,6 @@ sCorrect.lm <- function(object, adjust.Omega = TRUE, adjust.n = TRUE,
                      name.endogenous = name.endogenous,
                      n.cluster = n.cluster,
                      index.Omega = NULL,
-                     score = score,
                      derivative = derivative,
                      args = args,
                      argsNumDeriv = argsNumDeriv,
@@ -197,7 +195,7 @@ sCorrect.lm2 <- function(object, ...){
 #' @rdname sCorrect
 #' @export
 sCorrect.gls <- function(object, adjust.Omega = TRUE, adjust.n = TRUE,
-                         score = TRUE, df = TRUE, numeric.derivative = FALSE, 
+                         df = TRUE, numeric.derivative = FALSE, 
                          param = NULL, data = NULL,
                          tol = 1e-5, n.iter = 20, trace = 0,
                          cluster, ...){
@@ -377,7 +375,6 @@ sCorrect.gls <- function(object, adjust.Omega = TRUE, adjust.n = TRUE,
                      name.endogenous = name.endogenous,
                      n.cluster = n.cluster,
                      index.Omega = index.Omega,
-                     score = score,
                      derivative = derivative,
                      args = args,
                      argsNumDeriv = argsNumDeriv,
@@ -420,7 +417,7 @@ sCorrect.lme2 <- function(object, ...){
 #' @rdname sCorrect
 #' @export
 sCorrect.lvmfit <- function(object, adjust.Omega = TRUE, adjust.n = TRUE,
-                            score = TRUE, df = TRUE, numeric.derivative = FALSE, 
+                            df = TRUE, numeric.derivative = FALSE, 
                             param = NULL, data = NULL,
                             tol = 1e-5, n.iter = 20, trace = 0,
                             ...){
@@ -432,7 +429,10 @@ sCorrect.lvmfit <- function(object, adjust.Omega = TRUE, adjust.n = TRUE,
     ## if(!is.null(object$cluster)){
     ##     stop("sCorrect does not handle lvmfit object with cluster \n")
     ## }
-   
+    if(!is.logical(numeric.derivative)){
+        stop("Argument \'numeric.derivative\' must be logical \n")
+    }
+    
     if(length(object$model$attributes$ordinal)>0){
         name.t <- names(object$model$attributes$ordinal)
         stop("sCorrect does not handle ordinal variables \n",
@@ -487,6 +487,7 @@ sCorrect.lvmfit <- function(object, adjust.Omega = TRUE, adjust.n = TRUE,
     }
     object$conditionalMoment <- conditionalMoment(object, data = data, param = model.param,
                                                   first.order = TRUE, second.order = FALSE, usefit = TRUE)
+
     if(df == TRUE && (numeric.derivative == FALSE)){
         object$conditionalMoment$d2Moment.init <- skeletonDtheta2(lava::Model(object),
                                                                   data = data,
@@ -502,6 +503,7 @@ sCorrect.lvmfit <- function(object, adjust.Omega = TRUE, adjust.n = TRUE,
     if(trace>0){
         cat("* Extract residuals ")
     }
+    ## predict(object) - object$conditionalMoment$mu
     epsilon <- as.matrix(data[, name.endogenous,drop=FALSE] - object$conditionalMoment$mu)
     ## residuals(object) - epsilon
     if(trace>0){
@@ -549,7 +551,6 @@ sCorrect.lvmfit <- function(object, adjust.Omega = TRUE, adjust.n = TRUE,
                      name.endogenous = name.endogenous,
                      n.cluster = n.cluster,
                      index.Omega = index.Omega,
-                     score = score,
                      derivative = derivative,
                      args = args,
                      argsNumDeriv = argsNumDeriv,
@@ -571,7 +572,7 @@ sCorrect.lvmfit2 <- function(object, ...){
 .sCorrect <- function(object, param, epsilon, 
                       name.param, name.endogenous, 
                       n.cluster, index.Omega,
-                      score, derivative, args, argsNumDeriv, trace){
+                      derivative, args, argsNumDeriv, trace){
 
     n.param <- length(param)
     if(!is.null(index.Omega)){
@@ -617,8 +618,7 @@ sCorrect.lvmfit2 <- function(object, ...){
                           adjust.n = args$adjust.n,
                           tol = args$tol, n.iter = args$n.iter,
                           trace = trace)
-
-    Omega <- object$conditionalMoment$Omega    
+    Omega <- object$conditionalMoment$Omega
     if(!is.null(index.Omega)){
         OmegaM1 <- lapply(1:n.cluster, function(iC){
             return(solve(Omega[index.Omega[[iC]],index.Omega[[iC]]]))
@@ -628,31 +628,30 @@ sCorrect.lvmfit2 <- function(object, ...){
     }
     
     ## ** corrected score
-    if(score){
-        if(trace>0){
-            if(args$adjust.n == FALSE && args$adjust.Omega == FALSE){
-                cat("* Compute score ")
-            }else{
-                cat("* Compute corrected score ")
-            }
-        }
-        object$dVcov$score <- .score2(epsilon = object$dVcov$residuals,
-                                      Omega = Omega,
-                                      OmegaM1 = OmegaM1,
-                                      dmu = object$conditionalMoment$dmu,
-                                      dOmega = object$conditionalMoment$dOmega,
-                                      name.param = name.param,
-                                      name.meanparam = name.meanparam,
-                                      name.varparam = name.varparam,
-                                      index.Omega = index.Omega, ## mode2
-                                      n.cluster = n.cluster,
-                                      indiv = TRUE)
-        if(trace>0){
-            cat("- done \n")
+    if(trace>0){
+        if(args$adjust.n == FALSE && args$adjust.Omega == FALSE){
+            cat("* Compute score ")
+        }else{
+            cat("* Compute corrected score ")
         }
     }
+    object$dVcov$score <- .score2(epsilon = object$dVcov$residuals,
+                                  Omega = Omega,
+                                  OmegaM1 = OmegaM1,
+                                  dmu = object$conditionalMoment$dmu,
+                                  dOmega = object$conditionalMoment$dOmega,
+                                  name.param = name.param,
+                                  name.meanparam = name.meanparam,
+                                  name.varparam = name.varparam,
+                                  index.Omega = index.Omega, ## mode2
+                                  n.cluster = n.cluster,
+                                  indiv = TRUE)
+    if(trace>0){
+        cat("- done \n")
+    }
 
-    ## ** first derivative of the expected information matrix    
+
+    ## ** Hessian and first derivative of the expected information matrix    
     if(args$df == FALSE || length(name.3deriv)==0){
         object$dVcov$dVcov.param <- NULL
     }else if(derivative == "none"){
@@ -661,6 +660,11 @@ sCorrect.lvmfit2 <- function(object, ...){
         if(trace>0){
             cat("Compute first derivative of the information matrix using numerical differentiation ")
         }
+        test.package <- try(requireNamespace("numDeriv"), silent = TRUE)
+        if(inherits(test.package,"try-error")){
+            stop("There is no package \'numDeriv\' \n",
+                 "This package is necessary when argument \'numeric.derivative\' is TRUE \n")
+        }
         if(args$adjust.Omega || args$adjust.n){
             warning("The numerical derivative of the information matrix is computed ignoring the small sample correction \n")
         }
@@ -668,30 +672,58 @@ sCorrect.lvmfit2 <- function(object, ...){
         args.tempo <- args
         args.tempo$data <- argsNumDeriv$data
         args.tempo$df <- FALSE
-        args.tempo$score <- FALSE
+        args.tempo$adjust.n <- FALSE
+        args.tempo$adjust.Omega <- FALSE
 
-        ## *** direct computation of the variance-covariance matrix
+        ## *** objective functions
         calcVcov <- function(iParam){ # x <- p.obj
             pp <- param
             pp[names(iParam)] <- iParam
             vcov.param <- do.call(sCorrect,
                                   args = c(list(object, param = pp), args.tempo))$vcov.param
-            return(vcov.param)
+            return(as.double(vcov.param))
             ## return(solve(vcov.param))
         }
 
-        ### *** numerical derivative
-        test.package <- try(requireNamespace("numDeriv"), silent = TRUE)
-        if(inherits(test.package,"try-error")){
-            stop("There is no package \'numDeriv\' \n",
-                 "This package is necessary when argument \'numeric.derivative\' is TRUE \n")
+        calcRvcov <- function(iParam){
+            pp <- param
+            pp[names(iParam)] <- iParam
+            iObject <- do.call(sCorrect,
+                               args = c(list(object, param = pp), args.tempo))
+            ## rvcov.param <- crossprod(iObject$score %*% iObject$vcov.param)
+            rvcov.param <- crossprod(iObject$score %*% object$dVcov$vcov.param)
+            ## rvcov.param <- crossprod(iObject$score)
+            return(as.double(rvcov.param))
         }
+
+        calcScore <- function(iParam){
+            pp <- param
+            pp[names(iParam)] <- iParam
+            score <- do.call(sCorrect,
+                             args = c(list(object, param = pp), args.tempo))$score
+            return(as.double(score))
+        }
+
+        ## *** numerical derivative
         jac.param <- param[name.3deriv]
         res.numDeriv <- numDeriv::jacobian(calcVcov, x = jac.param, method = "Richardson")
-        
         object$dVcov$dVcov.param <- array(res.numDeriv,
                                           dim = c(n.param,n.param,length(name.3deriv)),
                                           dimnames = list(name.param, name.param, name.3deriv))
+        ## jac.param <- param
+        ## res.numDeriv <- numDeriv::jacobian(calcRvcov, x = jac.param, method = "Richardson")
+        ## object$dVcov$dRvcov.param <- array(res.numDeriv, 
+        ##                                    dim = c(n.param,n.param,n.param),
+        ##                                    dimnames = list(name.param, name.param, name.param))
+        ## ## browser()
+        ## ## round(e2$sCorrect$dRvcov.param - object$dVcov$dRvcov.param, 10)
+        ## jac.param <- param
+        ## res.numDeriv <- numDeriv::jacobian(calcScore, x = jac.param, method = "Richardson")
+        ## object$dVcov$hessian <- aperm(array(res.numDeriv,
+        ##                                     dim = c(n.cluster,n.param,n.param),
+        ##                                     dimnames = list(NULL, name.param, name.param)),
+        ##                               perm = 3:1)
+        
         if(trace>0){
             cat("- done \n")
         }
@@ -704,6 +736,35 @@ sCorrect.lvmfit2 <- function(object, ...){
         ## update conditional moments
         resD2 <- skeletonDtheta2(object)
 
+        ## identify parameters with second order derivatives
+        if(NROW(object$dVcov$opt$grid.meanparam)>0){
+            object$dVcov$opt$grid.meanparam <- .matchTableList(table = object$dVcov$opt$grid.meanparam,
+                                                               list = resD2$d2mu)
+        }
+        if(NROW(object$dVcov$opt$grid.varparam)>0){
+            object$dVcov$opt$grid.varparam <- .matchTableList(table = object$dVcov$opt$grid.varparam,
+                                                              list = resD2$d2Omega)
+        }
+        
+        ## Hessian
+        object$dVcov$hessian <- .hessian2(dmu = object$conditionalMoment$dmu,
+                                          d2mu = resD2$d2mu,
+                                          dOmega = object$conditionalMoment$dOmega,
+                                          d2Omega = resD2$d2Omega,
+                                          Omega = Omega,
+                                          n.corrected = object$dVcov$n.corrected,
+                                          index.Omega = index.Omega,
+                                          leverage = object$dVcov$leverage,
+                                          n.cluster = n.cluster,
+                                          grid.meanparam = object$dVcov$opt$grid.meanparam,
+                                          n.grid.meanparam = NROW(object$dVcov$opt$grid.meanparam),
+                                          grid.varparam = object$dVcov$opt$grid.varparam,
+                                          n.grid.varparam = NROW(object$dVcov$opt$grid.varparam),
+                                          name.param = name.param,
+                                          n.param = n.param,
+                                          residuals = object$dVcov$residuals)
+
+        ## First derivative of the information matrix
         dInfo.dtheta <- .dInformation2(dmu = object$conditionalMoment$dmu,
                                        d2mu = resD2$d2mu,
                                        dOmega = object$conditionalMoment$dOmega,
@@ -716,12 +777,28 @@ sCorrect.lvmfit2 <- function(object, ...){
                                        leverage = object$dVcov$leverage,
                                        name.param  = name.param,
                                        name.3deriv = name.3deriv)
+
+        ## First derivative of the variance covariance matrix of the parameters
         p3 <- dim(dInfo.dtheta)[3]
+
         object$dVcov$dVcov.param <- array(NA, dim = dim(dInfo.dtheta), dimnames = dimnames(dInfo.dtheta))
-        
         for(iP in 1:p3){
             object$dVcov$dVcov.param[,,iP] <- - object$dVcov$vcov.param %*% dInfo.dtheta[,,iP] %*% object$dVcov$vcov.param
             ## object$dVcov$dVcov.param[,,iP] <- dInfo.dtheta[,,iP]
+        }
+        object$dVcov$dRvcov.param <- array(NA, dim = c(n.param,n.param,n.param), dimnames = list(name.param,name.param,name.param))
+        for(iP in 1:n.param){ ## iP <- 1
+            ## if(name.param[iP] %in% name.3deriv){
+            ##     term1 <- object$dVcov$dVcov.param[,,name.param[iP]] %*% crossprod(object$dVcov$score) %*% object$dVcov$vcov.param
+            ## }else{
+            ##     term1 <- matrix(0, nrow = n.param, ncol = n.param)
+            ## }
+            ## term2 <- object$dVcov$vcov.param %*% object$dVcov$hessian[iP,,] %*% object$dVcov$score %*% object$dVcov$vcov.param
+            ## object$dVcov$dRvcov.param[,,iP] <- term1 + t(term1) + term2 + t(term2)
+
+            term2 <- object$dVcov$vcov.param %*% object$dVcov$hessian[iP,,] %*% object$dVcov$score %*% object$dVcov$vcov.param
+            Reduce("+",lapply(1:NROW(object$dVcov$score), function(iObs){object$dVcov$hessian[iP,,iObs] %*% t(object$dVcov$score[iObs,])}))
+            object$dVcov$dRvcov.param[,,iP] <- term2 + t(term2)
         }
 
         if(trace>0){
@@ -824,10 +901,39 @@ sCorrect.lvmfit2 <- function(object, ...){
     return(x)
 }
 
+## * .matchTableList
+.matchTableList <- function(table, list){
 
+    table$index <- 1:NROW(table)
+    table$deriv12 <- FALSE
+    table$deriv21 <- FALSE
+
+    if(length(list)>0){
+        name1 <- names(list)
+        name2 <- lapply(list, names)
+
+        df.pair <- as.data.frame(do.call(rbind, lapply(1:length(list), function(iParam){
+            cbind(Var1 = name1[iParam], Var2 = name2[[iParam]])
+        })))
+
+        df.merge12 <- merge(table, df.pair, by.x = c("Var1","Var2"), by.y = c("Var1","Var2"))
+        if(NROW(df.merge12)>0){
+            table[df.merge12$index,"deriv12"] <- TRUE
+        }
+        df.merge21 <- merge(table, df.pair, by.x = c("Var1","Var2"), by.y = c("Var2","Var1"))
+        if(NROW(df.merge21)>0){
+            table[df.merge21$index,"deriv21"] <- TRUE
+        }
+    }
+    table$deriv <- (table$deriv12 + table$deriv21) > 0
+    
+    return(table)        
+}
 
 ##----------------------------------------------------------------------
 ### sCorrect.R ends here
+
+
 
 
 

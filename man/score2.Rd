@@ -10,7 +10,7 @@
 \alias{score2.gls2}
 \alias{score2.lme2}
 \alias{score2.lvmfit2}
-\title{Extract The Individual Score}
+\title{Extract the Individual Score}
 \usage{
 score2(object, ...)
 
@@ -50,7 +50,7 @@ A matrix containing the score relative to each sample (in rows)
 and each model coefficient (in columns).
 }
 \description{
-Extract The Individual Score from a gaussian linear model.
+Extract the individual score from a Gaussian linear model.
 }
 \details{
 If argument \code{p} or \code{data} is not null, then the small sample size correction is recomputed to correct the influence function.

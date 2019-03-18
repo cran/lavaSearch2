@@ -1,5 +1,14 @@
 # -*- mode: org -*-
 
+* Version 1.5
+** User visible change
+- add option method.p.adjust="gof" to modelsearch2.
+
+** Internal change
+- degrees of freedom for the robust standard error are now computed
+  using a modified Satterthwaite approximation.
+- sCorrect compute the hessian.
+
 * Version 1.4 <2018-09-21 Fri>
 ** User visible change
 - modelsearch2 is now only based on the score statistic.

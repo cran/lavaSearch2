@@ -52,6 +52,7 @@
 #' } 
 #' 
 
+#' @useDynLib lavaSearch2, .registration=TRUE
 #' @import lava
 #' @importFrom ggplot2  aes_string autoplot
 #' @importFrom graphics par plot text
@@ -61,6 +62,7 @@
 #' @importFrom multcomp glht 
 #' @importFrom mvtnorm pmvnorm qmvnorm rmvnorm qmvt pmvt
 #' @importFrom parallel detectCores makeCluster stopCluster
+#' @import Rcpp
 #' @importFrom reshape2 melt
 #' @importFrom sandwich estfun
 #' @importFrom stats anova as.formula coef cov df.residual dist formula hclust logLik median model.frame model.matrix na.omit optim p.adjust pf pnorm predict qqnorm quantile pt residuals rnorm sd setNames sigma update vcov

@@ -32,11 +32,17 @@ Reconstruct the conditional variance covariance matrix from a nlme or lvm model.
 Only compatible with specific correlation and variance structure.
 }
 \details{
-The conditional variance covariance matrix for gls model is of the form:
-
+The compound symmetry variance-covariance matrix in a gls model is of the form:
 \tabular{cccc}{
+\eqn{\Sigma =} \tab \eqn{\sigma^2} \tab \eqn{\sigma^2 \rho} \tab \eqn{\sigma^2 \rho} \cr
+\tab . \tab \eqn{\sigma^2} \tab \eqn{\sigma^2 \rho} \cr
+\tab . \tab . \tab \eqn{\sigma^2}
+}
+
+The unstructured variance-covariance matrix in a gls model is of the form:
+ \tabular{cccc}{
 \eqn{\Sigma =} \tab \eqn{\sigma^2} \tab \eqn{\sigma^2 \sigma_2 \rho_{1,2}} \tab \eqn{\sigma^2 \sigma_3 \rho_{1,3}} \cr
-\tab . \tab \eqn{\sigma^2 \sigma_2^2} \tab \eqn{\sigma^2 \sigma_3 \rho_{1,3}} \cr
+\tab . \tab \eqn{\sigma^2 \sigma_2^2} \tab \eqn{\sigma^2 \sigma_2 \sigma_3 \rho_{2,3}} \cr
 \tab . \tab . \tab \eqn{\sigma^2 \sigma_3^2}
 }
 }

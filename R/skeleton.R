@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: nov  8 2017 (10:35) 
 ## Version: 
-## Last-Updated: apr  4 2018 (09:52) 
+## Last-Updated: feb  8 2019 (11:48) 
 ##           By: Brice Ozenne
-##     Update #: 1017
+##     Update #: 1025
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -751,8 +751,6 @@ skeletonDtheta.lvmfit <- function(object, name.endogenous, name.latent, ...){
             rownames(dOmega[[iName]]) <- name.endogenous
         }
     }
-        
-    
 
 ### ** Export
     return(list(dmu = dmu, dOmega = dOmega))

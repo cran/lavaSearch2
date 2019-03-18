@@ -74,7 +74,7 @@ e.mmm <- mmm(X = lmX, Y = lvmY, Z = lvmZ)
 resC <- createContrast(e.mmm, var.test = "E", add.variance = TRUE)
 
 #### adjust for multiple comparisons ####
-e.glht2 <- glht2(e.mmm, linfct = resC$contrast)
+e.glht2 <- glht2(e.mmm, linfct = resC$contrast, df = FALSE)
 summary(e.glht2)
 
 }

@@ -3,9 +3,9 @@
 ## author: Brice Ozenne
 ## created: aug 31 2017 (16:42) 
 ## Version: 
-## last-updated: aug  8 2018 (17:29) 
+## last-updated: feb  4 2019 (09:40) 
 ##           By: Brice Ozenne
-##     Update #: 129
+##     Update #: 130
 #----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -16,8 +16,8 @@
 ### Code:
 
 ## * Documentation - calcType1postSelection 
-##' @title Compute the Type 1 Error After Selection
-##' @description Compute the type 1 error after selection.
+##' @title Compute the Type 1 Error After Selection [EXPERIMENTAL]
+##' @description Compute the type 1 error after selection [EXPERIMENTAL].
 ##' @name calcType1postSelection
 ##' 
 ##' @param level [numeric 0-1] expected coverage.

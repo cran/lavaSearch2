@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: feb 16 2018 (16:38) 
 ## Version: 
-## Last-Updated: apr 20 2018 (15:32) 
+## Last-Updated: feb 15 2019 (14:08) 
 ##           By: Brice Ozenne
-##     Update #: 807
+##     Update #: 864
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -57,8 +57,6 @@
     }
     ##
     
-    param2index <- setNames(1:n.param, name.param)
-
     leverage <- matrix(NA, nrow = n.cluster, ncol = n.endogenous,
                        dimnames = list(NULL, name.endogenous))
     ls.dmu <- vector(mode = "list", length = n.cluster)
@@ -107,9 +105,7 @@
                            grid.varparam = grid.varparam,
                            n.grid.varparam = n.grid.varparam,
                            name.param = name.param,
-                           name.meanparam = name.meanparam,
-                           name.varparam = name.varparam,
-                           param2index = param2index, n.param = n.param)
+                           n.param = n.param)
     iVcov.param <- try(chol2inv(chol(iInfo)), silent = TRUE)
     if(inherits(iVcov.param, "try-error")){
         iVcov.param <- solve(iInfo)
@@ -212,9 +208,7 @@
                                grid.varparam = grid.varparam,
                                n.grid.varparam = n.grid.varparam,
                                name.param = name.param,
-                               name.meanparam = name.meanparam,
-                               name.varparam = name.varparam,
-                               param2index = param2index, n.param = n.param)
+                               n.param = n.param)
         iVcov.param <- try(chol2inv(chol(iInfo)), silent = TRUE)
         if(inherits(iVcov.param, "try-error")){
             iVcov.param <- solve(iInfo)
@@ -262,7 +256,7 @@
                          residuals = epsilon.adj,
                          leverage = leverage,
                          n.corrected = rep(n.cluster, n.endogenous) - colSums(leverage, na.rm = TRUE),
-                         opt = list(objective = iTol, iterations = iIter, convergence = (iTol <= tol)))
+                         opt = list(objective = iTol, iterations = iIter, convergence = (iTol <= tol), grid.meanparam = grid.meanparam, grid.varparam = grid.varparam))
 
     ## ** Export
     return(object)
@@ -333,6 +327,7 @@
         }
         ## derivative of the score regarding Y
         scoreY <- ls.dmu[[iC]] %*% iOmegaM1
+
         for(iP in 1:n.varparam){ ## iP <- 1
             scoreY[name.varparam[iP],] <- scoreY[name.varparam[iP],] + 2 * epsilon[iC,iIndex] %*% iOmegaM1.dOmega.OmegaM1[[name.varparam[iP]]]
         }
@@ -477,7 +472,7 @@
 
     ## ** right hand side of the equation
     eq.rhs <- Omega[index.matrix$index]
-    
+
     ## ** left hand side of the equation
     if(NROW(index.Psi)>0){
         n.index.Psi <- NROW(index.Psi)
@@ -498,15 +493,34 @@
     }
 
     ## ** solve equation
-    asvd <- svd(A)
-    if(any(abs(asvd$d) < .Machine$double.eps ^ 0.5)){
-        stop("Singular matrix: cannot update the estimates \n")
+    ## microbenchmark::microbenchmark(svd = {asvd <- svd(A) ; asvd$v %*% diag(1/asvd$d) %*% t(asvd$u) %*% eq.rhs;},
+    ## qr = qr.coef(qr(A), eq.rhs),
+    ## Rcpp = OLS_cpp(A, eq.rhs),
+    ## RcppTry = try(OLS_cpp(A, eq.rhs)[,1], silent = TRUE),
+    ## Rcpp2 = OLS2_cpp(A, eq.rhs),
+    ## OLS1 = solve(crossprod(A), crossprod(A, eq.rhs)),
+    ## OLS2 = solve(t(A) %*% A) %*% t(A) %*% eq.rhs,
+    ## OLS_stats = stats::lsfit(x = A, y = eq.rhs),
+    ## OLS_LINPACK = .Call(stats:::C_Cdqrls, x = A, y = eq.rhs, tolerance = 1e-7, FALSE)$coefficients, times = 500)
+    if(lava.options()$method.estimate2=="svd"){
+        asvd <- svd(A)
+        iSolution <- try((asvd$v %*% diag(1/asvd$d) %*% t(asvd$u) %*% eq.rhs)[,1], silent = TRUE)
+    }else if(lava.options()$method.estimate2=="ols"){
+        iSolution <- try(OLS_cpp(A, eq.rhs)[,1], silent = TRUE)
+    }else{
+        stop("unknown OLS methods \n")
+    }
+    
+    if(inherits(iSolution, "try-error")){
+        if(abs(det(t(A) %*% A)) <  1e-10){            
+            stop("Singular matrix: cannot update the estimates \n")
+        }else{
+            stop(iSolution)
+        }
     }
 
     ## ** update parameters in conditional moments
-    object$conditionalMoment$param[name.var] <- setNames(as.double(asvd$v %*% diag(1/asvd$d) %*% t(asvd$u) %*% eq.rhs),
-                                                         name.var)
-    
+    object$conditionalMoment$param[name.var] <- setNames(iSolution, name.var)
 
     ## ** update conditional moments
     object$conditionalMoment$skeleton$toUpdate <- object$conditionalMoment$adjustMoment$toUpdate

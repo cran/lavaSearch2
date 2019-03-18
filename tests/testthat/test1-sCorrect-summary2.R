@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr  4 2018 (13:29) 
 ## Version: 
-## Last-Updated: apr  4 2018 (14:20) 
+## Last-Updated: mar  4 2019 (18:52) 
 ##           By: Brice Ozenne
-##     Update #: 45
+##     Update #: 51
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -78,6 +78,31 @@ test_that("linear regression: Satterthwaite + SSC (df)", {
             "Y1" =   46)
     expect_equal(as.double(df),
                  summary2(e.lvm, bias.correct = TRUE)$coef$df)
+})
+
+## ** robust standard error
+test_that("linear regression: robust SE", {
+    ## printDF(e.lvm, bias.correct = TRUE)
+    eS0 <- summary2(e.lvm, robust = TRUE, df = TRUE)$coef
+    eS1 <- summary2(e.lvm, robust = TRUE, df = 2)$coef
+    eS2 <- summary2(e.lvm, robust = TRUE, df = 2, cluster = 1:n)$coef
+    expect_equal(eS1,eS2)
+    
+    df <- c("Y1~X1" =   46,
+            "Y1~X2" =   46,
+            "Y1~GenderFemale" =   46,
+            "Y1~~Y1" = 11.5,
+            "Y1" =   46)
+    expect_equal(as.double(df),
+                 eS0$df, tol = 1e-2)
+    
+    df <- c("Y1~X1" = 43.194962,   
+            "Y1~X2" = 48.765588,
+            "Y1~GenderFemale" = 52.687514,
+            "Y1~~Y1" = 9.694972,
+            "Y1" = 42.373871)
+    expect_equal(as.double(df),
+                 eS1$df, tol = 1e-2)
 })
 
 ## * linear regression with constrains 

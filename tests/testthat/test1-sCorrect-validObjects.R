@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: mar  6 2018 (10:42) 
 ## Version: 
-## Last-Updated: nov  1 2018 (12:09) 
+## Last-Updated: feb 11 2019 (13:44) 
 ##           By: Brice Ozenne
-##     Update #: 62
+##     Update #: 63
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -68,14 +68,14 @@ test_that("error when using transform", {
 e <- gls(Y~X1, data = d, correlation = corCompSymm(form =~1|G),
          method = "REML")
 test_that("no warning when using no correction", {
-    expect_warning(sCorrect(e, score = FALSE, df = FALSE, trace = 0) <- FALSE, regexp = NA)
+    expect_warning(sCorrect(e, df = FALSE, trace = 0) <- FALSE, regexp = NA)
 })
 
 ## ** warning for the small sample correction estimated with REML
 ## check in sCorrect.R
 e <- gls(Y~X1, data = d, correlation = corCompSymm(form =~1|G))
 test_that("warning when using nlme with REML and small sample correction", {
-    expect_warning(sCorrect(e, score = FALSE, df = FALSE, trace = 0) <- TRUE)
+    expect_warning(sCorrect(e, df = FALSE, trace = 0) <- TRUE)
 })
 
 ## ** error for more than one random effect

@@ -3,9 +3,9 @@
 ## author: Brice Ozenne
 ## created: okt 12 2017 (16:43) 
 ## Version: 
-## last-updated: apr  4 2018 (09:33) 
+## last-updated: feb 11 2019 (13:33) 
 ##           By: Brice Ozenne
-##     Update #: 2260
+##     Update #: 2262
 #----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -16,8 +16,8 @@
 ### Code:
 
 ## * Documentation - score2
-#' @title  Extract The Individual Score
-#' @description  Extract The Individual Score from a gaussian linear model.
+#' @title  Extract the Individual Score
+#' @description  Extract the individual score from a Gaussian linear model.
 #' @name score2
 #'
 #' @param object a linear model or a latent variable model
@@ -64,8 +64,7 @@
 #' @rdname score2
 #' @export
 score2.lm <- function(object, param = NULL, data = NULL, bias.correct = TRUE, ...){
-    sCorrect(object, param = param, data = data,
-             score = TRUE, df = FALSE, ...) <- bias.correct
+    sCorrect(object, param = param, data = data, df = FALSE, ...) <- bias.correct
 
     ### ** export
     return(object$sCorrect$score)
@@ -95,7 +94,6 @@ score2.lm2 <- function(object, param = NULL, data = NULL, ...){
     if(!is.null(param) || !is.null(data)){
         args <- object$sCorrect$args
         args$df <- FALSE
-        args$score <- TRUE
         object$sCorrect <- do.call(sCorrect,
                                    args = c(list(object, param = param, data = data),
                                             args))

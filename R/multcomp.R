@@ -1,11 +1,12 @@
+
 ### mlf2.R --- 
 ##----------------------------------------------------------------------
 ## Author: Brice Ozenne
 ## Created: nov 29 2017 (12:56) 
 ## Version: 
-## Last-Updated: okt  4 2018 (16:09) 
+## Last-Updated: feb 25 2019 (09:40) 
 ##           By: Brice Ozenne
-##     Update #: 479
+##     Update #: 547
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -16,10 +17,11 @@
 ### Code:
 
 
-## * estfun.lvmfit
+## * estfun
 #' @title Extract Empirical Estimating Functions (lvmfit Object)
 #' @description Extract the empirical estimating functions of a lvmfit object.
 #' This function is for internal use but need to be public to enable its use by \code{multcomp::glht}.
+#' @name estfun
 #' 
 #' @param x an \code{lvmfit} object.
 #' @param ... arguments passed to methods.
@@ -59,15 +61,42 @@
 #' #### adjust for multiple comparisons ####
 #' e.glht <- glht(e.mmm, linfct = resC$mlf)
 #' summary(e.glht)
-#' 
-#' @method estfun lvmfit
 #' @concept multiple comparison
+
+## * estfun.lvmfit
+#' @rdname estfun
+#' @method estfun lvmfit
 #' @export
 estfun.lvmfit <- function(x, ...){
     U <- lava::score(x, indiv = TRUE)
     return(U)
 }
 
+## * estfun.gls
+#' @rdname estfun
+#' @method estfun gls
+#' @export
+estfun.gls <- function(x, ...){
+    if(inherits(x,"gls2")){
+        U <- score2(x)
+    }else{
+        U <- score2(x, bias.correct = FALSE)
+    }
+    return(U)
+}
+
+## * estfun.lme
+#' @rdname estfun
+#' @method estfun lme
+#' @export
+estfun.lme <- function(x, ...){
+    if(inherits(x,"lme2")){
+        U <- score2(x)
+    }else{
+        U <- score2(x, bias.correct = FALSE)
+    }
+    return(U)
+}
 
 ## * Documentation - glht2
 #' @title General Linear Hypothesis
@@ -128,7 +157,7 @@ estfun.lvmfit <- function(x, ...){
 #' resC <- createContrast(e.mmm, var.test = "E", add.variance = TRUE)
 #'
 #' #### adjust for multiple comparisons ####
-#' e.glht2 <- glht2(e.mmm, linfct = resC$contrast)
+#' e.glht2 <- glht2(e.mmm, linfct = resC$contrast, df = FALSE)
 #' summary(e.glht2)
 #'
 #' @concept multiple comparison
@@ -159,7 +188,7 @@ glht2.lvmfit <- function(model, linfct, rhs = 0,
 
 ### ** pre-compute quantities for the small sample correction
     if(!inherits(model,"lvmfit2")){
-        sCorrect(model, df = df, score = robust) <- bias.correct
+        sCorrect(model, df = df) <- bias.correct
     }
 
 ### ** Wald test with small sample correction
@@ -182,7 +211,7 @@ glht2.lvmfit <- function(model, linfct, rhs = 0,
     if(robust){
         vcov.model <- crossprod(iid2(model, cluster = cluster))
     }else{
-        vcov.model <- model$sCorrect$vcov.param
+        vcov.model <- vcov2(model)
     }
 
 ### ** convert to the appropriate format
@@ -231,7 +260,8 @@ glht2.mmm <- function (model, linfct, rhs = 0,
              "Incorrect element(s): ",paste(index.wrong, collapse = " "),".\n")
     }
 
-    ### ** define the contrast matrix
+
+### ** define the contrast matrix
     out <- list()
     if (is.character(linfct)){
         resC <- createContrast(model, par = linfct, add.variance = TRUE)
@@ -241,11 +271,10 @@ glht2.mmm <- function (model, linfct, rhs = 0,
             rhs <- resC$null
         }
     }else if(is.matrix(linfct)){
-        
+
         ls.contrast <- lapply(name.model, function(x){ ## x <- name.model[2]
-            
-            iRownames <- grep(paste0(x,": "), rownames(linfct), value = FALSE, fixed = TRUE)
-            iColnames <- grep(paste0(x,": "), colnames(linfct), value = FALSE, fixed = TRUE)
+            iColnames <- grep(paste0("^",x,": "), colnames(linfct), value = FALSE, fixed = FALSE)
+            iRownames <- rowSums(linfct[,iColnames]!=0)>0
             linfct[iRownames, iColnames,drop=FALSE]            
         })
         names(ls.contrast) <- name.model
@@ -255,12 +284,43 @@ glht2.mmm <- function (model, linfct, rhs = 0,
              "Consider using  out <- createContrast(...) and pass out$contrast to linfct. \n")
     }
 
+    ## ** check whether it is possible to compute df
+    if(identical(df, TRUE)){
+           
+        ## does each model has the same df?
+        ## test.df <- try(lapply(model, df.residual), silent = TRUE)
+        ## if(inherits(test.df, "try-error")){
+        ##     stop("Cannot check the degrees of freedom for each model - no \'df.residual\' method available \n",
+        ##          "Consider setting the argument \'df\' to FALSE \n")
+        ## }
+        
+        ## if(any(sapply(test.df,is.null))){
+        ##     stop("Cannot compute residual degrees of freedom for all models \n",
+        ##          "Consider setting the argument \'df\' to FALSE \n")
+        ## }
+
+        ## if(length(unique(unlist(test.df)))>1){
+        ##     stop("Residual degrees of freedom differ across models \n",
+        ##          "Consider setting the argument \'df\' to FALSE \n")
+        ## }
+
+        ## are linear hypothesis model specific?
+        ls.testPerModel <- lapply(ls.contrast, function(iModel){
+            rowSums(contrast[,colnames(iModel)]!=0)>0
+        })
+        
+        if(any(Reduce("+",ls.testPerModel)>1)){
+            stop("Cannot compute the degrees of freedom for tests performed across several models \n",
+                 "Consider setting the argument \'df\' to FALSE \n")
+        }    
+    }
+    
     ## ** Extract influence functions from all models    
     ls.res <- lapply(1:n.model, function(iM){ ## iM <- 1
 
 ### *** Pre-compute quantities
         if(!inherits(model[[iM]],"lm2") && !inherits(model[[iM]],"gls2") && !inherits(model[[iM]],"lme2") && !inherits(model[[iM]],"lvmfit2")){
-            sCorrect(model[[iM]], df = df, score = TRUE) <- bias.correct
+            sCorrect(model[[iM]], df = df) <- bias.correct
         }
         out$param <- model[[iM]]$sCorrect$param
         name.param <- names(out$param)
@@ -269,9 +329,9 @@ glht2.mmm <- function (model, linfct, rhs = 0,
         
 ### *** Compute df for each test
         if(df){
-        ## here null does not matter since we only extract the degrees of freedom
-        iContrast <- ls.contrast[[iM]]
-        colnames(iContrast) <- name.param
+            ## here null does not matter since we only extract the degrees of freedom
+            iContrast <- ls.contrast[[iM]]
+            colnames(iContrast) <- name.param
         
             iWald <- compare2(model[[iM]], contrast = iContrast, as.lava = FALSE)
             out$df <- iWald[1:(NROW(iWald)-1),"df"]
@@ -279,7 +339,14 @@ glht2.mmm <- function (model, linfct, rhs = 0,
             out$df <- Inf
         }
 ### *** get iid decomposition
-        out$iid <- iid2(model[[iM]], robust = robust, cluster = cluster)
+        index.missing <- model[[iM]]$na.action
+        n.obs <- stats::nobs(model[[iM]]) + length(index.missing)
+
+        out$iid <- matrix(NA, nrow = n.obs, ncol = length(name.param),
+                          dimnames = list(NULL, name.param))
+        
+        out$iid[setdiff(1:n.obs,index.missing),] <- iid2(model[[iM]], robust = robust, cluster = cluster)
+        
         colnames(out$iid) <- name.object.param
             
         return(out)
@@ -287,13 +354,31 @@ glht2.mmm <- function (model, linfct, rhs = 0,
     })
     seq.df <- unlist(lapply(ls.res,"[[","df"))
     seq.param <- unlist(lapply(ls.res,"[[","param"))
+
     if(df){
+        if(length(unique(seq.df))>1){
+            warning("Unequal degrees of freedom for the Wald statistics \n",
+                    "The median of the degrees of freedom is used.")
+        }
         df.global <- round(stats::median(seq.df), digits = 0)
     }else{
         df.global <- 0
     }
-    vcov.model <- crossprod(do.call(cbind,lapply(ls.res,"[[","iid")))
-
+        
+    ls.iid <- lapply(ls.res,"[[","iid")
+    n.obs <- unique(unlist(lapply(ls.iid, NROW)))
+    if(length(n.obs)>1){
+        stop("Mismatch between the number of observations in the iid \n",
+                "Likely to be due to the presence of missing values \n")
+        
+    }
+    M.iid <- do.call(cbind,ls.iid)
+    if(any(is.na(M.iid))){
+        M.iid[is.na(M.iid)] <- 0
+    }
+    vcov.model <- crossprod(M.iid)
+    
+    
 ### ** convert to the appropriate format
     out <- list(model = model,
                 linfct = linfct,

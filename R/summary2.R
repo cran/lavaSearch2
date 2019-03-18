@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: nov 10 2017 (10:57) 
 ## Version: 
-## Last-Updated: okt  4 2018 (15:57) 
+## Last-Updated: feb 18 2019 (13:36) 
 ##           By: Brice Ozenne
-##     Update #: 296
+##     Update #: 310
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -77,7 +77,7 @@
 #' @export
 summary2.lm <- function(object, df = TRUE, bias.correct = TRUE, ...){
     sCorrect(object, df = df) <- bias.correct
-    return(summary2(object, ...))
+    return(summary2(object, df = df, ...))
 }
 ## * summary2.gls
 #' @rdname summary2
@@ -85,7 +85,7 @@ summary2.lm <- function(object, df = TRUE, bias.correct = TRUE, ...){
 #' @export
 summary2.gls <- function(object, df = TRUE, bias.correct = TRUE, cluster = NULL, ...){
     sCorrect(object, df = df, cluster = cluster) <- bias.correct
-    return(summary2(object, ...))
+    return(summary2(object, df = df, ...))
 }
 
 ## * summary2.lme
@@ -201,10 +201,11 @@ summary2.lvmfit2 <- function(object, cluster = NULL, robust = FALSE, df = TRUE, 
     dimnames(table.coef) <- list(name.param,
                                  c("Estimate", "Std. Error", "t-value", "P-value", "df")
                                  )
+
 ### ** get summary
     class(object) <- setdiff(class(object),"lvmfit2")
     object.summary <- summary(object, ...)
-    if(!is.null(object$cluster)){
+    if(!is.null(object$cluster) || inherits(object,"lvm.missing")){
         
         ## if(robust == FALSE){
         ##     stop("Can only print summary for robust standard errors \n",
@@ -226,7 +227,7 @@ summary2.lvmfit2 <- function(object, cluster = NULL, robust = FALSE, df = TRUE, 
     ### *** vcov
     object.summary$vcov <- attr(object$dVcov, "vcov.param")[name.param,name.param]    
 
-    ### *** coef
+### *** coef
     lava.rownames <- rownames(object.summary$coef)
     ## add rows corresponding to reference parameters
     missing.rows <- setdiff(lava.rownames,rownames(table.coef))
@@ -237,6 +238,7 @@ summary2.lvmfit2 <- function(object, cluster = NULL, robust = FALSE, df = TRUE, 
         colnames(addon)[3] <- "t-value"
         table.coef <- rbind(table.coef, cbind(addon,df=NA))
     }
+
     ## re-order table according to lava
     table.coef <- table.coef[intersect(lava.rownames,rownames(table.coef)),,drop=FALSE]
     ## remove unappropriate p.values
@@ -275,7 +277,7 @@ summary2.lvmfit2 <- function(object, cluster = NULL, robust = FALSE, df = TRUE, 
     M2add <- cbind(e2add,sd2add,t2add,p2add,df2add)
     table.coefmat[match(rownames(table.coef), name.label0),] <- M2add
 
-    table.coefmat[object.summary$coefma[,"P-value"]=="","P-value"] <- ""
+    table.coefmat[object.summary$coefmat[,"P-value"]=="","P-value"] <- ""
     object.summary$coefmat <- table.coefmat
 
 ### ** Export

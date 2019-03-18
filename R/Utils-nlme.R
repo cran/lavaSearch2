@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: nov 15 2017 (17:29) 
 ## Version: 
-## Last-Updated: nov 11 2018 (14:25) 
+## Last-Updated: dec 10 2018 (23:28) 
 ##           By: Brice Ozenne
-##     Update #: 637
+##     Update #: 671
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -67,7 +67,36 @@
     ## *** covariance coefficients
     if(!is.null(object$modelStruct$corStruct)){
         cor.coef <- stats::coef(object$modelStruct$corStruct, unconstrained = FALSE)
-        names(cor.coef) <- paste0("corCoef",1:length(cor.coef))
+
+        n.var <- length(var.coef)
+        n.cor <- length(cor.coef)
+
+        ## check unstructured covariance matrix
+        if(!is.null(object$modelStruct$varStruct) && ((n.var*(n.var-1))/2 == n.cor)){
+
+            vecgroup <- attr(unclass(object$modelStruct$corStruct), "group")
+            veccov.cor <- unname(unlist(attr(object$modelStruct$corStruct, "covariate")))
+            veccov.var <- attr(object$modelStruct$varStruct, "groups")
+
+            table.covvar <- table(veccov.cor,veccov.var)
+            newlevels.cor <- colnames(table.covvar)[apply(table.covvar, 1, which.max)]
+            veccov.cor2 <- factor(veccov.cor, levels = 0:max(veccov.cor), labels = newlevels.cor)
+            
+            if(identical(as.character(veccov.cor2),as.character(veccov.var))){
+
+                cor.coefName <- apply(utils::combn(newlevels.cor, m = 2), MARGIN = 2, FUN = paste, collapse = "")
+                names(cor.coef) <- paste0("corCoef",cor.coefName)
+
+            }else{
+                names(cor.coef) <- paste0("corCoef",1:length(cor.coef))
+            }
+            
+            
+        }else{
+            names(cor.coef) <- paste0("corCoef",1:length(cor.coef))
+        }
+        
+        
     }else{
         cor.coef <- NULL
     }
@@ -431,9 +460,23 @@
     }else{
         sigma2.base <- rep(var.coef["sigma2"], n.endogenous)
     }
+    ## re-order according to the order of the correlation coefficients (if possible)
+    if(length(cor.coef)>1 & length(var.coef)>1){
+        cor.level <- gsub("corCoef","",names(cor.coef))
+        var.level <- names(sigma2.base)
+        var.permlevel <- .allPermutations(var.level)
+
+        M.try <- apply(var.permlevel, MARGIN = 1, function(iLevel){
+            all(apply(utils::combn(iLevel, m = 2), MARGIN = 2, FUN = paste, collapse = "") == cor.level)
+        })
+        if(any(M.try)){
+            sigma2.base <- sigma2.base[var.permlevel[which(M.try),]]
+        }
+    }
+    
     Omega <- diag(as.double(sigma2.base),
                   nrow = n.endogenous, ncol = n.endogenous)
-    
+
     ## ** Extra-diagonal terms
     if(length(cor.coef)>0){
         index.lower <- which(lower.tri(Omega))
@@ -442,7 +485,14 @@
         Omega[index.lower] <- cor.coef*vec.sigma.tempo
         Omega <- symmetrize(Omega, update.upper = TRUE)
     }    
-    dimnames(Omega) <- list(name.endogenous, name.endogenous)
+
+    ## ** names
+    if(all(!duplicated(names(sigma2.base)))){
+        dimnames(Omega) <- list(names(sigma2.base), names(sigma2.base))
+    }else{
+        dimnames(Omega) <- list(name.endogenous, name.endogenous)
+    }
+
     
     ## ** export
     return(Omega)
@@ -463,6 +513,15 @@
     return(out)    
 }
 
+## * .allPermutations
+## .allPermutations(1:3)
+## .allPermutations(2:3)
+.allPermutations <- function(vec){
+    X <- lapply(vec, function(x){
+        cbind(x, .allPermutations(setdiff(vec, x)))
+    })
+    return(unname(do.call(rbind,X)))
+}
 
 ##----------------------------------------------------------------------
 ### utils-nlme.R ends here

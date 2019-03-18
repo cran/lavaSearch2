@@ -6,7 +6,8 @@
 \title{Display the Value of a Coefficient across the Steps.}
 \usage{
 \method{autoplot}{modelsearch2}(object, param, ci = TRUE,
-  step = 0:nStep(object), plot = TRUE, add.0 = TRUE, ...)
+  step = 0:nStep(object), conf.level = 0.95, plot = TRUE,
+  add.0 = TRUE, ...)
 }
 \arguments{
 \item{object}{a \code{modelsearch2} object.}
@@ -16,6 +17,8 @@
 \item{ci}{[logical] should the confidence intervals of the coefficient(s) be displayed.}
 
 \item{step}{[integer >0] the steps at which the coefficient value should be displayed.}
+
+\item{conf.level}{[numeric, 0-1] confidence level of the interval.}
 
 \item{plot}{[logical] should the graph be displayed?}
 

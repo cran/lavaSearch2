@@ -3,9 +3,9 @@
 ## author: Brice Ozenne
 ## created: jun 21 2017 (16:44) 
 ## Version: 
-## last-updated: nov  2 2018 (14:41) 
+## last-updated: feb 18 2019 (10:25) 
 ##           By: Brice Ozenne
-##     Update #: 627
+##     Update #: 629
 #----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -355,6 +355,7 @@ calcDistMaxBootstrap <- function(statistic, iid, iid.previous = NULL, quantile.p
         if(distribution == "gaussian"){
             if(p==1){
                 out <- stats::pnorm(value, mean = 0, sd = Sigma)-stats::pnorm(-value, mean = 0, sd = Sigma)
+                attr(out, "error") <- 0
             }else{      
                 out <- mvtnorm::pmvnorm(lower = -value, upper = value,
                                         mean = rep(0, p), corr = Sigma)
@@ -362,9 +363,10 @@ calcDistMaxBootstrap <- function(statistic, iid, iid.previous = NULL, quantile.p
         }else if(distribution == "student"){
             if(p==1){
                 out <- stats::pt(value, df = df)-stats::pt(-value, df = df)
+                attr(out, "error") <- 0
             }else{
                 out <- mvtnorm::pmvt(lower = -value, upper = value,
-                                   delta = rep(0, p), corr = Sigma, df = df)
+                                     delta = rep(0, p), corr = Sigma, df = df)
             }
         }
         return(1-out)

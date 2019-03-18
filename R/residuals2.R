@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: nov  8 2017 (09:05) 
 ## Version: 
-## Last-Updated: okt  4 2018 (15:56) 
+## Last-Updated: feb 11 2019 (13:25) 
 ##           By: Brice Ozenne
-##     Update #: 934
+##     Update #: 935
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -82,7 +82,6 @@ residuals2.lm2 <- function(object, param = NULL, data = NULL, type = "response")
     if(!is.null(param) || !is.null(data)){
         args <- object$sCorrect$args
         args$df <- FALSE
-        args$score <- FALSE
         object$sCorrect <- do.call(sCorrect,
                                    args = c(list(object, param = param, data = data),
                                             args))

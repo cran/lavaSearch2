@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: mar 12 2018 (16:38) 
 ## Version: 
-## Last-Updated: mar 26 2018 (17:10) 
+## Last-Updated: feb 11 2019 (13:25) 
 ##           By: Brice Ozenne
-##     Update #: 9
+##     Update #: 12
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -64,8 +64,7 @@
 #' @export
 vcov2.lm <- function(object, param = NULL, data = NULL, bias.correct = TRUE, ...){
 
-    sCorrect(object, param = param, data = data,
-             score = FALSE, df = FALSE, ...) <- bias.correct
+    sCorrect(object, param = param, data = data, df = FALSE, ...) <- bias.correct
 
     ### ** export
     return(object$sCorrect$vcov.param)
@@ -95,7 +94,6 @@ vcov2.lm2 <- function(object, param = NULL, data = NULL, ...){
     if(!is.null(param) || !is.null(data)){
         args <- object$sCorrect$args
         args$df <- FALSE
-        args$score <- FALSE
         object$sCorrect <- do.call(sCorrect,
                                    args = c(list(object, param = param, data = data),
                                             args))

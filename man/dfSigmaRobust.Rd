@@ -4,12 +4,14 @@
 \alias{dfSigmaRobust}
 \title{Degree of Freedom for the Robust Chi-Square Test}
 \usage{
-dfSigmaRobust(contrast, vcov, score)
+dfSigmaRobust(contrast, vcov, rvcov, score)
 }
 \arguments{
 \item{contrast}{[numeric vector] the linear combination of parameters to test}
 
 \item{vcov}{[numeric matrix] the variance-covariance matrix of the parameters.}
+
+\item{rvcov}{[numeric matrix] the robust variance-covariance matrix of the parameters.}
 
 \item{score}{[numeric matrix] the individual score for each parameter.}
 }

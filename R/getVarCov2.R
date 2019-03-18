@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: mar 27 2018 (09:55) 
 ## Version: 
-## Last-Updated: aug  3 2018 (16:29) 
+## Last-Updated: dec 10 2018 (22:59) 
 ##           By: Brice Ozenne
-##     Update #: 21
+##     Update #: 26
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -27,14 +27,19 @@
 #' @param cluster [integer vector] the grouping variable relative to which the observations are iid.
 #' @param ... [internal] only used by the generic method.
 #' 
-#' @details The conditional variance covariance matrix for gls model is of the form:
-#' 
+#' @details The compound symmetry variance-covariance matrix in a gls model is of the form:
 #' \tabular{cccc}{
-#' \eqn{\Sigma =} \tab \eqn{\sigma^2} \tab \eqn{\sigma^2 \sigma_2 \rho_{1,2}} \tab \eqn{\sigma^2 \sigma_3 \rho_{1,3}} \cr
-#' \tab . \tab \eqn{\sigma^2 \sigma_2^2} \tab \eqn{\sigma^2 \sigma_3 \rho_{1,3}} \cr
-#' \tab . \tab . \tab \eqn{\sigma^2 \sigma_3^2}
+#' \eqn{\Sigma =} \tab \eqn{\sigma^2} \tab \eqn{\sigma^2 \rho} \tab \eqn{\sigma^2 \rho} \cr
+#' \tab . \tab \eqn{\sigma^2} \tab \eqn{\sigma^2 \rho} \cr
+#' \tab . \tab . \tab \eqn{\sigma^2}
 #' }
 #'
+#' The unstructured variance-covariance matrix in a gls model is of the form:
+#'  \tabular{cccc}{
+#' \eqn{\Sigma =} \tab \eqn{\sigma^2} \tab \eqn{\sigma^2 \sigma_2 \rho_{1,2}} \tab \eqn{\sigma^2 \sigma_3 \rho_{1,3}} \cr
+#' \tab . \tab \eqn{\sigma^2 \sigma_2^2} \tab \eqn{\sigma^2 \sigma_2 \sigma_3 \rho_{2,3}} \cr
+#' \tab . \tab . \tab \eqn{\sigma^2 \sigma_3^2}
+#' }
 #' @return A list containing the residual variance-covariance matrix in the element Omega.
 #' 
 #' @examples

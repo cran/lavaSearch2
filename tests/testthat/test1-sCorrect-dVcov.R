@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: mar  8 2018 (14:56) 
 ## Version: 
-## Last-Updated: apr  4 2018 (14:20) 
+## Last-Updated: feb 11 2019 (13:43) 
 ##           By: Brice Ozenne
-##     Update #: 112
+##     Update #: 114
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -16,7 +16,7 @@
 ### Code:
 
 ## * header
-rm(list = ls())
+## rm(list = ls())
 if(FALSE){ ## already called in test-all.R
     library(testthat)
     library(lavaSearch2)
@@ -54,18 +54,18 @@ test_that("linear regression: Satterthwaite", {
     vcov <- solve(bdiag(crossprod(X)/sigma2,n/(2*sigma2^2)))
     GS <- vcov %*% dI %*% vcov
 
-    test.lvm <- sCorrect(e.lvm, adjust.Omega = FALSE, adjust.n = FALSE, numeric.derivative = FALSE, score = FALSE)$dVcov.param
-    GS.lvm <- sCorrect(e.lvm, adjust.Omega = FALSE, adjust.n = FALSE, numeric.derivative = TRUE, score = FALSE)$dVcov.param
+    test.lvm <- sCorrect(e.lvm, adjust.Omega = FALSE, adjust.n = FALSE, numeric.derivative = FALSE)$dVcov.param
+    GS.lvm <- sCorrect(e.lvm, adjust.Omega = FALSE, adjust.n = FALSE, numeric.derivative = TRUE)$dVcov.param
     expect_equal(test.lvm, GS.lvm)
     expect_equal(as.double(test.lvm), as.double(GS))
 
-    test.lm <- sCorrect(e.lm, adjust.Omega = FALSE, adjust.n = FALSE, numeric.derivative = FALSE, score = FALSE)$dVcov.param
-    GS.lm <- sCorrect(e.lm, adjust.Omega = FALSE, adjust.n = FALSE, numeric.derivative = TRUE, score = FALSE)$dVcov.param
+    test.lm <- sCorrect(e.lm, adjust.Omega = FALSE, adjust.n = FALSE, numeric.derivative = FALSE)$dVcov.param
+    GS.lm <- sCorrect(e.lm, adjust.Omega = FALSE, adjust.n = FALSE, numeric.derivative = TRUE)$dVcov.param
     expect_equal(test.lm, GS.lm)
     expect_equal(as.double(test.lm), as.double(GS))
 
-    test.gls <- sCorrect(e.gls, adjust.Omega = FALSE, adjust.n = FALSE, numeric.derivative = FALSE, score = FALSE, cluster = "Id")$dVcov.param
-    GS.gls <- sCorrect(e.gls, adjust.Omega = FALSE, adjust.n = FALSE, numeric.derivative = TRUE, score = FALSE, cluster = "Id")$dVcov.param
+    test.gls <- sCorrect(e.gls, adjust.Omega = FALSE, adjust.n = FALSE, numeric.derivative = FALSE, cluster = "Id")$dVcov.param
+    GS.gls <- sCorrect(e.gls, adjust.Omega = FALSE, adjust.n = FALSE, numeric.derivative = TRUE, cluster = "Id")$dVcov.param
     expect_equal(test.gls, GS.gls)
     expect_equal(as.double(test.gls), as.double(GS))
 })
@@ -78,12 +78,12 @@ test_that("linear regression: Satterthwaite + small sample correction (dVcov))",
     vcov <- solve(bdiag(crossprod(X)/sigma2,(n-NCOL(X))/(2*sigma2^2)))
     GS <- vcov %*% dI %*% vcov
 
-    test.lvm <- sCorrect(e.lvm, adjust.Omega = TRUE, adjust.n = TRUE, numeric.derivative = FALSE, score = FALSE)$dVcov.param
+    test.lvm <- sCorrect(e.lvm, adjust.Omega = TRUE, adjust.n = TRUE, numeric.derivative = FALSE)$dVcov.param
     expect_equal(as.double(test.lvm), as.double(GS), tol = 1e-5)
 
-    test.lm <- sCorrect(e.lm, adjust.Omega = TRUE, adjust.n = TRUE, numeric.derivative = FALSE, score = FALSE)$dVcov.param
+    test.lm <- sCorrect(e.lm, adjust.Omega = TRUE, adjust.n = TRUE, numeric.derivative = FALSE)$dVcov.param
     expect_equal(as.double(test.lm), as.double(GS), tol = 1e-5)
-    test.gls <- sCorrect(e.gls, adjust.Omega = TRUE, adjust.n = TRUE, numeric.derivative = FALSE, score = FALSE, cluster = "Id")$dVcov.param
+    test.gls <- sCorrect(e.gls, adjust.Omega = TRUE, adjust.n = TRUE, numeric.derivative = FALSE, cluster = "Id")$dVcov.param
     expect_equal(as.double(test.gls), as.double(GS), tol = 1e-5)
 })
 
@@ -95,12 +95,12 @@ e.lvm2 <- estimate(lvm(Y1~beta*X1+beta*X2), d)
 
 ## ** check dVcov
 test_that("linear regression with constrains: Satterthwaite (dVcov)", {
-    test.lvm <- sCorrect(e.lvm, adjust.Omega = FALSE, adjust.n = FALSE, numeric.derivative = FALSE, score = FALSE)$dVcov.param
-    GS.lvm <- sCorrect(e.lvm, adjust.Omega = FALSE, adjust.n = FALSE, numeric.derivative = TRUE, score = FALSE)$dVcov.param
+    test.lvm <- sCorrect(e.lvm, adjust.Omega = FALSE, adjust.n = FALSE, numeric.derivative = FALSE)$dVcov.param
+    GS.lvm <- sCorrect(e.lvm, adjust.Omega = FALSE, adjust.n = FALSE, numeric.derivative = TRUE)$dVcov.param
     expect_equal(test.lvm, GS.lvm)
 
-    test.lvm2 <- sCorrect(e.lvm2, adjust.Omega = FALSE, adjust.n = FALSE, numeric.derivative = FALSE, score = FALSE)$dVcov.param
-    GS.lvm2 <- sCorrect(e.lvm2, adjust.Omega = FALSE, adjust.n = FALSE, numeric.derivative = TRUE, score = FALSE)$dVcov.param
+    test.lvm2 <- sCorrect(e.lvm2, adjust.Omega = FALSE, adjust.n = FALSE, numeric.derivative = FALSE)$dVcov.param
+    GS.lvm2 <- sCorrect(e.lvm2, adjust.Omega = FALSE, adjust.n = FALSE, numeric.derivative = TRUE)$dVcov.param
     expect_equal(test.lvm2, GS.lvm2)    
 })
 
@@ -139,8 +139,8 @@ test_that("multiple linear regression: Satterthwaite (dVcov)", {
     })
     name.coef.lvm <- names(coef(e.lvm))
     
-    test.lvm <- sCorrect(e.lvm, adjust.Omega = FALSE, adjust.n = FALSE, numeric.derivative = FALSE, score = FALSE)$dVcov.param
-    GS.lvm <- sCorrect(e.lvm, adjust.Omega = FALSE, adjust.n = FALSE, numeric.derivative = TRUE, score = FALSE)$dVcov.param
+    test.lvm <- sCorrect(e.lvm, adjust.Omega = FALSE, adjust.n = FALSE, numeric.derivative = FALSE)$dVcov.param
+    GS.lvm <- sCorrect(e.lvm, adjust.Omega = FALSE, adjust.n = FALSE, numeric.derivative = TRUE)$dVcov.param
     expect_equal(test.lvm, GS.lvm)
     expect_equal(as.double(test.lvm[grep("Y1",name.coef.lvm),grep("Y1",name.coef.lvm),"Y1~~Y1"]),
                  as.double(GS[[1]]))
@@ -150,9 +150,9 @@ test_that("multiple linear regression: Satterthwaite (dVcov)", {
                  as.double(GS[[3]]))
 
     test.gls <- sCorrect(e.gls, adjust.Omega = FALSE, adjust.n = FALSE,
-                         numeric.derivative = FALSE, score = FALSE, cluster = "Id")$dVcov.param
+                         numeric.derivative = FALSE, cluster = "Id")$dVcov.param
     GS.gls <- sCorrect(e.gls, adjust.Omega = FALSE, adjust.n = FALSE,
-                       numeric.derivative = TRUE, score = FALSE, cluster = "Id")$dVcov.param
+                       numeric.derivative = TRUE, cluster = "Id")$dVcov.param
     expect_equal(test.gls, GS.gls)    
 })
 
@@ -171,7 +171,7 @@ test_that("multiple linear regression: Satterthwaite + small sample correction (
     })
     name.coef.lvm <- names(coef(e.lvm))
 
-    test.lvm <- sCorrect(e.lvm, adjust.Omega = TRUE, adjust.n = TRUE, numeric.derivative = FALSE, score = FALSE)$dVcov.param
+    test.lvm <- sCorrect(e.lvm, adjust.Omega = TRUE, adjust.n = TRUE, numeric.derivative = FALSE)$dVcov.param
     expect_equal(as.double(test.lvm[grep("Y1",name.coef.lvm),grep("Y1",name.coef.lvm),"Y1~~Y1"]),
                  as.double(GS[[1]]))
     expect_equal(as.double(test.lvm[grep("Y2",name.coef.lvm),grep("Y2",name.coef.lvm),"Y2~~Y2"]),
@@ -179,7 +179,7 @@ test_that("multiple linear regression: Satterthwaite + small sample correction (
     expect_equal(as.double(test.lvm[grep("Y3",name.coef.lvm),grep("Y3",name.coef.lvm),"Y3~~Y3"]),
                  as.double(GS[[3]]))
 
-    test.gls <- sCorrect(e.gls, adjust.Omega = TRUE, adjust.n = TRUE, numeric.derivative = FALSE, score = FALSE, cluster = "Id")$dVcov.param
+    test.gls <- sCorrect(e.gls, adjust.Omega = TRUE, adjust.n = TRUE, numeric.derivative = FALSE, cluster = "Id")$dVcov.param
     
 })
 
@@ -189,8 +189,8 @@ e.lvm <- estimate(lvm(Y1~X1+1*X2,Y2~2*X3+2*X1,Y3~X2), data = d)
 
 ## ** check dVcov
 test_that("multiple linear regression with constrains: Satterthwaite", {
-    test.lvm <- sCorrect(e.lvm, adjust.Omega = FALSE, adjust.n = FALSE, numeric.derivative = FALSE, score = FALSE)$dVcov.param
-    GS.lvm <- sCorrect(e.lvm, adjust.Omega = FALSE, adjust.n = FALSE, numeric.derivative = TRUE, score = FALSE)$dVcov.param
+    test.lvm <- sCorrect(e.lvm, adjust.Omega = FALSE, adjust.n = FALSE, numeric.derivative = FALSE)$dVcov.param
+    GS.lvm <- sCorrect(e.lvm, adjust.Omega = FALSE, adjust.n = FALSE, numeric.derivative = TRUE)$dVcov.param
     expect_equal(test.lvm, GS.lvm)
 })
 
@@ -201,8 +201,8 @@ e.lvm <- estimate(lvm(Y1~X1+X2,Y2~X3+X1,Y3~X2,Y1~~Y2),d)
 
 ## ** check dVcov
 test_that("multiple linear regression with covariance: Satterthwaite (dVcov)", {
-    test.lvm <- sCorrect(e.lvm, adjust.Omega = FALSE, adjust.n = FALSE, numeric.derivative = FALSE, score = FALSE)$dVcov.param
-    GS.lvm <- sCorrect(e.lvm, adjust.Omega = FALSE, adjust.n = FALSE, numeric.derivative = TRUE, score = FALSE)$dVcov.param
+    test.lvm <- sCorrect(e.lvm, adjust.Omega = FALSE, adjust.n = FALSE, numeric.derivative = FALSE)$dVcov.param
+    GS.lvm <- sCorrect(e.lvm, adjust.Omega = FALSE, adjust.n = FALSE, numeric.derivative = TRUE)$dVcov.param
     expect_equal(test.lvm, GS.lvm)
 })
 
@@ -233,19 +233,19 @@ test_that("compound symmetry: lme/gls equivalent to lvm",{
 
 ## ** check dVcov
 test_that("compound symmetry: Satterthwaite (dVcov)", {
-    test.lvm <- sCorrect(e.lvm, adjust.Omega = FALSE, adjust.n = FALSE, numeric.derivative = FALSE, score = FALSE)$dVcov.param
-    GS.lvm <- sCorrect(e.lvm, adjust.Omega = FALSE, adjust.n = FALSE, numeric.derivative = TRUE, score = FALSE)$dVcov.param
+    test.lvm <- sCorrect(e.lvm, adjust.Omega = FALSE, adjust.n = FALSE, numeric.derivative = FALSE)$dVcov.param
+    GS.lvm <- sCorrect(e.lvm, adjust.Omega = FALSE, adjust.n = FALSE, numeric.derivative = TRUE)$dVcov.param
     expect_equal(test.lvm, GS.lvm)
     expect_equal(c(min(test.lvm),mean(test.lvm),max(test.lvm)),
                  c(-0.043665672, 0.001141085, 0.086044394),
                  tol = 1e-8) ## compare with previous version
    
-    test.lme <- sCorrect(e.lme, adjust.Omega = FALSE, adjust.n = FALSE, numeric.derivative = FALSE, score = FALSE)$dVcov.param
-    GS.lme <- sCorrect(e.lme, adjust.Omega = FALSE, adjust.n = FALSE, numeric.derivative = TRUE, score = FALSE)$dVcov.param
+    test.lme <- sCorrect(e.lme, adjust.Omega = FALSE, adjust.n = FALSE, numeric.derivative = FALSE)$dVcov.param
+    GS.lme <- sCorrect(e.lme, adjust.Omega = FALSE, adjust.n = FALSE, numeric.derivative = TRUE)$dVcov.param
     expect_equal(test.lme, GS.lme)
    
-    test.gls <- sCorrect(e.gls, adjust.Omega = FALSE, adjust.n = FALSE, numeric.derivative = FALSE, score = FALSE)$dVcov.param
-    GS.gls <- sCorrect(e.gls, adjust.Omega = FALSE, adjust.n = FALSE, numeric.derivative = TRUE, score = FALSE)$dVcov.param
+    test.gls <- sCorrect(e.gls, adjust.Omega = FALSE, adjust.n = FALSE, numeric.derivative = FALSE)$dVcov.param
+    GS.gls <- sCorrect(e.gls, adjust.Omega = FALSE, adjust.n = FALSE, numeric.derivative = TRUE)$dVcov.param
     expect_equal(test.gls, GS.gls)
 })
 
@@ -276,19 +276,19 @@ test_that("lme equivalent to lvm", {
 
 ## ** check dVcov
 test_that("compound symmetry with different variances: Satterthwaite (dVcov)", {
-    test.lvm <- sCorrect(e.lvm, adjust.Omega = FALSE, adjust.n = FALSE, numeric.derivative = FALSE, score = FALSE)$dVcov.param
-    GS.lvm <- sCorrect(e.lvm, adjust.Omega = FALSE, adjust.n = FALSE, numeric.derivative = TRUE, score = FALSE)$dVcov.param
+    test.lvm <- sCorrect(e.lvm, adjust.Omega = FALSE, adjust.n = FALSE, numeric.derivative = FALSE)$dVcov.param
+    GS.lvm <- sCorrect(e.lvm, adjust.Omega = FALSE, adjust.n = FALSE, numeric.derivative = TRUE)$dVcov.param
     expect_equal(test.lvm, GS.lvm) ## internal consistency
     expect_equal(c(min(test.lvm),mean(test.lvm),max(test.lvm)),
                  c(-0.043665672, 0.001163405, 0.158962412),
                  tol = 1e-8) ## compare with previous version
     
-    test.lme <- sCorrect(e.lme, adjust.Omega = FALSE, adjust.n = FALSE, numeric.derivative = FALSE, score = FALSE)$dVcov.param
-    GS.lme <- sCorrect(e.lme, adjust.Omega = FALSE, adjust.n = FALSE, numeric.derivative = TRUE, score = FALSE)$dVcov.param
+    test.lme <- sCorrect(e.lme, adjust.Omega = FALSE, adjust.n = FALSE, numeric.derivative = FALSE)$dVcov.param
+    GS.lme <- sCorrect(e.lme, adjust.Omega = FALSE, adjust.n = FALSE, numeric.derivative = TRUE)$dVcov.param
     expect_equal(test.lme, GS.lme)
 
-    test.gls <- sCorrect(e.gls, adjust.Omega = FALSE, adjust.n = FALSE, numeric.derivative = FALSE, score = FALSE)$dVcov.param
-    GS.gls <- sCorrect(e.gls, adjust.Omega = FALSE, adjust.n = FALSE, numeric.derivative = TRUE, score = FALSE)$dVcov.param
+    test.gls <- sCorrect(e.gls, adjust.Omega = FALSE, adjust.n = FALSE, numeric.derivative = FALSE)$dVcov.param
+    GS.gls <- sCorrect(e.gls, adjust.Omega = FALSE, adjust.n = FALSE, numeric.derivative = TRUE)$dVcov.param
     expect_equal(test.gls, GS.gls)
 })
 
@@ -323,19 +323,19 @@ test_that("lme/gls equivalent to lvm", {
 
 ## ** check dVcov
 test_that("Unstructured: Satterthwaite (dVcov)", {
-    test.lvm <- sCorrect(e.lvm, adjust.Omega = FALSE, adjust.n = FALSE, numeric.derivative = FALSE, score = FALSE)$dVcov.param
-    GS.lvm <- sCorrect(e.lvm, adjust.Omega = FALSE, adjust.n = FALSE, numeric.derivative = TRUE, score = FALSE)$dVcov.param
+    test.lvm <- sCorrect(e.lvm, adjust.Omega = FALSE, adjust.n = FALSE, numeric.derivative = FALSE)$dVcov.param
+    GS.lvm <- sCorrect(e.lvm, adjust.Omega = FALSE, adjust.n = FALSE, numeric.derivative = TRUE)$dVcov.param
     expect_equal(test.lvm, GS.lvm)
     expect_equal(c(min(test.lvm),mean(test.lvm),max(test.lvm)),
                  c(-0.069511713, 0.001092602, 0.129487510),
                  tol = 1e-8) ## compare with previous version
     ## ERROR: inversion?
-    ## test.lme <- sCorrect(e.lme, adjust.Omega = FALSE, adjust.n = FALSE, numeric.derivative = FALSE, score = FALSE)$dVcov.param
-    ## GS.lme <- sCorrect(e.lme, adjust.Omega = FALSE, adjust.n = FALSE, numeric.derivative = TRUE, score = FALSE)$dVcov.param
+    ## test.lme <- sCorrect(e.lme, adjust.Omega = FALSE, adjust.n = FALSE, numeric.derivative = FALSE)$dVcov.param
+    ## GS.lme <- sCorrect(e.lme, adjust.Omega = FALSE, adjust.n = FALSE, numeric.derivative = TRUE)$dVcov.param
     ## expect_equal(test.lme, GS.lme)
 
-    test.gls <- sCorrect(e.gls, adjust.Omega = FALSE, adjust.n = FALSE, numeric.derivative = FALSE, score = FALSE)$dVcov.param
-    GS.gls <- sCorrect(e.gls, adjust.Omega = FALSE, adjust.n = FALSE, numeric.derivative = TRUE, score = FALSE)$dVcov.param
+    test.gls <- sCorrect(e.gls, adjust.Omega = FALSE, adjust.n = FALSE, numeric.derivative = FALSE)$dVcov.param
+    GS.gls <- sCorrect(e.gls, adjust.Omega = FALSE, adjust.n = FALSE, numeric.derivative = TRUE)$dVcov.param
     expect_equal(test.gls, GS.gls)
 })
 
@@ -370,8 +370,8 @@ test_that("lme/gls equivalent to lvm", {
 
 ## ** check dVcov
 test_that("Unstructured with different variances: Satterthwaite (dVcov)", {
-    test.lvm <- sCorrect(e.lvm, adjust.Omega = FALSE, adjust.n = FALSE, numeric.derivative = FALSE, score = FALSE)$dVcov.param
-    GS.lvm <- sCorrect(e.lvm, adjust.Omega = FALSE, adjust.n = FALSE, numeric.derivative = TRUE, score = FALSE)$dVcov.param
+    test.lvm <- sCorrect(e.lvm, adjust.Omega = FALSE, adjust.n = FALSE, numeric.derivative = FALSE)$dVcov.param
+    GS.lvm <- sCorrect(e.lvm, adjust.Omega = FALSE, adjust.n = FALSE, numeric.derivative = TRUE)$dVcov.param
     expect_equal(test.lvm, GS.lvm)
     expect_equal(c(min(test.lvm),mean(test.lvm),max(test.lvm)),
                  c(-0.08912488, 0.00188713, 0.18430283),
@@ -379,12 +379,12 @@ test_that("Unstructured with different variances: Satterthwaite (dVcov)", {
     ## summary2(e.lvm)
     
     ## ERROR: the model is overparametrized
-    ## test.lme <- sCorrect(e.lme, adjust.Omega = FALSE, adjust.n = FALSE, numeric.derivative = FALSE, score = FALSE)$dVcov.param
-    ## GS.lme <- sCorrect(e.lme, adjust.Omega = FALSE, adjust.n = FALSE, numeric.derivative = TRUE, score = FALSE)$dVcov.param
+    ## test.lme <- sCorrect(e.lme, adjust.Omega = FALSE, adjust.n = FALSE, numeric.derivative = FALSE)$dVcov.param
+    ## GS.lme <- sCorrect(e.lme, adjust.Omega = FALSE, adjust.n = FALSE, numeric.derivative = TRUE)$dVcov.param
     ## expect_equal(test.lme, GS.lme)
 
-    test.gls <- sCorrect(e.gls, adjust.Omega = FALSE, adjust.n = FALSE, numeric.derivative = FALSE, score = FALSE)$dVcov.param
-    GS.gls <- sCorrect(e.gls, adjust.Omega = FALSE, adjust.n = FALSE, numeric.derivative = TRUE, score = FALSE)$dVcov.param
+    test.gls <- sCorrect(e.gls, adjust.Omega = FALSE, adjust.n = FALSE, numeric.derivative = FALSE)$dVcov.param
+    GS.gls <- sCorrect(e.gls, adjust.Omega = FALSE, adjust.n = FALSE, numeric.derivative = TRUE)$dVcov.param
     expect_equal(test.gls, GS.gls)
 })
 
@@ -398,8 +398,8 @@ e.lvm <- estimate(m,d)
 
 ## ** check dVcov
 test_that("factor model: Satterthwaite (dVcov)", {
-    test.lvm <- sCorrect(e.lvm, adjust.Omega = FALSE, adjust.n = FALSE, numeric.derivative = FALSE, score = FALSE)$dVcov.param
-    GS.lvm <- sCorrect(e.lvm, adjust.Omega = FALSE, adjust.n = FALSE, numeric.derivative = TRUE, score = FALSE)$dVcov.param
+    test.lvm <- sCorrect(e.lvm, adjust.Omega = FALSE, adjust.n = FALSE, numeric.derivative = FALSE)$dVcov.param
+    GS.lvm <- sCorrect(e.lvm, adjust.Omega = FALSE, adjust.n = FALSE, numeric.derivative = TRUE)$dVcov.param
     expect_equal(test.lvm, GS.lvm)
     expect_equal(c(min(test.lvm),mean(test.lvm),max(test.lvm)),
                  c(-0.297105651, 0.001184003, 0.360920233),
@@ -421,8 +421,8 @@ e.lvm2 <- estimate(lvm(Y1~1*eta+X2,
 
 ## ** check dVcov
 test_that("factor model: Satterthwaite", {
-    test.lvm <- sCorrect(e.lvm, adjust.Omega = FALSE, adjust.n = FALSE, numeric.derivative = FALSE, score = FALSE)$dVcov.param
-    GS.lvm <- sCorrect(e.lvm, adjust.Omega = FALSE, adjust.n = FALSE, numeric.derivative = TRUE, score = FALSE)$dVcov.param
+    test.lvm <- sCorrect(e.lvm, adjust.Omega = FALSE, adjust.n = FALSE, numeric.derivative = FALSE)$dVcov.param
+    GS.lvm <- sCorrect(e.lvm, adjust.Omega = FALSE, adjust.n = FALSE, numeric.derivative = TRUE)$dVcov.param
     expect_equal(test.lvm, GS.lvm)
     expect_equal(c(min(test.lvm),mean(test.lvm),max(test.lvm)),
                  c(-0.035030251, 0.004314892, 0.289075943),
@@ -440,8 +440,8 @@ e.lvm <- estimate(m,d)
 
 ## ** check dVcov
 test_that("2 factor model: Satterthwaite", {
-    test.lvm <- sCorrect(e.lvm, adjust.Omega = FALSE, adjust.n = FALSE, numeric.derivative = FALSE, score = FALSE)$dVcov.param
-    GS.lvm <- sCorrect(e.lvm, adjust.Omega = FALSE, adjust.n = FALSE, numeric.derivative = TRUE, score = FALSE)$dVcov.param
+    test.lvm <- sCorrect(e.lvm, adjust.Omega = FALSE, adjust.n = FALSE, numeric.derivative = FALSE)$dVcov.param
+    GS.lvm <- sCorrect(e.lvm, adjust.Omega = FALSE, adjust.n = FALSE, numeric.derivative = TRUE)$dVcov.param
     expect_equal(test.lvm, GS.lvm)
     expect_equal(c(min(test.lvm),mean(test.lvm),max(test.lvm)),
                  c(-1.407457972, 0.000378982, 1.299890022),
@@ -457,8 +457,8 @@ e2.lvm <- e.lvm
 
 ## ** check dVcov
 test_that("2 factor model with constrains: Satterthwaite", {
-    test.lvm <- sCorrect(e.lvm, adjust.Omega = FALSE, adjust.n = FALSE, numeric.derivative = FALSE, score = FALSE)$dVcov.param
-    GS.lvm <- sCorrect(e.lvm, adjust.Omega = FALSE, adjust.n = FALSE, numeric.derivative = TRUE, score = FALSE)$dVcov.param
+    test.lvm <- sCorrect(e.lvm, adjust.Omega = FALSE, adjust.n = FALSE, numeric.derivative = FALSE)$dVcov.param
+    GS.lvm <- sCorrect(e.lvm, adjust.Omega = FALSE, adjust.n = FALSE, numeric.derivative = TRUE)$dVcov.param
     expect_equal(test.lvm, GS.lvm)
     expect_equal(c(min(test.lvm),mean(test.lvm),max(test.lvm)),
                  c(-0.9719462803, 0.0005765745, 1.0173093948),
@@ -476,8 +476,8 @@ e.lvm <- estimate(m,d)
 
 ## ** check dVcov
 test_that("2 factor model with covariance: Satterthwaite", {
-    test.lvm <- sCorrect(e.lvm, adjust.Omega = FALSE, adjust.n = FALSE, numeric.derivative = FALSE, score = FALSE)$dVcov.param
-    GS.lvm <- sCorrect(e.lvm, adjust.Omega = FALSE, adjust.n = FALSE, numeric.derivative = TRUE, score = FALSE)$dVcov.param
+    test.lvm <- sCorrect(e.lvm, adjust.Omega = FALSE, adjust.n = FALSE, numeric.derivative = FALSE)$dVcov.param
+    GS.lvm <- sCorrect(e.lvm, adjust.Omega = FALSE, adjust.n = FALSE, numeric.derivative = TRUE)$dVcov.param
     expect_equal(test.lvm, GS.lvm)
     expect_equal(c(min(test.lvm),mean(test.lvm),max(test.lvm)),
                  c(-1.0091216732, 0.0004489561, 1.0301898081),
@@ -495,8 +495,8 @@ e.lvm <- estimate(m,d)
 
 ## ** check dVcov
 test_that("2 factor model with correlation: Satterthwaite (dVcov)", {
-    test.lvm <- sCorrect(e.lvm, adjust.Omega = FALSE, adjust.n = FALSE, numeric.derivative = FALSE, score = FALSE)$dVcov.param
-    GS.lvm <- sCorrect(e.lvm, adjust.Omega = FALSE, adjust.n = FALSE, numeric.derivative = TRUE, score = FALSE)$dVcov.param
+    test.lvm <- sCorrect(e.lvm, adjust.Omega = FALSE, adjust.n = FALSE, numeric.derivative = FALSE)$dVcov.param
+    GS.lvm <- sCorrect(e.lvm, adjust.Omega = FALSE, adjust.n = FALSE, numeric.derivative = TRUE)$dVcov.param
     expect_equal(test.lvm, GS.lvm)
     expect_equal(c(min(test.lvm),mean(test.lvm),max(test.lvm)),
                  c(-0.7338483344, 0.0002132907, 0.8107582027),

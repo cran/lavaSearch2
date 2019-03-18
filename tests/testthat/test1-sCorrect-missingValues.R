@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: mar  7 2018 (13:39) 
 ## Version: 
-## Last-Updated: apr  4 2018 (14:20) 
+## Last-Updated: feb 11 2019 (14:32) 
 ##           By: Brice Ozenne
-##     Update #: 32
+##     Update #: 36
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -16,7 +16,7 @@
 ### Code:
 
 ## * header
-rm(list = ls())
+## rm(list = ls())
 if(FALSE){ ## already called in test-all.R
     library(testthat)
     library(lavaSearch2)
@@ -68,11 +68,12 @@ expect_equal(as.double(coef(e.gls)[2]),
              as.double(diff(e.ttest$estimate)))
 
 test_that("t test (full data)", {
+    eS.gls <- summary2(e.gls, cluster = "Id")$tTable
     expect_equal(unname(e.ttest$parameter),
-                 summary2(e.gls, cluster = "Id")$tTable["variableY2","df"],
+                 eS.gls["variableY2","df"],
                  tol = 1e-3)
     expect_equal(unname(e.ttest$p.value),
-                 summary2(e.gls, cluster = "Id")$tTable["variableY2","p-value"],
+                 eS.gls["variableY2","p-value"],
                  tol = 1e-5)
 })
 
@@ -85,12 +86,16 @@ expect_equal(as.double(coef(eNA.gls)[2]),
              as.double(diff(e.ttest$estimate)))
 ## getVarCov2(eNA.gls, cluster = "Id")
 
+
+
 test_that("t test (missing data)", {
+    eNAS.gls <- summary2(eNA.gls, cluster = "Id")$tTable
+    
     expect_equal(unname(e.ttest$parameter),
-                 summary2(eNA.gls, cluster = "Id")$tTable["variableY2","df"],
+                 eNAS.gls["variableY2","df"],
                  tol = 1e-3)
     expect_equal(unname(e.ttest$p.value),
-                 summary2(eNA.gls, cluster = "Id")$tTable["variableY2","p-value"],
+                 eNAS.gls["variableY2","p-value"],
                  tol = 1e-5)
 })
 
@@ -124,7 +129,9 @@ eNA.lvm <- estimate(m, rbind(d,missing.Row), missing = TRUE)
 
 test_that("full information (factor model)", {
     eNA2.lvm <- eNA.lvm
-    sCorrect(eNA2.lvm) <- TRUE    
+    sCorrect(eNA2.lvm) <- TRUE
+    ## sCorrect(eNA2.lvm, numeric.derivative = TRUE) <- TRUE
+    summary2(eNA2.lvm)
 })
 
 

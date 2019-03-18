@@ -2,7 +2,7 @@
 % Please edit documentation in R/calcType1postSelection.R
 \name{calcType1postSelection}
 \alias{calcType1postSelection}
-\title{Compute the Type 1 Error After Selection}
+\title{Compute the Type 1 Error After Selection [EXPERIMENTAL]}
 \usage{
 calcType1postSelection(level, mu, Sigma, quantile.previous, distribution,
   df, n = 10, correct = TRUE, ...)
@@ -32,7 +32,7 @@ Only used when \code{distribution="pvmt"}.}
 [numeric] the type 1 error.
 }
 \description{
-Compute the type 1 error after selection.
+Compute the type 1 error after selection [EXPERIMENTAL].
 }
 \details{
 The number of tests at the current step (i.e. after selection) is assumed to be

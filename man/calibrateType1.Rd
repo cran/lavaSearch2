@@ -6,29 +6,39 @@
 \alias{calibrateType1.lvmfit}
 \title{Simulation Study Assessing Bias and Type 1 Error}
 \usage{
-calibrateType1(object, null, n.rep, ...)
+calibrateType1(object, param, n.rep, ...)
 
-\method{calibrateType1}{lvm}(object, null, n.rep, n, F.test = FALSE,
-  cluster = NULL, generative.object = NULL, generative.coef = NULL,
-  true.coef = NULL, n.true = 1e+06, round.true = 2,
-  bootstrap = FALSE, n.bootstrap = 1000, checkType1 = FALSE,
-  checkType2 = FALSE, dir.save = NULL, label.file = NULL,
-  seed = NULL, cpus = 1, trace = 2, ...)
+\method{calibrateType1}{lvm}(object, param, n.rep, n, correction = TRUE,
+  warmup = NULL, null = NULL, F.test = FALSE, cluster = NULL,
+  generative.object = NULL, generative.coef = NULL, true.coef = NULL,
+  n.true = 1e+06, round.true = 2, bootstrap = FALSE,
+  n.bootstrap = 1000, checkType1 = FALSE, checkType2 = FALSE,
+  dir.save = NULL, label.file = NULL, seed = NULL, cpus = 1,
+  trace = 2, ...)
 
-\method{calibrateType1}{lvmfit}(object, null, n.rep, F.test = FALSE,
-  bootstrap = FALSE, n.bootstrap = 1000, seed = NULL, trace = 2,
-  cpus = 1, ...)
+\method{calibrateType1}{lvmfit}(object, param, n.rep, correction = TRUE,
+  F.test = FALSE, bootstrap = FALSE, n.bootstrap = 1000,
+  seed = NULL, trace = 2, cpus = 1, ...)
 }
 \arguments{
 \item{object}{a \code{lvm} object defining the model to be fitted.}
 
-\item{null}{[character vector] names of the coefficient whose value will be tested against 0.}
+\item{param}{[character vector] names of the coefficient whose value will be tested.}
 
 \item{n.rep}{[integer, >0] number of simulations per sample size.}
 
 \item{...}{[internal] Only used by the generic method.}
 
 \item{n}{[integer vector, >0] sample size(s) considered in the simulation study.}
+
+\item{correction}{[logical] should the type 1 error after correction be computed?}
+
+\item{warmup}{[list of lvm] a list of \code{lvm} objects that will be sequentially fitted with for
+starting values the parameter of the previous model in the list (if any). The parameters of the final
+model of the list are used to initialize the fit of the model of interest (i.e. object).}
+
+\item{null}{[numeric vector] vector of null hypotheses, one for each model coefficient.
+By default a vector of 0.}
 
 \item{F.test}{[logical] should a multivariate Wald test be perform testing simultaneously all the null hypotheses?}
 
@@ -87,15 +97,15 @@ categorical(m.Sim, labels = c("M","F")) <- ~Gender
 
 d <- lava::sim(m.Sim, 1e2)
 
-
 #### calibrate type 1 error on the estimated model ####
 m <- lvm(Y1~eta,
          Y2~eta,
          Y3~eta,
          eta~Group+Gender)
 e <- lava::estimate(m, data = d)
-res <- calibrateType1(e, null = "eta~Group", n.rep = 100)
-res <- calibrateType1(e, null = "eta~Group", n.rep = 100, cpus = 4)
+res <- calibrateType1(e, param = "eta~Group", n.rep = 100)
+res <- calibrateType1(e, param = c("eta~Group","Y1~eta"), F.test = TRUE, n.rep = 100)
+res <- calibrateType1(e, param = "eta~Group", n.rep = 100, cpus = 4)
 summary(res)
 }
 

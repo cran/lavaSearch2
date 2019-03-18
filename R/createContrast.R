@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: jan 31 2018 (12:05) 
 ## Version: 
-## Last-Updated: nov 20 2018 (14:38) 
+## Last-Updated: mar  4 2019 (11:14) 
 ##           By: Brice Ozenne
-##     Update #: 235
+##     Update #: 264
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -76,13 +76,11 @@
 #' createContrast(ls.lvm, par = character(0), add.variance = FALSE)
 #'
 #' ## Contrast for multigroup models
-#' \dontrun{
 #' m <- lava::lvm(Y~Age+Treatment)
 #' e <- lava::estimate(list(m,m), data = split(df.data, df.data$Gender))
 #' print(coef(e))
-#' createContrast(e, par = "1@Y~TreatmentSSRI - 2@Y~TreatmentSSRI = 0")
-#' createContrast(e, par = "2@Y~TreatmentSSRI - 1@Y~TreatmentSSRI = 0")
-#' }
+#' createContrast(e, par = "Y~TreatmentSSRI@1 - Y~TreatmentSSRI@2 = 0")
+#' createContrast(e, par = "Y~TreatmentSSRI@2 - Y~TreatmentSSRI@1 = 0")
 #' @concept small sample inference
 #' 
 #' @export
@@ -146,10 +144,13 @@ createContrast.character <- function(object, name.param, diff.first = FALSE,
                 if(iName %in% name.param == FALSE){
                     txt.message <- paste0("unknown coefficient ",iName," in hypothesis ",iH,"\n")
                     possibleMatch <- pmatch(iName, table = name.param)
-                    if(identical(possibleMatch, as.integer(NA))){
+                    if(all(is.na(possibleMatch))){
                         possibleMatch <- grep(iName, name.param, fixed = TRUE, value = TRUE)
                     }
-                    if(!identical(possibleMatch, as.integer(NA))){
+                    if(length(possibleMatch)==0){
+                        possibleMatch <- agrep(iName, name.param, ignore.case = TRUE,value = TRUE)
+                    }
+                    if(length(possibleMatch)>0){
                         txt.message <- c(txt.message,
                                          paste0("candidates: \"",paste(possibleMatch, collapse = "\" \""),"\"\n"))
                     }
@@ -223,7 +224,7 @@ createContrast.gls <- function(object, par, add.variance, ...){
 ## * createContrast.lme
 #' @rdname createContrast
 #' @export
-createContrast.lme <- createContrast.lm
+createContrast.lme <- createContrast.gls
 
 ## * createContrast.lvmfit
 #' @rdname createContrast
@@ -277,7 +278,8 @@ createContrast.list <- function(object, par = NULL, add.variance = NULL, var.tes
             if(length(var.test)!=1){
                 stop("Argument \'var.test\' must have length 1 \n")
             }
-            par <- grep(var.test, object.coefname, value = TRUE)
+            object.coefname.red <- unlist(lapply(object.coefname, function(iName){strsplit(iName, split = ": ", fixed = TRUE)[[1]][2]}))
+            par <- object.coefname[grep(var.test, object.coefname.red, value = FALSE)]
         }
     }
 
@@ -288,7 +290,7 @@ createContrast.list <- function(object, par = NULL, add.variance = NULL, var.tes
     }
 
     ## ** create contrast matrix relative to each model
-    out$mlf <- lapply(name.model, function(iModel){ ## iModel <- name.model[1]        
+    out$mlf <- lapply(name.model, function(iModel){ ## iModel <- name.model[1]
         ## only keep columns corresponding to coefficients belonging the the current model
         iContrast <- out$contrast[,ls.object.coefname[[iModel]],drop=FALSE]
 
@@ -305,14 +307,17 @@ createContrast.list <- function(object, par = NULL, add.variance = NULL, var.tes
     })
     names(out$mlf) <- name.model    
     class(out$mlf) <- "mlf"
-    
+
     ## remove right hand side from the names (like in multicomp)
     if(length(par)>0){
         rownames(out$contrast) <- .contrast2name(out$contrast, null = NULL)
         out$mlf <- lapply(out$mlf, function(x){ ## x <- name.model[1]
-            rownames(x) <- .contrast2name(x, null = NULL)
+            if(NROW(x)>0){
+                rownames(x) <- .contrast2name(x, null = NULL)
+            }
             return(x)
         })
+            
         class(out$mlf) <- "mlf"
         names(out$null) <- rownames(out$contrast)
     }
@@ -340,7 +345,6 @@ createContrast.mmm <- createContrast.list
 #' 
 #' @keywords internal
 .contrast2name <- function(contrast, null = NULL){
-
     contrast.names <- colnames(contrast)
     
     df.index <- as.data.frame(which(contrast != 0, arr.ind = TRUE))

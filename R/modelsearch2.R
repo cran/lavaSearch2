@@ -7,7 +7,8 @@
 #' @param data [data.frame, optional] the dataset used to identify the model
 #' @param link [character, optional for \code{lvmfit} objects] the name of the additional relationships to consider when expanding the model. Should be a vector containing strings like "Y~X". See the details section.
 #' @param method.p.adjust [character] the method used to adjust the p.values for multiple comparisons.
-#' Can be any method that is valid for the \code{stats::p.adjust} function (e.g. \code{"fdr"}), or \code{"max"} or \code{"fastmax"}.
+#' Can be any method that is valid for the \code{stats::p.adjust} function (e.g. \code{"fdr"}).
+#' Can also be \code{"max"}, \code{"fastmax"}, or \code{"gof"}.
 #' @param type.information [character] the method used by \code{lava::information} to compute the information matrix.
 #' @param alpha [numeric 0-1] the significance cutoff for the p-values.
 #' When the p-value is below, the corresponding link will be added to the model
@@ -25,6 +26,7 @@
 #' method.p.adjust = \code{"fastmax"} only compute the p-value for the largest statistic.
 #' It is faster than \code{"max"} and lead to identical results.
 #' 
+#' method.p.adjust = \code{"gof"} keep adding links until the chi-squared test (of correct specification of the covariance matrix) is no longer significant.
 #' @return A list containing:
 #' \itemize{
 #' \item sequenceTest: the sequence of test that has been performed.
@@ -115,9 +117,20 @@ modelsearch2.lvmfit <- function(object, link = NULL, data = NULL,
                                 trace = TRUE, cpus = 1){
 
     ## ** check arguments
+    ## object
+    if(any(is.na(model.frame(object))) && method.p.adjust %in% c("max","fastmax")){
+        warning("Missing values - the iid decomposition of the test statistics will only be computed on complete data \n")
+    }
+    
     ## methods
     method.p.adjust <- match.arg(method.p.adjust, lava.options()$search.p.adjust)    
-
+    if(method.p.adjust == "gof" ){
+        method.p.adjust <- "none"
+        stop.gof <- TRUE
+    }else{
+        stop.gof <- FALSE
+    }
+    
     ## cpus
     if(is.null(cpus)){ cpus <- parallel::detectCores()}
 
@@ -193,7 +206,11 @@ modelsearch2.lvmfit <- function(object, link = NULL, data = NULL,
                                   subset(as.data.frame(data), select = index.cols))
         }
     }
-    ls.call$control <- object$control
+    if(is.null(object$control)){
+        ls.call$control <- list()
+    }else{
+        ls.call$control <- object$control
+    }
     ls.call$control$trace <- FALSE
     
     ## output
@@ -240,8 +257,20 @@ modelsearch2.lvmfit <- function(object, link = NULL, data = NULL,
     }
 
     ## ** Forward search
+    if(stop.gof){
+        if(trace>0){
+            cat("p.Chi-squared test = ",gof(iObject)$fit$p.value,"\n", sep = "")
+        }
+        if(gof(iObject)$fit$p.value >= alpha){
+            cv <- TRUE
+        }
+    }
+        
     while(iStep <= nStep && NROW(iRestricted)>0 && cv==FALSE){
         if(trace >= 1){cat("Step ",iStep,":\n",sep="")}
+
+        
+        
         resStep <- .oneStep_scoresearch(iObject, data = data,
                                         restricted = iRestricted, link = iLink, directive = iDirective,
                                         method.p.adjust = method.p.adjust, type.information = type.information,
@@ -249,7 +278,10 @@ modelsearch2.lvmfit <- function(object, link = NULL, data = NULL,
         
         ## ** update according the most significant p.value
         ## *** check convergence
-        if(na.omit || method.p.adjust == "fastmax"){
+        if(stop.gof){
+            cv <- FALSE
+            test.na <- FALSE
+        }else if(na.omit || method.p.adjust == "fastmax"){
             cv <- all(stats::na.omit(resStep$test$adjusted.p.value) > alpha)
             test.na <- FALSE
         }else{
@@ -275,13 +307,13 @@ modelsearch2.lvmfit <- function(object, link = NULL, data = NULL,
                                  covariance = 1-iDirective[index.maxTest])
 
             ## first attempt
-            ls.call$start <- stats::coef(iObject)
+            ls.call$control$start <- stats::coef(iObject)
             suppressWarnings(
                 iObject <- tryCatch(do.call(lava::estimate, args = ls.call),
-                                      error = function(x){x},
-                                      finally = function(x){x})
+                                    error = function(x){x},
+                                    finally = function(x){x})
             )
-        
+
             ## second attempt
             if(inherits(iObject,"error") || iObject$opt$convergence>0){
                 ls.call$control$start <- NULL
@@ -296,7 +328,7 @@ modelsearch2.lvmfit <- function(object, link = NULL, data = NULL,
             ## update links
             iLink <- iLink[-index.maxTest]
             iRestricted <- iRestricted[-index.maxTest,,drop=FALSE]
-            iDirective <- iDirective[-index.maxTest]            
+            iDirective <- iDirective[-index.maxTest]
         }
         
 
@@ -330,6 +362,19 @@ modelsearch2.lvmfit <- function(object, link = NULL, data = NULL,
                 }
             }
         }
+
+        ## *** check convergence gof
+        if(stop.gof){
+            if(trace>0){
+                cat("p.Chi-squared test = ",gof(iObject)$fit$p.value,"\n", sep = "")
+            }
+            if(gof(iObject)$fit$p.value >= alpha){
+                cv <- TRUE
+            }
+        }
+    
+
+        
         iStep <- iStep + 1
     }
 
@@ -474,9 +519,10 @@ modelsearch2.lvmfit <- function(object, link = NULL, data = NULL,
         ## *** compute the iid decomposition and statistic
         ## eigen(lava::information(estimate(newModel, data = data), p = coef0.new, data = data, type = "E"))
         Info <- lava::information(newModel, p = coef0.new, n = NROW(data), type = type.information, data = data)
-
         if(method.p.adjust %in% c("max","fastmax")){
             iid.score <- lava::score(newModel, p = coef0.new, data = data, indiv = TRUE)
+            ## rm na
+            iid.score <- iid.score[rowSums(is.na(iid.score))==0,]
 
             ## inverse of the information matrix
             sqrt.InfoM1 <- matrixPower(Info, power  = -1/2, symmetric = TRUE, tol = 1e-15, print.warning = FALSE)
@@ -491,6 +537,7 @@ modelsearch2.lvmfit <- function(object, link = NULL, data = NULL,
             out$iid <-  - iid.normScore %*% normScore / sqrt(crossprod(normScore)[1,1])
             ## out$iid <- out$iid/sqrt(sum(out$iid^2))
             out$table$statistic <- sqrt(crossprod(normScore))
+
             out$table$se <- sqrt(sum(out$iid^2))
         }else{
             ## ee.lvm <- estimate(newModel, data = data)
@@ -583,7 +630,7 @@ modelsearch2.lvmfit <- function(object, link = NULL, data = NULL,
         table.test[, "error"] <- resQmax$error
         Sigma <- resQmax$Sigma
                 
-    }else{
+    }else{        
         table.test[, "adjusted.p.value"] <- stats::p.adjust(table.test$p.value, method = method.p.adjust)
         table.test[, "quantile"] <- as.numeric(NA)
         Sigma <- NULL        

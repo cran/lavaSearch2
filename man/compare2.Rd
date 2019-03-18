@@ -34,8 +34,9 @@ compare2(object, df, bias.correct, ...)
 \method{compare2}{lvmfit2}(object, ...)
 
 .compare2(object, par = NULL, contrast = NULL, null = NULL,
-  rhs = NULL, robust = FALSE, cluster = NULL, df = TRUE,
-  as.lava = TRUE, F.test = TRUE, level = 0.95)
+  rhs = NULL, robust = FALSE, cluster = NULL,
+  df = object$sCorrect$args$df, as.lava = TRUE, F.test = TRUE,
+  level = 0.95)
 }
 \arguments{
 \item{object}{an object that inherits from lm/gls/lme/lvmfit.}
@@ -129,6 +130,7 @@ m <- lvm(Y~X1+X2)
 e.lvm <- estimate(m, df.data)
 
 compare2(e.lvm, par = c("-Y","Y~X1b+Y~X1c"))
+compare2(e.lvm, par = c("-Y","Y~X1b+Y~X1c"), robust = TRUE)
 }
 \seealso{
 \code{\link{createContrast}} to create contrast matrices. \cr
