@@ -103,7 +103,7 @@ Correct the bias of the ML estimate of the variance and compute the first deriva
 \details{
 The argument \code{value} is equivalent to the argument \code{bias.correct} of the function \code{summary2}.
 }
-\concept{derivative of the score equation
+\examples{
 n <- 5e1
 p <- 3
 X.name <- paste0("X",1:p)
@@ -130,5 +130,8 @@ summary2(e.gls)
 ## latent variable model
 e.lvm <- estimate(lvm(formula.lvm),data=d)
 sCorrect(e.lvm) <- TRUE ## i.e. bias.correct = TRUE
-summary2(e.lvm)}
+summary2(e.lvm)
+
+}
+\concept{derivative of the score equation}
 \concept{small sample inference}

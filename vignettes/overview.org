@@ -34,7 +34,8 @@ summary(lm(Y~X1+X2, data = df.data))$coef
 : X1          0.1550938  0.2205080 0.7033477 0.491360483
 : X2          0.4581556  0.2196785 2.0855736 0.052401103
 
-differ from those obtained with lava:
+differ from those obtained with the corresponding latent variable
+model estimated by maximum likelihood:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 ## fit latent variable model
 m <- lvm(Y~X1+X2)
@@ -51,18 +52,18 @@ summary(e)$coef
 : Y~~Y 0.5557910  0.1757566 3.1622777           NA
 : Y    0.7967775  0.2311125 3.4475747 0.0005656439
 
-For instance, the p-value for the effect of X2 is 0.024 according to
-lava and 0.052 according to =lm=. The discrepancy is due to 2
-corrections that =lm= applies in order to improve the control of the
-type 1 error of the Wald tests:
-- use of a student distribution instead of a normal distribution
-  (informally t-value instead of z-value).
-- use of a bias-corrected estimator of the residuals variance instead
-  of the ML-estimator.
+For instance, the p-value for the effect of X2 is 0.024 in the latent
+variable model and 0.052 in the linear regression. The discrepancy is
+due to 2 corrections that =lm= applies in order to improve the control
+of the type 1 error of the Wald tests:
+- use of a Student \(t\)-distribution instead of a Gaussian
+  distribution (informally using a t-value instead of z-value).
+- use of an unbiased estimator of the residuals variance instead of
+  the ML-estimator.
 *lavaSearch2* attempts to generalize these corrections to models with
 correlated and heteroschedastic measurements. In the case of a simple
-linear regression, Wald tests obtained with *lavaSearch2* closely
-approximate the results of =lm=:
+linear regression, Wald tests obtained with *lavaSearch2* exactly
+match the results of =lm=:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 summary2(e)$coef
 #+END_SRC
@@ -77,20 +78,20 @@ summary2(e)$coef
 ** How it works in a nutshell
 
 When using *lava*, the p.values that are obtained from the summary
-(Wald tests) rely on a Gaussian approximation. While being
-asymptotically valid, this approximation may not provide a very
-accurate control of the type 1 error rate in small
+(Wald tests) rely on a Gaussian approximation and maximum likelihood
+estimation. While being asymptotically valid, they usually do not
+provide a very accurate control of the type 1 error rate in small
 samples. Simulations have shown that the type 1 error rate tends to be
-too large, i.e. the p.values are have a downward bias.  gg
-*lavaSearch2* improves the Gaussian approximation in two way:
-- using a Student's t-distribution instead of a normal distribution to
-  account for the uncertainty on the variance of the coefficients. The
-  degrees of freedom are estimated using Satterwaite approximation,
-  i.e. identifying the chi-squared distribution that best fit the
-  observed moments of the variance of the coefficients. 
-- (partially) corrects for the first order bias in the ML estimates of
-  the variance parameters. This correction also affects the standard
-  error of the estimates.
+too large, i.e. the p.values are have a downward bias. *lavaSearch2*
+provides two improvements:
+- using a Student's \(t\)-distribution instead of a Gaussian
+  distribution to account for the uncertainty on the variance of the
+  coefficients. The degrees of freedom are estimated using Satterwaite
+  approximation, i.e. identifying the chi-squared distribution that
+  best fit the observed moments of the variance of the coefficients.
+- (partially) correcting for the first order bias in the ML estimates
+  of the variance parameters. This correction also affects the
+  standard error of the estimates.
 
 ** Single univariate Wald test
 
@@ -124,7 +125,7 @@ e <- estimate(m, data = df.data)
 
 #+RESULTS:
 
-We can extract the Wald tests based on a normal approximation using
+We can extract the Wald tests based on the traditional approach using
 =summary=:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 summary(e)$coef[c("Y2","Y3","Y2~eta","Y3~eta","eta~X1","eta~X2"), ]
@@ -174,7 +175,7 @@ summary2(e, bias.correct = FALSE)$coef[c("Y2","Y3","Y2~eta","Y3~eta","eta~X1","e
 When using the Satterthwaite correction alone, the standard error are
 left unchanged compared to the original lava output. The only change
 is how the p-values are computed, i.e. based on the quantiles of a
-Student's t distribution instead of a Gaussian distribution. 
+Student's \(t\)-distribution instead of a Gaussian distribution. 
 
 To only use the bias correction, set the argument =df= to =FALSE=:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
@@ -365,7 +366,7 @@ identical(resTest1,resTest2)
 #+RESULTS:
 : [1] TRUE
 
-Now a F distribution is used to compute the p-values. As before on can
+Now a F-distribution is used to compute the p-values. As before on can
 set the argument =bias.correct= to =FALSE= to use the Satterthwaite
 approximation alone:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no

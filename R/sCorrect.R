@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: jan  3 2018 (14:29) 
 ## Version: 
-## Last-Updated: feb 11 2019 (16:55) 
+## Last-Updated: maj 19 2019 (11:19) 
 ##           By: Brice Ozenne
-##     Update #: 1526
+##     Update #: 1528
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -42,6 +42,7 @@
 #' 
 #' @concept small sample inference
 #' @concept derivative of the score equation
+#' @examples
 #' n <- 5e1
 #' p <- 3
 #' X.name <- paste0("X",1:p)
