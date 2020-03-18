@@ -1,8 +1,8 @@
 Package: lavaSearch2
 Type: Package
 Title: Tools for Model Specification in the Latent Variable Framework
-Version: 1.5.4
-Date: 2019-05-19
+Version: 1.5.5
+Date: 2020-03-18
 Authors@R: c(
     person("Brice", "Ozenne", role = c("aut", "cre"), email = "brice.mh.ozenne@gmail.com", comment = c(ORCID = "0000-0001-9694-2956"))
 	)
@@ -24,8 +24,8 @@ Suggests: clubSandwich, data.table, foreach, lava.tobit, lme4,
 LinkingTo: Rcpp, RcppArmadillo
 NeedsCompilation: yes
 RoxygenNote: 6.1.1
-Packaged: 2019-05-19 10:32:45 UTC; brice
+Packaged: 2020-03-18 12:54:42 UTC; brice
 Author: Brice Ozenne [aut, cre] (<https://orcid.org/0000-0001-9694-2956>)
 Maintainer: Brice Ozenne <brice.mh.ozenne@gmail.com>
 Repository: CRAN
-Date/Publication: 2019-05-19 13:30:03 UTC
+Date/Publication: 2020-03-18 14:00:03 UTC

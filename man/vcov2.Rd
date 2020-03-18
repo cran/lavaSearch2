@@ -62,7 +62,7 @@ link.lvm <- paste0("Y~",X.name)
 formula.lvm <- as.formula(paste0("Y~",paste0(X.name,collapse="+")))
 
 m <- lvm(formula.lvm)
-distribution(m,~Id) <- sequence.lvm(0)
+distribution(m,~Id) <- Sequence.lvm(0)
 set.seed(10)
 d <- lava::sim(m,n)
 

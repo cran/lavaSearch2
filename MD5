@@ -1,4 +1,4 @@
-6ad0a87f38146f0f8ae6ffaa3a03d86b *DESCRIPTION
+788cf623a2c987990f87ca9e529b8c67 *DESCRIPTION
 7c10e04a98217b8742d2bb659a87e30c *NAMESPACE
 eee1f194b196e7eea80ce88c16591b3a *NEWS
 cc51676f2cc53d99ac6f6f4b51f835d3 *R/0onload.R
@@ -22,9 +22,9 @@ b4db6de4dbf3daf23d93a95d65584c97 *R/createGrid.R
 cabd92780b6a89b5d0c3d0e2c7f8b82c *R/effects2.R
 2e751eb68ca1ffacf9325558af9ffdd6 *R/estimate2.R
 4d4395822cb1119c6e96d514a7cae088 *R/getVarCov2.R
-b8163f4ce39c959b53ed2168b182e82a *R/iid2.R
+4bc53a00251eec12a46d3a0dd360eb05 *R/iid2.R
 b84806646d7b9f19d7cd61ed70659311 *R/iidJack.R
-ee06b559dae9f1e01f0250b0b6fd642e *R/information2.R
+3e899554440e53a5e40089125c4f18b9 *R/information2.R
 ce896a8b8b8de1724c9dfa0f47511000 *R/initVarlink.R
 02c584372cf9faf78145bece3a533cb9 *R/lavaSearch2-package.R
 e564c1ee3d15c8032e6a8b473daf856c *R/leverage.R
@@ -40,8 +40,8 @@ e8c7bbad13c5ff3efe41ae8bc56aa1e0 *R/nobs.R
 2296ac2d4ec53a16237f296a07a2d0bc *R/prepareScore2.R
 c1716bab1d2c4ae34c6324dda30af272 *R/print.modelsearch2.R
 fbdff96b70bf59ee3e7557da458ea523 *R/residuals2.R
-697aaba28f9bab1efb67dd9d1eb588f1 *R/sCorrect.R
-bd2d02fea99293c794e5ad62eb6c9f72 *R/score2.R
+e615d1651bab20df1e441ff40cf0d561 *R/sCorrect.R
+a3837aa41997428271687610155dff3d *R/score2.R
 1cd3b01f55f50b03098946a17f4df77d *R/skeleton.R
 de11a1f7a73ab299e2b848ada84e9423 *R/summary.calibrateType1.R
 63a294f99b9d22a89b6295f14c6fcf85 *R/summary.glht2.R
@@ -50,10 +50,10 @@ b81005c78b0c6376f948c4fbca57ddd3 *R/summary.modelsearch2.R
 4a885f5f6611d78d0d948d6dd61125d7 *R/symmetrize.R
 df900b6e59caaae505176cee968a6bbd *R/tryWithWarnings.R
 9b0e5d0986041f548b11e88bb7eab4e2 *R/var2dummy.R
-972fc6406bf35905b3892e9978c8ca0e *R/vcov2.R
+26a3c61ec3794c9cf6802d03765302b2 *R/vcov2.R
 d5335bd82706a67f2963e2ab54ad9139 *build/vignette.rds
 4054e326d5fdcc74b498f9eb339b5b33 *inst/doc/overview.ltx
-9af76577f24a4fac65498bfc0ef76159 *inst/doc/overview.pdf
+1f4b822d472f5b2e02a8951489bbd9c1 *inst/doc/overview.pdf
 5cffd9c6b0cb18787ff33add99d4dd56 *man/addLink.Rd
 3c1bae605c0adbf57388d9731adc0c91 *man/autoplot.intDensTri.Rd
 fb19e607dfd13d53cf4760cecd31dd66 *man/autoplot.modelsearch2.Rd
@@ -92,10 +92,10 @@ d25e2810e7bba8b36dad2cf98f482445 *man/getNewModel.Rd
 6d17b210cf129f8495f0df26753845d8 *man/getVarCov2-internal.Rd
 16d806ed8d8d88f813def06107b18b7f *man/getVarCov2.Rd
 947446fb9b4226495de2b1d5f88f301a *man/glht2.Rd
-f5181261943bf0a250e4e191e41253d8 *man/iid2.Rd
+9630596c40ae4e9626553f32fcff744d *man/iid2.Rd
 8e73bc0cb0d1120c8332c82d66d2e883 *man/iidJack.Rd
 5006649663cc07638477dd260e05441f *man/information2-internal.Rd
-7ac400ea27bc5dc0000008c8baf6360e *man/information2.Rd
+1498c9b578df72f633765967cace179d *man/information2.Rd
 e786b5e04d18142cc9b591aa179f8c38 *man/initVarLink.Rd
 283aa712155325bc0f818c7f5df28e37 *man/intDensTri.Rd
 0b58ba2e89ed0ed5dcbe20b303112aa9 *man/lavaSearch2.Rd
@@ -104,9 +104,9 @@ e786b5e04d18142cc9b591aa179f8c38 *man/initVarLink.Rd
 ccf3976bf1ac947b8ad91303e2606d6b *man/modelsearch2.Rd
 551d92b99d1238fe0ca17b548958ad8b *man/nStep.Rd
 3ac937803cbcdd2ba13a0c9e3da8a9fb *man/residuals2.Rd
-1bf9d1cdda47505a162e3023d016a759 *man/sCorrect.Rd
+fb698daceee0b93abebab6fc8cfc863a *man/sCorrect.Rd
 95b15c8cf8478a20e2eebbd957a19634 *man/score2-internal.Rd
-0521667fc991ab55e39d1c7755e07337 *man/score2.Rd
+2b964f2a8eb3a83c628caa7b1daca7c3 *man/score2.Rd
 0c4916a99853415b20c9c75e5641979c *man/selectRegressor.Rd
 d0b7b9c1a1900bd454de0a19d036eea5 *man/selectResponse.Rd
 6c4b33518f34c256d6302cba9b575ed1 *man/setLink.Rd
@@ -118,7 +118,7 @@ dd87ed008594087b91b3881a90bc9294 *man/symmetrize.Rd
 96a591c3d5dd914a45aa1feec3d78c72 *man/tryWithWarnings.Rd
 98d227cbaa053266471e5dd06e89b08f *man/validFCTs.Rd
 2d6372fa0c0ece83359671946ba47fbc *man/var2dummy.Rd
-f7cec3c7e7cd4f8dad3c8694ccd9dec3 *man/vcov2.Rd
+9ad6d8c1611d001193bad2791e5a2539 *man/vcov2.Rd
 bcc42aaeb0a69ec1b279b42021751d66 *src/Makevars
 a0089cc1021ed29c492562045c3dadef *src/Makevars.win
 0d3c1c0419e3746bb74707d6661721b8 *src/OLS.cpp
@@ -127,8 +127,8 @@ a0089cc1021ed29c492562045c3dadef *src/Makevars.win
 297d9086e3b7ef4d0b276d77de539070 *tests/testthat/test-coefType.R
 1ec9bfcc3dfe2067b93a6d00dac0a721 *tests/testthat/test-initVar.R
 16a2d57c0693b5cd42ccf82b06d0da08 *tests/testthat/test-matrixPower.R
-dddc1e132dbe35b87d38e14b32c5aec1 *tests/testthat/test1-Utils-nlme.R
-3ae59505449a0bd316e195bc4b1bcb8f *tests/testthat/test1-adjustMoment.R
+cb67ffb47fa028da1f57051d543679b8 *tests/testthat/test1-Utils-nlme.R
+929f77be73487952b4ae122b0f193c56 *tests/testthat/test1-adjustMoment.R
 f8427588732cfe11b5e9b61615471aaf *tests/testthat/test1-cluster-lava.R
 8c28e5f17690e4c163e8c90e0cc6d6e5 *tests/testthat/test1-compare2.R
 74c189964566aa66f3ea6db619766b16 *tests/testthat/test1-sCorrect-adjustedResiduals.R
@@ -137,7 +137,7 @@ d5d62769ddb640a7932013e1337bdf78 *tests/testthat/test1-sCorrect-lava.R
 3a2d1a388072ca59df405ec7176bd7b1 *tests/testthat/test1-sCorrect-missingValues.R
 15de585fdc3415015ba80586923db1c3 *tests/testthat/test1-sCorrect-smallSampleCorrection.R
 863df9b9d6e9e7aa41f6c4f5165e1cb7 *tests/testthat/test1-sCorrect-summary2.R
-5ee45a64ee692422a129fdd8e01a9707 *tests/testthat/test1-sCorrect-validObjects.R
+a97b57a3d6619a34ef69d3eb5b69ec46 *tests/testthat/test1-sCorrect-validObjects.R
 c53e550313fc8162e359a9613cee00a8 *tests/testthat/test2-IntDensTri.R
 a6df2cf0c7f4a71ce2d07c42e25dacce *tests/testthat/test2-calcType1postSelection.R
 8bcc4e9f65f8b473f6d9bb5dd36bdd56 *tests/testthat/test2-modelsearch2.R

@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: feb 19 2018 (14:17) 
 ## Version: 
-## Last-Updated: feb 11 2019 (16:50) 
+## Last-Updated: mar 18 2020 (13:29) 
 ##           By: Brice Ozenne
-##     Update #: 275
+##     Update #: 276
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -35,7 +35,7 @@
 #' formula.lvm <- as.formula(paste0("Y~",paste0(X.name,collapse="+")))
 #'
 #' m <- lvm(formula.lvm)
-#' distribution(m,~Id) <- sequence.lvm(0)
+#' distribution(m,~Id) <- Sequence.lvm(0)
 #' set.seed(10)
 #' d <- lava::sim(m,n)
 #'
