@@ -6,14 +6,32 @@
 \alias{calcDistMaxBootstrap}
 \title{Adjust the p.values Using the Quantiles of the Max Statistic}
 \usage{
-calcDistMaxIntegral(statistic, iid, df, iid.previous = NULL,
+calcDistMaxIntegral(
+  statistic,
+  iid,
+  df,
+  iid.previous = NULL,
   quantile.previous = NULL,
-  quantile.compute = lava.options()$search.calc.quantile.int, alpha,
-  cpus = 1, cl = NULL, trace)
+  quantile.compute = lava.options()$search.calc.quantile.int,
+  alpha,
+  cpus = 1,
+  cl = NULL,
+  trace
+)
 
-calcDistMaxBootstrap(statistic, iid, iid.previous = NULL,
-  quantile.previous = NULL, method, alpha, cpus = 1, cl = NULL,
-  n.sim, trace, n.repmax = 100)
+calcDistMaxBootstrap(
+  statistic,
+  iid,
+  iid.previous = NULL,
+  quantile.previous = NULL,
+  method,
+  alpha,
+  cpus = 1,
+  cl = NULL,
+  n.sim,
+  trace,
+  n.repmax = 100
+)
 }
 \arguments{
 \item{statistic}{[numeric vector] the observed Wald statistic.
@@ -41,8 +59,7 @@ that has been registered using \code{registerDoParallel}.}
 
 \item{trace}{[logical] should the execution of the function be traced?}
 
-\item{method}{[character] the method used to compute the p-values.
-See the output of \code{lava.options()$search.calcMaxDist} for the possible values.}
+\item{method}{[character] the method used to compute the p-values.}
 
 \item{n.sim}{[integer >0] the number of bootstrap simulations used to compute each p-values.
 Disregarded when the p-values are computed using numerical integration.}

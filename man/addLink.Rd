@@ -8,8 +8,15 @@
 \usage{
 addLink(object, ...)
 
-\method{addLink}{lvm}(object, var1, var2, covariance,
-  all.vars = lava::vars(object), warnings = FALSE, ...)
+\method{addLink}{lvm}(
+  object,
+  var1,
+  var2,
+  covariance,
+  all.vars = lava::vars(object),
+  warnings = FALSE,
+  ...
+)
 
 \method{addLink}{lvm.reduced}(object, ...)
 }

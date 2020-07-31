@@ -5,9 +5,21 @@
 \alias{.estimate2}
 \title{Compute Bias Corrected Quantities.}
 \usage{
-.estimate2(object, epsilon, n.cluster, name.param, name.endogenous,
-  name.meanparam, name.varparam, index.Omega, adjust.Omega, adjust.n, tol,
-  n.iter, trace)
+.estimate2(
+  object,
+  epsilon,
+  n.cluster,
+  name.param,
+  name.endogenous,
+  name.meanparam,
+  name.varparam,
+  index.Omega,
+  adjust.Omega,
+  adjust.n,
+  tol,
+  n.iter,
+  trace
+)
 }
 \description{
 Compute bias corrected residuals variance covariance matrix

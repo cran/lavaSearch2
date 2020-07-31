@@ -9,11 +9,25 @@
 \usage{
 .getIndexOmega2(object, ...)
 
-\method{.getIndexOmega2}{gls}(object, param, attr.param, name.Y, cluster,
-  levels.cluster, data)
+\method{.getIndexOmega2}{gls}(
+  object,
+  param,
+  attr.param,
+  name.Y,
+  cluster,
+  levels.cluster,
+  data
+)
 
-\method{.getIndexOmega2}{lme}(object, param, attr.param, name.Y, cluster,
-  levels.cluster, data)
+\method{.getIndexOmega2}{lme}(
+  object,
+  param,
+  attr.param,
+  name.Y,
+  cluster,
+  levels.cluster,
+  data
+)
 }
 \arguments{
 \item{object}{a \code{gls} or \code{lme} object.}

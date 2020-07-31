@@ -4,17 +4,22 @@
 #' @name modelsearch2
 #' 
 #' @param object a \code{lvmfit} object.
-#' @param data [data.frame, optional] the dataset used to identify the model
 #' @param link [character, optional for \code{lvmfit} objects] the name of the additional relationships to consider when expanding the model. Should be a vector containing strings like "Y~X". See the details section.
+#' @param data [data.frame, optional] the dataset used to identify the model
 #' @param method.p.adjust [character] the method used to adjust the p.values for multiple comparisons.
 #' Can be any method that is valid for the \code{stats::p.adjust} function (e.g. \code{"fdr"}).
 #' Can also be \code{"max"}, \code{"fastmax"}, or \code{"gof"}.
-#' @param type.information [character] the method used by \code{lava::information} to compute the information matrix.
+#' @param method.maxdist [character] the method used to estimate the distribution of the max statistic.
+#' \code{"resampling"} resample the score under the null to estimate the null distribution.
+#' \code{"bootstrap"} performs a wild bootstrap of the iid decomposition of the score to estimate the null distribution.
+#' \code{"approximate"} attemps to identify the latent gaussian variable corresponding to each score statistic (that is chi-2 distributed).
+#' It approximates the correlation matrix between these latent gaussian variables and uses numerical integration to compute the distribution of the max.
+#' @param n.sample [integer, >0] number of samples used in the resampling approach.
+#' @param na.omit should tests leading to NA for the test statistic be ignored. Otherwise this will stop the selection process.
 #' @param alpha [numeric 0-1] the significance cutoff for the p-values.
 #' When the p-value is below, the corresponding link will be added to the model
 #' and the search will continue. Otherwise the search will stop.
 #' @param nStep the maximum number of links that can be added to the model.
-#' @param na.omit should tests leading to NA for the test statistic be ignored. Otherwise this will stop the selection process.
 #' @param trace [logical] should the execution of the function be traced?
 #' @param cpus the number of cpus that can be used for the computations.
 #'
@@ -45,16 +50,15 @@
 #' @export
 `modelsearch2` <-
     function(object, link, data,
-             method.p.adjust, type.information, alpha, 
-             nStep, na.omit, 
-             trace, cpus) UseMethod("modelsearch2")
+             method.p.adjust, method.maxdist, n.sample, na.omit, 
+             alpha,  nStep, trace, cpus) UseMethod("modelsearch2")
 
 
 ## * modelsearch2 (example)
 #' @rdname modelsearch2
 #' @examples
 #'
-#' ## simulate data
+#' ## simulate data 
 #' mSim <- lvm()
 #' regression(mSim) <- c(y1,y2,y3,y4)~u
 #' regression(mSim) <- u~x1+x2
@@ -62,6 +66,8 @@
 #' latent(mSim) <- ~u
 #' covariance(mSim) <- y1~y2
 #' transform(mSim, Id~u) <- function(x){1:NROW(x)}
+#'
+#' set.seed(10)
 #' df.data <- lava::sim(mSim, n = 1e2, latent = FALSE)
 #' 
 #' ## only identifiable extensions
@@ -112,8 +118,8 @@
 #' @rdname modelsearch2
 #' @export
 modelsearch2.lvmfit <- function(object, link = NULL, data = NULL, 
-                                method.p.adjust = "fastmax", type.information = "E", alpha = 0.05, 
-                                nStep = NULL, na.omit = TRUE, 
+                                method.p.adjust = "fastmax", method.maxdist = "approximate", n.sample = 1e5, na.omit = TRUE, 
+                                alpha = 0.05, nStep = NULL, 
                                 trace = TRUE, cpus = 1){
 
     ## ** check arguments
@@ -123,14 +129,19 @@ modelsearch2.lvmfit <- function(object, link = NULL, data = NULL,
     }
     
     ## methods
-    method.p.adjust <- match.arg(method.p.adjust, lava.options()$search.p.adjust)    
+    method.p.adjust <- match.arg(method.p.adjust, c("fastmax", "max", "holm", "hochberg", "hommel", "bonferroni", "BH", "BY", "fdr", "none","gof"))    
     if(method.p.adjust == "gof" ){
         method.p.adjust <- "none"
         stop.gof <- TRUE
     }else{
         stop.gof <- FALSE
     }
-    
+
+    if(n.sample<0 || (n.sample %% 1 != 0) ){
+        stop("Argument \'n.sample\' must be a positive integer \n")
+    }
+    method.maxdist <- match.arg(method.maxdist, c("approximate","resampling","bootstrap"))    
+
     ## cpus
     if(is.null(cpus)){ cpus <- parallel::detectCores()}
 
@@ -273,9 +284,9 @@ modelsearch2.lvmfit <- function(object, link = NULL, data = NULL,
         
         resStep <- .oneStep_scoresearch(iObject, data = data,
                                         restricted = iRestricted, link = iLink, directive = iDirective,
-                                        method.p.adjust = method.p.adjust, type.information = type.information,
+                                        method.p.adjust = method.p.adjust, method.maxdist = method.maxdist, n.sample = n.sample,
                                         cl = cl, trace = trace)
-        
+
         ## ** update according the most significant p.value
         ## *** check convergence
         if(stop.gof){
@@ -480,7 +491,7 @@ modelsearch2.lvmfit <- function(object, link = NULL, data = NULL,
 ## * .oneStep_scoresearch
 .oneStep_scoresearch  <- function(object, data,
                                   restricted, link, directive,
-                                  method.p.adjust, alpha, type.information,
+                                  method.p.adjust, alpha, method.maxdist, n.sample,
                                   cl, trace){
 
     ## ** initialization
@@ -488,13 +499,13 @@ modelsearch2.lvmfit <- function(object, link = NULL, data = NULL,
     coef.object <- coef(object)
     namecoef.object <- names(coef.object)
     ncoef.object <- length(coef.object)
-
+    type.information <- lava.options()$search.type.information
+    type.statistic <- lava.options()$search.sample.stat
     
     ## ** warper
     warper <- function(iterI){ # iterI <- 1
 
         out <- list(table = data.frame(statistic = as.numeric(NA),
-                                       se = as.numeric(NA),
                                        p.value = as.numeric(NA),
                                        adjusted.p.value = as.numeric(NA),
                                        dp.Info = as.numeric(NA),
@@ -512,48 +523,82 @@ modelsearch2.lvmfit <- function(object, link = NULL, data = NULL,
             rmvar(newModel) <- noLink.var
         }
 
+        ## *** compute sufficient statistics
+        ## necessary otherwise information can have a weird behavior, e.g.
+        ## library(lava)
+        ##
+        ## mSim <- lvm(Y ~ X1, X2 ~ eta, X3 ~ eta, X4 ~ eta)
+        ## latent(mSim) <- ~eta
+        ## d <- sim(mSim, 100)
+        ##
+        ## m <- lvm(Y~X1+X2) 
+        ## e <- estimate(m, d)
+        ## information(e, data = d, p = coef(e)) ## gold standard
+        ## information(m, data = d, p = coef(e)) ## issue
+        ##
+        ## fix
+        ## ss <- lava:::procdata.lvm(m, data = d, missing = FALSE) 
+        ## mm <- lava::fixsome(m, measurement.fix=TRUE, S=ss$S, mu=ss$mu, n = ss$n, debug=FALSE)
+        ## information(mm, data = d, p = coef(e)) ## ok
+        suffStat <- lava_procdata.lvm(newModel, data = data, missing = inherits(object,"lvm.missing")) 
+        newModel <- lava::fixsome(newModel, measurement.fix=TRUE, S=suffStat$S, mu=suffStat$mu, n = suffStat$n, debug=FALSE)
+
         ## *** define constrained coefficients
         coef0.new <- setNames(rep(0, ncoef.object+1), coef(newModel))
         coef0.new[namecoef.object] <- coef.object
 
         ## *** compute the iid decomposition and statistic
-        ## eigen(lava::information(estimate(newModel, data = data), p = coef0.new, data = data, type = "E"))
+        namecoef.newobject <- names(coef0.new)
         Info <- lava::information(newModel, p = coef0.new, n = NROW(data), type = type.information, data = data)
+        dimnames(Info) <- list(namecoef.newobject,namecoef.newobject)
+        
         if(method.p.adjust %in% c("max","fastmax")){
             iid.score <- lava::score(newModel, p = coef0.new, data = data, indiv = TRUE)
             ## rm na
             iid.score <- iid.score[rowSums(is.na(iid.score))==0,]
+            if(method.maxdist == "approximate"){
+                ## compute decomposition
+                out$iid <-  iid.score %*% solve(Info) %*% cbind(colSums(iid.score))
+                colnames(out$iid) <- link[iterI]
+                ## out$iid <- out$iid/sqrt(sum(out$iid^2))
+                out$table$statistic <- sum(out$iid)
+                out$table$dp.Info <- TRUE
+                
+            }else if(method.maxdist %in% c("resampling","bootstrap")){
+                n.sample <- NROW(iid.score)
 
-            ## inverse of the information matrix
-            sqrt.InfoM1 <- matrixPower(Info, power  = -1/2, symmetric = TRUE, tol = 1e-15, print.warning = FALSE)
-            out$table$dp.Info <- !("warning" %in% names(attributes(sqrt.InfoM1)))
-            ## sqrt.InfoM1 <- solve(chol(Info))
+                InfoM12 <- matrixPower(Info, power  = -1/2, symmetric = TRUE, tol = 1e-15, print.warning = FALSE)
+                out$table$dp.Info <- !("warning" %in% names(attributes(InfoM12)))
+                dimnames(InfoM12) <- list(namecoef.newobject,namecoef.newobject)
+                
+                ## initial version
+                ## linComb <- cbind(1, -solve(Info[link[iterI],link[iterI],drop=FALSE]) %*% Info[link[iterI],namecoef.object,drop=FALSE]) %*% Info[c(link[iterI],namecoef.object),c(link[iterI],namecoef.object)]
+                if(FALSE){
+                    InfoM1 <- crossprod(InfoM12)
+                    dimnames(InfoM1) <- list(namecoef.newobject,namecoef.newobject)
+                    linComb <- cbind(1, -Info[link[iterI],namecoef.object,drop=FALSE] %*% solve(Info[namecoef.object,namecoef.object,drop=FALSE])) %*% Info[c(link[iterI],namecoef.object),c(link[iterI],namecoef.object)]
+                    iid.theta <- iid.score %*% InfoM1
+                    colnames(iid.theta) <- namecoef.newobject
+                    out$iid <- iid.theta[,link[iterI]] %*% linComb[,namecoef.newobject,drop=FALSE] %*% InfoM12
+                    colnames(out$iid) <- paste0(link[iterI],":",namecoef.newobject)
+                }
+                ## short version
+                out$iid <- (iid.score[,link[iterI],drop=FALSE] - iid.score[,namecoef.object,drop=FALSE] %*% solve(Info[namecoef.object,namecoef.object,drop=FALSE]) %*% Info[namecoef.object,link[iterI],drop=FALSE]) %*% InfoM12[link[iterI],,drop=FALSE]
+                colnames(out$iid) <- paste0(link[iterI],":",namecoef.newobject)
 
-            ## iid decomposition of the normalized score (follows a standard normal distribution)
-            iid.normScore <- (iid.score %*% sqrt.InfoM1)
-            ## normalized score
-            normScore <- colSums(iid.normScore)
-            ## delta method            
-            out$iid <-  - iid.normScore %*% normScore / sqrt(crossprod(normScore)[1,1])
-            ## out$iid <- out$iid/sqrt(sum(out$iid^2))
-            out$table$statistic <- sqrt(crossprod(normScore))
-
-            out$table$se <- sqrt(sum(out$iid^2))
+                out$table$statistic <- as.double(crossprod(colSums(out$iid))) ## first order approximation (almost identical to exact value)
+            }
         }else{
             ## ee.lvm <- estimate(newModel, data = data)
             ## SS <- score(ee.lvm, p = coef0.new)
             ## II <- information(ee.lvm, p = coef0.new)
             ## SS %*% solve(I) %*% t(SS)
-            InfoM1 <- matrixPower(Info, power  = -1, symmetric = TRUE, tol = 1e-15, print.warning = FALSE)
-
-            out$table$dp.Info <- !("warning" %in% names(attributes(InfoM1)))
             score <- lava::score(newModel, p = coef0.new, indiv = FALSE, data = data)
-            out$table$statistic <- sqrt(as.double(score %*% InfoM1 %*% t(score)))
-            ## if(is.na(out$table$statistic)) browser()
+            
+            out$table$statistic <- as.double(score %*% solve(Info) %*% t(score))
             ## range(Info - II)
             ## range(score - SS)
         }
-            
         return(out)
     }
 
@@ -573,6 +618,7 @@ modelsearch2.lvmfit <- function(object, link = NULL, data = NULL,
         i <- NULL # [:for CRAN check] foreach
         res <- foreach::`%dopar%`(
                             foreach::foreach(i = 1:n.link,
+                                             .export = c("lava_procdata.lvm"),
                                              .combine = function(res1,res2){
                                                  res <- list(table = rbind(res1$table,res2$table),
                                                              iid = cbind(res1$iid,res2$iid))
@@ -607,34 +653,30 @@ modelsearch2.lvmfit <- function(object, link = NULL, data = NULL,
         stop("Negative score statistic \n")
     }
     ## univariate rejection area
-    table.test[,"p.value"] <- 2*(1-stats::pnorm(statistic))
+    table.test[,"p.value"] <- 1-stats::pchisq(statistic, df = 1)
 
     ## ** adjusted p.value
-    if(method.p.adjust == "fastmax"){
-        index.max <- which.max(statistic)
-        resQmax <- calcDistMaxIntegral(statistic = statistic[index.max[1]], iid = iid.link, df = NULL, alpha = alpha, cl  = cl, trace = trace)
+    if(method.p.adjust %in% c("fastmax","max")){
+        if(method.maxdist == "approximate"){
+            outDistMax <- .approxMaxDistChi2(table = table.test, iid = iid.link, statistic = statistic, method.p.adjust = method.p.adjust,
+                                            link = link, n.link = n.link,
+                                            search.calc.quantile.int = lava.options()$search.calc.quantile.int, alpha = alpha,
+                                            cl = cl, trace = trace)
+        }else if(method.maxdist %in% c("resampling","bootstrap")){
+            outDistMax <- .sampleMaxDistChi2(table = table.test, iid = iid.link, statistic = statistic, method.p.adjust = method.p.adjust,
+                                        link = link, n.link = n.link, n.sample = n.sample, method = method.maxdist,
+                                        cl = cl, trace = trace)
+        }
 
-        table.test[index.max, "adjusted.p.value"] <- resQmax$p.adjust
-        table.test[index.max, "quantile"] <- resQmax$z
-        table.test[index.max, "error"] <- resQmax$error
-        Sigma <- resQmax$Sigma
+        table.test <- outDistMax$table
+        Sigma <- outDistMax$Sigma
 
-    }else if(method.p.adjust == "max"){
-        resQmax <- calcDistMaxIntegral(statistic = statistic, iid = iid.link, df = NULL, alpha = alpha, cl  = cl, trace = trace)
-        ## resQmax <- calcDistMaxResampling(statistic = statistic, iid = iid.link, index.iid = index.iid,
-        ## method.resampling = method.resampling, type.statistic = "chisq",
-        ## n.sim = n.sim, alpha = alpha, cl = cl, trace = trace)
-
-        table.test[, "adjusted.p.value"] <- resQmax$p.adjust
-        table.test[, "quantile"] <- resQmax$z
-        table.test[, "error"] <- resQmax$error
-        Sigma <- resQmax$Sigma
-                
     }else{        
         table.test[, "adjusted.p.value"] <- stats::p.adjust(table.test$p.value, method = method.p.adjust)
         table.test[, "quantile"] <- as.numeric(NA)
         Sigma <- NULL        
-    }    
+    }
+
 
     return(list(test = table.test,
                 Sigma = Sigma,
@@ -642,5 +684,153 @@ modelsearch2.lvmfit <- function(object, link = NULL, data = NULL,
 }
 
 
+## * approxMaxDistChi2
+.approxMaxDistChi2 <- function(table, iid, statistic, method.p.adjust,
+                               link, n.link,
+                               search.calc.quantile.int, alpha,
+                               cl, trace){
+        Sigma <- stats::cor(iid)
+        dimnames(Sigma) <- list(link,link)
+        if(method.p.adjust == "fastmax"){
+            index.maxstat <- which.max(statistic)
+        
+            resInt <- .calcPmaxIntegration(statistic = sqrt(statistic[index.maxstat]), p = n.link,
+                                           Sigma = Sigma, df = NULL, distribution = "gaussian")
+        
+            table[index.maxstat, "adjusted.p.value"] <- as.double(resInt)
+            table[index.maxstat, "error"] <- attr(resInt,"error")
+        }else if(method.p.adjust == "max"){
 
+            if(is.null(cl)){
+                if(trace>0){      
+                    ls.resInt <- pbapply::pblapply(1:n.link, function(i){
+                        .calcPmaxIntegration(statistic = sqrt(statistic[i]), p = n.link,
+                                             Sigma = Sigma, df = NULL, distribution = "gaussian")
+                    })            
+                }else{
+                    ls.resInt <- lapply(1:n.link, function(i){
+                        .calcPmaxIntegration(statistic = sqrt(statistic[i]), p = n.link,
+                                             Sigma = Sigma, df = NULL, distribution = "gaussian")
+                    })            
+                }
+            }else{
+            
+                if(trace>0){
+                    pb <- utils::txtProgressBar(max = n.link, style = 3)                   
+                }
+
+                ## export package
+                parallel::clusterCall(cl, fun = function(x){
+                    suppressPackageStartupMessages(requireNamespace("mvtnorm", quietly = TRUE))
+                })
+        
+                value <- NULL # [:for CRAN check] foreach
+                ls.resInt <- foreach::`%dopar%`(
+                                          foreach::foreach(value = 1:n.link,
+                                                           .export = c(".calcPmaxIntegration")),
+                                          {
+                                              if(trace>0){utils::setTxtProgressBar(pb, value)}
+                                              return(.calcPmaxIntegration(statistic = sqrt(statistic[value]), p = n.link,
+                                                                          Sigma = Sigma, df = NULL, distribution = "gaussian"))
+                                          })
+
+                if(trace>0){close(pb)}
+            }
+            names(ls.resInt) <- link
+        
+            table[, "adjusted.p.value"] <- unlist(lapply(ls.resInt,as.double))
+            table[, "error"] <- unlist(lapply(ls.resInt,attr,"error"))
+        }
+        
+        if(lava.options()$search.calc.quantile.int){
+            table[, "quantile"] <- .calcQmaxIntegration(alpha = alpha, p = n.link,
+                                                             Sigma = Sigma,
+                                                             df = NULL, distribution = "gaussian")
+        }
+
+        return(list(table = table,
+                    Sigma = Sigma))
+}
+## * sampleMaxDistChi2
+.sampleMaxDistChi2 <- function(table, iid, statistic, method.p.adjust,
+                               link, n.link, n.sample, method,
+                               cl, trace){
+    p <- NCOL(iid)
+    n <- NROW(iid)
+    ls.name <- strsplit(colnames(iid), split = ":")
+    vec.model <- unlist(lapply(ls.name,"[[",1))
+    Umodel <- unique(vec.model)
+    ls.indexModel <- tapply(1:length(vec.model),vec.model,list)
+
+    ## ** sampling under H0
+
+    ## *** resampling    
+    if(method == "resampling"){
+        Sigma <- crossprod(iid)
+        sample2 <- mvtnorm::rmvnorm(n.sample, mean = rep(0,p), sigma = Sigma)^2
+        M.scoreStat <- do.call(cbind,lapply(1:n.link, function(iModel){ ## iModel <- 1
+            return(rowSums(sample2[,ls.indexModel[[iModel]],drop=FALSE]))
+        }))
+    }
+
+    ## *** wild bootstrap
+    if(method == "bootstrap"){
+        Sigma <- NULL
+        M.scoreStat <- wildBoot_cpp(iid = iid,
+                                    lsIndexModel = lapply(ls.indexModel, function(x){x-1}),
+                                    nSample = n.sample,
+                                    nObs = n,
+                                    nModel = n.link,
+                                    p = p)
+    }
+    ## *** check
+    ## apply(M.scoreStat,2, function(x){1-mean(x <= qchisq(0.95, df = 1))})
+    ## hist(M.scoreStat[,1], freq = FALSE)
+    ## points(seq(0,15,0.1), dchisq(seq(0,15,0.1), df = 1), col = "red", type = "l")
+    
+    
+    ## ** p-value for each statistic
+    p.value <- colMeans(sweep(M.scoreStat, MARGIN = 2, FUN = ">", STATS = statistic)) + 1/2 * colMeans(sweep(M.scoreStat, MARGIN = 2, FUN = "==", STATS = statistic))
+    ## mean(M.scoreStat[,1] > statistic[1])
+
+    ## ** p-value for the max statistic
+    maxScoreStat <- apply(M.scoreStat,1,max)
+    p.value.max <- sapply(statistic, function(iT){mean( maxScoreStat>iT + 0.5*(maxScoreStat==iT))})
+    ## p.value.max / p.value
+    table[, "p.value"] <- p.value
+    table[, "adjusted.p.value"] <- p.value.max
+    table[, "error"] <- NA
+    return(list(table = table,
+                Sigma = Sigma))
+
+}
+
+
+
+## * iidConstrainscore (obsolete)
+## iidConstrainScore <- function(object, newobject){
+##     if(all(sapply(newobject$mean,function(x){all(is.na(x))}))){
+##         suffStat <- lava:::procdata.lvm(newobject, data = object$data$model.frame, missing = FALSE) 
+##         newobject <- lava::fixsome(newobject, measurement.fix=TRUE, S=suffStat$S, mu=suffStat$mu, n = suffStat$n, debug=FALSE)
+##     }
+    
+##     param0 <- coef(object)
+##     name.param0 <- names(param0)
+##     name.param <- coef(newobject)
+##     n.param <- length(name.param)
+
+##     newparam <- setNames(rep(0,n.param), name.param)
+##     newparam[name.param0] <- param0
+##     extraparam <- setdiff(name.param, name.param0)
+
+##     S <- score(newobject, p = newparam, data = object$data$model.frame, indiv = TRUE)
+##     I <- information(newobject, p = newparam, data = object$data$model.frame)
+##     dimnames(I) <- list(name.param,name.param)
+##     iInfo <- solve(I)
+    
+##     linComb <- cbind(1, solve(I[extraparam,extraparam,drop=FALSE]) %*% I[extraparam,name.param0,drop=FALSE]) %*% I[c(extraparam,name.param0),c(extraparam,name.param0)]
+##     iid <- S %*% iInfo
+##     out <- sweep(iid, MARGIN = 2, FUN = "*", STATS = as.double(linComb[,name.param]))
+##     return(out/sqrt(object$data$n))
+## }
 

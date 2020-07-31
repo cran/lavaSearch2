@@ -7,8 +7,7 @@
 \usage{
 getStep(object, step, slot)
 
-\method{getStep}{modelsearch2}(object, step = nStep(object),
-  slot = NULL)
+\method{getStep}{modelsearch2}(object, step = nStep(object), slot = NULL)
 }
 \arguments{
 \item{object}{a \code{modelsearch2} object}

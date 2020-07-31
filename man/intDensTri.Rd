@@ -4,8 +4,18 @@
 \alias{intDensTri}
 \title{Integrate a Gaussian/Student Density over a Triangle}
 \usage{
-intDensTri(mu, Sigma, df, n, x.min, z.max = NULL, type = "double",
-  proba.min = 1e-06, prune = NULL, distribution = "pmvnorm")
+intDensTri(
+  mu,
+  Sigma,
+  df,
+  n,
+  x.min,
+  z.max = NULL,
+  type = "double",
+  proba.min = 1e-06,
+  prune = NULL,
+  distribution = "pmvnorm"
+)
 }
 \arguments{
 \item{mu}{[numeric vector] the expectation of the joint distribution.}

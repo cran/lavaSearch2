@@ -4,8 +4,7 @@
 \alias{matrixPower}
 \title{Power of a Matrix}
 \usage{
-matrixPower(object, power, symmetric, tol = 1e-12,
-  print.warning = TRUE)
+matrixPower(object, power, symmetric, tol = 1e-12, print.warning = TRUE)
 }
 \arguments{
 \item{object}{a matrix.}

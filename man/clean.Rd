@@ -7,8 +7,7 @@
 \usage{
 clean(x, ...)
 
-\method{clean}{lvm}(x, rm.exo = TRUE, rm.endo = TRUE,
-  rm.latent = TRUE, ...)
+\method{clean}{lvm}(x, rm.exo = TRUE, rm.endo = TRUE, rm.latent = TRUE, ...)
 }
 \arguments{
 \item{x}{\code{lvm}-object}

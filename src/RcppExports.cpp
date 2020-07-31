@@ -30,10 +30,27 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// wildBoot_cpp
+arma::mat wildBoot_cpp(const arma::mat& iid, std::vector< arma::uvec > lsIndexModel, int nSample, int nObs, int nModel, int p);
+RcppExport SEXP _lavaSearch2_wildBoot_cpp(SEXP iidSEXP, SEXP lsIndexModelSEXP, SEXP nSampleSEXP, SEXP nObsSEXP, SEXP nModelSEXP, SEXP pSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::mat& >::type iid(iidSEXP);
+    Rcpp::traits::input_parameter< std::vector< arma::uvec > >::type lsIndexModel(lsIndexModelSEXP);
+    Rcpp::traits::input_parameter< int >::type nSample(nSampleSEXP);
+    Rcpp::traits::input_parameter< int >::type nObs(nObsSEXP);
+    Rcpp::traits::input_parameter< int >::type nModel(nModelSEXP);
+    Rcpp::traits::input_parameter< int >::type p(pSEXP);
+    rcpp_result_gen = Rcpp::wrap(wildBoot_cpp(iid, lsIndexModel, nSample, nObs, nModel, p));
+    return rcpp_result_gen;
+END_RCPP
+}
 
 static const R_CallMethodDef CallEntries[] = {
     {"_lavaSearch2_OLS_cpp", (DL_FUNC) &_lavaSearch2_OLS_cpp, 2},
     {"_lavaSearch2_OLS2_cpp", (DL_FUNC) &_lavaSearch2_OLS2_cpp, 2},
+    {"_lavaSearch2_wildBoot_cpp", (DL_FUNC) &_lavaSearch2_wildBoot_cpp, 6},
     {NULL, NULL, 0}
 };
 

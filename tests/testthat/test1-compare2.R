@@ -3,9 +3,9 @@
 ## author: Brice Ozenne
 ## created: okt 20 2017 (10:22) 
 ## Version: 
-## last-updated: jul 22 2016 (18:10) 
+## last-updated: jul 31 2020 (10:46) 
 ##           By: Brice Ozenne
-##     Update #: 231
+##     Update #: 236
 #----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -37,7 +37,7 @@ if(FALSE){ ## already called in test-all.R
 }
 
 
-library(clubSandwich)
+## library(clubSandwich)
 library(nlme)
 library(lme4)
 library(lmerTest)
@@ -71,11 +71,11 @@ e.gls <- nlme::gls(Y1~X1+X2, data = d, method = "ML")
 
 ## vcov(e.lvm)
 
-### ** clubSandwich
-cS.vcov <- vcovCR(e.lm, type = "CR0", cluster = d$Id)
-cS.df <- coef_test(e.lm, vcov = cS.vcov, test = "Satterthwaite", cluster = 1:NROW(d))
-cS.df
-## cS.df$df is very suspect: should be the same for all coefficient and close to n-p
+## ### ** clubSandwich
+## cS.vcov <- clubSandwich::vcovCR(e.lm, type = "CR0", cluster = d$Id)
+## cS.df <- clubSandwich::coef_test(e.lm, vcov = cS.vcov, test = "Satterthwaite", cluster = 1:NROW(d))
+## cS.df
+## ## cS.df$df is very suspect: should be the same for all coefficient and close to n-p
 
 ### ** compare2
 test_that("linear regression: df",{
@@ -229,7 +229,7 @@ e.gls <- nlme::gls(value ~ variable + X1 + Gender,
 
 ## ** clubSandwich - bug
 expect_equal(logLik(e.lmer),logLik(e.lme))
-coef_test(e.lme, vcov = "CR0", test = "Satterthwaite", cluster = dLred$Id)
+## clubSandwich::coef_test(e.lme, vcov = "CR0", test = "Satterthwaite", cluster = dLred$Id)
 ## strange that same type of coef have very different degrees of freedom
 
 ## ** compare 

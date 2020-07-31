@@ -14,26 +14,26 @@
 \usage{
 iid2(object, ...)
 
-\method{iid2}{lm}(object, param = NULL, data = NULL,
-  bias.correct = TRUE, ...)
+\method{iid2}{lm}(object, param = NULL, data = NULL, bias.correct = TRUE, ...)
 
-\method{iid2}{gls}(object, cluster = NULL, param = NULL, data = NULL,
-  bias.correct = TRUE, ...)
+\method{iid2}{gls}(
+  object,
+  cluster = NULL,
+  param = NULL,
+  data = NULL,
+  bias.correct = TRUE,
+  ...
+)
 
-\method{iid2}{lme}(object, param = NULL, data = NULL,
-  bias.correct = TRUE, ...)
+\method{iid2}{lme}(object, param = NULL, data = NULL, bias.correct = TRUE, ...)
 
-\method{iid2}{lvmfit}(object, param = NULL, data = NULL,
-  bias.correct = TRUE, ...)
+\method{iid2}{lvmfit}(object, param = NULL, data = NULL, bias.correct = TRUE, ...)
 
-\method{iid2}{lm2}(object, cluster = NULL, param = NULL, data = NULL,
-  robust = TRUE, ...)
+\method{iid2}{lm2}(object, cluster = NULL, param = NULL, data = NULL, robust = TRUE, ...)
 
-\method{iid2}{gls2}(object, cluster = NULL, param = NULL,
-  data = NULL, robust = TRUE, ...)
+\method{iid2}{gls2}(object, cluster = NULL, param = NULL, data = NULL, robust = TRUE, ...)
 
-\method{iid2}{lme2}(object, cluster = NULL, param = NULL,
-  data = NULL, robust = TRUE, ...)
+\method{iid2}{lme2}(object, cluster = NULL, param = NULL, data = NULL, robust = TRUE, ...)
 
 \method{iid2}{lvmfit2}(object, cluster = NULL, data = NULL, ...)
 }

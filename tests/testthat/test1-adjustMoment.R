@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: mar 27 2018 (09:50) 
 ## Version: 
-## Last-Updated: mar 18 2020 (13:48) 
+## Last-Updated: jul 16 2018 (16:49) 
 ##           By: Brice Ozenne
-##     Update #: 23
+##     Update #: 22
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -24,7 +24,7 @@ if(FALSE){ ## already called in test-all.R
 }
 lava.options(symbols = c("~","~~"))
 
-.adjustMoment <- lavaSearch2:::.adjustMoment.lvmfit
+.adjustMoment <- lavaSearch2:::.adjustMoment
 context("adjustMoment")
 
 ## * simulation

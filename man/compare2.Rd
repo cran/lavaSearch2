@@ -17,13 +17,11 @@ compare2(object, df, bias.correct, ...)
 
 \method{compare2}{lm}(object, df = TRUE, bias.correct = TRUE, ...)
 
-\method{compare2}{gls}(object, df = TRUE, bias.correct = TRUE,
-  cluster = NULL, ...)
+\method{compare2}{gls}(object, df = TRUE, bias.correct = TRUE, cluster = NULL, ...)
 
 \method{compare2}{lme}(object, df = TRUE, bias.correct = TRUE, ...)
 
-\method{compare2}{lvmfit}(object, df = TRUE, bias.correct = TRUE,
-  cluster = NULL, ...)
+\method{compare2}{lvmfit}(object, df = TRUE, bias.correct = TRUE, cluster = NULL, ...)
 
 \method{compare2}{lm2}(object, ...)
 
@@ -33,10 +31,19 @@ compare2(object, df, bias.correct, ...)
 
 \method{compare2}{lvmfit2}(object, ...)
 
-.compare2(object, par = NULL, contrast = NULL, null = NULL,
-  rhs = NULL, robust = FALSE, cluster = NULL,
-  df = object$sCorrect$args$df, as.lava = TRUE, F.test = TRUE,
-  level = 0.95)
+.compare2(
+  object,
+  par = NULL,
+  contrast = NULL,
+  null = NULL,
+  rhs = NULL,
+  robust = FALSE,
+  cluster = NULL,
+  df = object$sCorrect$args$df,
+  as.lava = TRUE,
+  F.test = TRUE,
+  level = 0.95
+)
 }
 \arguments{
 \item{object}{an object that inherits from lm/gls/lme/lvmfit.}

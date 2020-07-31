@@ -4,8 +4,17 @@
 \alias{calcType1postSelection}
 \title{Compute the Type 1 Error After Selection [EXPERIMENTAL]}
 \usage{
-calcType1postSelection(level, mu, Sigma, quantile.previous, distribution,
-  df, n = 10, correct = TRUE, ...)
+calcType1postSelection(
+  level,
+  mu,
+  Sigma,
+  quantile.previous,
+  distribution,
+  df,
+  n = 10,
+  correct = TRUE,
+  ...
+)
 }
 \arguments{
 \item{level}{[numeric 0-1] expected coverage.}

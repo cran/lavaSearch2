@@ -37,8 +37,7 @@ coefCov(object, value, keep.var, ...)
 
 \method{coefCov}{lvmfit}(object, value = FALSE, keep.var = FALSE, ...)
 
-\method{coefCov}{multigroup}(object, value = FALSE, keep.var = FALSE,
-  ...)
+\method{coefCov}{multigroup}(object, value = FALSE, keep.var = FALSE, ...)
 
 coefExtra(object, value, ...)
 

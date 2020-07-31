@@ -7,9 +7,17 @@
 \usage{
 iidJack(object, ...)
 
-\method{iidJack}{default}(object, data = NULL, grouping = NULL,
-  cpus = 1, keep.warnings = TRUE, keep.error = TRUE, cl = NULL,
-  trace = TRUE, ...)
+\method{iidJack}{default}(
+  object,
+  data = NULL,
+  grouping = NULL,
+  cpus = 1,
+  keep.warnings = TRUE,
+  keep.error = TRUE,
+  cl = NULL,
+  trace = TRUE,
+  ...
+)
 }
 \arguments{
 \item{object}{a object containing the model.}

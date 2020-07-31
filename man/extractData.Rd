@@ -12,23 +12,47 @@
 \usage{
 extractData(object, design.matrix, as.data.frame, envir)
 
-\method{extractData}{lm}(object, design.matrix = FALSE,
-  as.data.frame = TRUE, envir = environment())
+\method{extractData}{lm}(
+  object,
+  design.matrix = FALSE,
+  as.data.frame = TRUE,
+  envir = environment()
+)
 
-\method{extractData}{coxph}(object, design.matrix = FALSE,
-  as.data.frame = TRUE, envir = environment())
+\method{extractData}{coxph}(
+  object,
+  design.matrix = FALSE,
+  as.data.frame = TRUE,
+  envir = environment()
+)
 
-\method{extractData}{cph}(object, design.matrix = FALSE,
-  as.data.frame = TRUE, envir = environment())
+\method{extractData}{cph}(
+  object,
+  design.matrix = FALSE,
+  as.data.frame = TRUE,
+  envir = environment()
+)
 
-\method{extractData}{lvmfit}(object, design.matrix = FALSE,
-  as.data.frame = TRUE, envir = environment())
+\method{extractData}{lvmfit}(
+  object,
+  design.matrix = FALSE,
+  as.data.frame = TRUE,
+  envir = environment()
+)
 
-\method{extractData}{gls}(object, design.matrix = FALSE,
-  as.data.frame = TRUE, envir = environment())
+\method{extractData}{gls}(
+  object,
+  design.matrix = FALSE,
+  as.data.frame = TRUE,
+  envir = environment()
+)
 
-\method{extractData}{lme}(object, design.matrix = FALSE,
-  as.data.frame = TRUE, envir = environment())
+\method{extractData}{lme}(
+  object,
+  design.matrix = FALSE,
+  as.data.frame = TRUE,
+  envir = environment()
+)
 }
 \arguments{
 \item{object}{the fitted model.}

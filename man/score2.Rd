@@ -14,17 +14,13 @@
 \usage{
 score2(object, ...)
 
-\method{score2}{lm}(object, param = NULL, data = NULL,
-  bias.correct = TRUE, ...)
+\method{score2}{lm}(object, param = NULL, data = NULL, bias.correct = TRUE, ...)
 
-\method{score2}{gls}(object, param = NULL, data = NULL,
-  bias.correct = TRUE, ...)
+\method{score2}{gls}(object, param = NULL, data = NULL, bias.correct = TRUE, ...)
 
-\method{score2}{lme}(object, param = NULL, data = NULL,
-  bias.correct = TRUE, ...)
+\method{score2}{lme}(object, param = NULL, data = NULL, bias.correct = TRUE, ...)
 
-\method{score2}{lvmfit}(object, param = NULL, data = NULL,
-  bias.correct = TRUE, ...)
+\method{score2}{lvmfit}(object, param = NULL, data = NULL, bias.correct = TRUE, ...)
 
 \method{score2}{lm2}(object, param = NULL, data = NULL, ...)
 

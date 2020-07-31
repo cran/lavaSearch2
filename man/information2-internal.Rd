@@ -6,13 +6,40 @@
 \alias{.hessian2}
 \title{Compute the Expected Information Matrix From the Conditional Moments}
 \usage{
-.information2(dmu, dOmega, Omega, n.corrected, index.Omega, leverage,
-  n.cluster, grid.meanparam, n.grid.meanparam, grid.varparam,
-  n.grid.varparam, name.param, n.param)
+.information2(
+  dmu,
+  dOmega,
+  Omega,
+  n.corrected,
+  index.Omega,
+  leverage,
+  n.cluster,
+  grid.meanparam,
+  n.grid.meanparam,
+  grid.varparam,
+  n.grid.varparam,
+  name.param,
+  n.param
+)
 
-.hessian2(dmu, d2mu, dOmega, d2Omega, Omega, n.corrected, index.Omega,
-  leverage, n.cluster, grid.meanparam, n.grid.meanparam, grid.varparam,
-  n.grid.varparam, name.param, n.param, residuals)
+.hessian2(
+  dmu,
+  d2mu,
+  dOmega,
+  d2Omega,
+  Omega,
+  n.corrected,
+  index.Omega,
+  leverage,
+  n.cluster,
+  grid.meanparam,
+  n.grid.meanparam,
+  grid.varparam,
+  n.grid.varparam,
+  name.param,
+  n.param,
+  residuals
+)
 }
 \description{
 Compute the expected information matrix from the conditional moments.

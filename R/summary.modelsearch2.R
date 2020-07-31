@@ -3,9 +3,9 @@
 ## author: Brice Ozenne
 ## created: aug 30 2017 (10:46) 
 ## Version: 
-## last-updated: okt  3 2018 (18:12) 
+## last-updated: jun 27 2019 (14:21) 
 ##           By: Brice Ozenne
-##     Update #: 108
+##     Update #: 115
 #----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -36,9 +36,9 @@ summary.modelsearch2 <- function(object, print = TRUE, ...){
     
     ## ** extract data from object
     n.step <- nStep(object)
-    tableTest <- do.call(rbind,lapply(object$sequenceTest, function(iTest){ 
+    tableTest <- do.call(rbind,lapply(object$sequenceTest, function(iTest){
         out <- iTest[which.max(iTest$statistic), c("link","statistic","p.value","adjusted.p.value","dp.Info","selected","nTests")]
-        out[,"dp.Info"] <- mean(iTest[,"dp.Info"])
+        out[,"dp.Info"] <- mean(iTest[,"dp.Info"], na.rm = TRUE)
         return(out)
     }))
     n.selected <- sum(tableTest$selected)
@@ -66,7 +66,7 @@ summary.modelsearch2 <- function(object, print = TRUE, ...){
         cat(out$message.pre,sep="")
         print(out$table)
         cat(out$message.post,sep="")
-        if(any(out$table[,"dp.Info"]<1)){
+        if(any(na.omit(out$table[,"dp.Info"])<1)){
             cat("WARNING: some of the score tests could not be correctly computed, probably because extended models are not all identifiable\n",
                 "        consider using the argument \'link\' to specify only identifiable models \n")
         }

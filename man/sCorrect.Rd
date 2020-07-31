@@ -21,30 +21,83 @@
 \alias{sCorrect<-.lvmfit2}
 \title{Satterthwaite Correction and Small Sample Correction}
 \usage{
-sCorrect(object, adjust.Omega, adjust.n, df, numeric.derivative, param,
-  data, tol, n.iter, trace, ...)
+sCorrect(
+  object,
+  adjust.Omega,
+  adjust.n,
+  df,
+  numeric.derivative,
+  param,
+  data,
+  tol,
+  n.iter,
+  trace,
+  ...
+)
 
-\method{sCorrect}{lm}(object, adjust.Omega = TRUE, adjust.n = TRUE,
-  df = TRUE, numeric.derivative = FALSE, param = NULL, data = NULL,
-  tol = 1e-05, n.iter = 20, trace = 0, ...)
+\method{sCorrect}{lm}(
+  object,
+  adjust.Omega = TRUE,
+  adjust.n = TRUE,
+  df = TRUE,
+  numeric.derivative = FALSE,
+  param = NULL,
+  data = NULL,
+  tol = 1e-05,
+  n.iter = 20,
+  trace = 0,
+  ...
+)
 
 \method{sCorrect}{lm2}(object, ...)
 
-\method{sCorrect}{gls}(object, adjust.Omega = TRUE, adjust.n = TRUE,
-  df = TRUE, numeric.derivative = FALSE, param = NULL, data = NULL,
-  tol = 1e-05, n.iter = 20, trace = 0, cluster, ...)
+\method{sCorrect}{gls}(
+  object,
+  adjust.Omega = TRUE,
+  adjust.n = TRUE,
+  df = TRUE,
+  numeric.derivative = FALSE,
+  param = NULL,
+  data = NULL,
+  tol = 1e-05,
+  n.iter = 20,
+  trace = 0,
+  cluster,
+  ...
+)
 
 \method{sCorrect}{gls2}(object, ...)
 
-\method{sCorrect}{lme}(object, adjust.Omega = TRUE, adjust.n = TRUE,
-  df = TRUE, numeric.derivative = FALSE, param = NULL, data = NULL,
-  tol = 1e-05, n.iter = 20, trace = 0, cluster, ...)
+\method{sCorrect}{lme}(
+  object,
+  adjust.Omega = TRUE,
+  adjust.n = TRUE,
+  df = TRUE,
+  numeric.derivative = FALSE,
+  param = NULL,
+  data = NULL,
+  tol = 1e-05,
+  n.iter = 20,
+  trace = 0,
+  cluster,
+  ...
+)
 
 \method{sCorrect}{lme2}(object, ...)
 
-\method{sCorrect}{lvmfit}(object, adjust.Omega = TRUE, adjust.n = TRUE,
-  df = TRUE, numeric.derivative = FALSE, param = NULL, data = NULL,
-  tol = 1e-05, n.iter = 20, trace = 0, ...)
+\method{sCorrect}{lvmfit}(
+  object,
+  adjust.Omega = TRUE,
+  adjust.n = TRUE,
+  df = TRUE,
+  numeric.derivative = FALSE,
+  param = NULL,
+  data = NULL,
+  tol = 1e-05,
+  n.iter = 20,
+  trace = 0,
+  ...
+)
 
 \method{sCorrect}{lvmfit2}(object, ...)
 

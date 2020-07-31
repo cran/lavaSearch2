@@ -5,10 +5,19 @@
 \alias{autoplot.calibrateType1}
 \title{Graphical Display of the Bias or Type 1 Error}
 \usage{
-\method{autoplot}{calibrateType1}(object, type = "bias", plot = TRUE,
-  color.threshold = "red", type.bias = "absolute", alpha = 0.05,
-  nrow.legend = NULL, name2label = NULL, color = NULL,
-  keep.method = NULL, ...)
+\method{autoplot}{calibrateType1}(
+  object,
+  type = "bias",
+  plot = TRUE,
+  color.threshold = "red",
+  type.bias = "absolute",
+  alpha = 0.05,
+  nrow.legend = NULL,
+  name2label = NULL,
+  color = NULL,
+  keep.method = NULL,
+  ...
+)
 }
 \arguments{
 \item{object}{output of \code{\link{calibrateType1}}.}

@@ -13,8 +13,14 @@
 \usage{
 createContrast(object, ...)
 
-\method{createContrast}{character}(object, name.param,
-  diff.first = FALSE, add.rowname = TRUE, rowname.rhs = TRUE, ...)
+\method{createContrast}{character}(
+  object,
+  name.param,
+  diff.first = FALSE,
+  add.rowname = TRUE,
+  rowname.rhs = TRUE,
+  ...
+)
 
 \method{createContrast}{lm}(object, par, add.variance, ...)
 
@@ -22,14 +28,11 @@ createContrast(object, ...)
 
 \method{createContrast}{lme}(object, par, add.variance, ...)
 
-\method{createContrast}{lvmfit}(object, par = NULL, var.test = NULL,
-  ...)
+\method{createContrast}{lvmfit}(object, par = NULL, var.test = NULL, ...)
 
-\method{createContrast}{list}(object, par = NULL, add.variance = NULL,
-  var.test = NULL, ...)
+\method{createContrast}{list}(object, par = NULL, add.variance = NULL, var.test = NULL, ...)
 
-\method{createContrast}{mmm}(object, par = NULL, add.variance = NULL,
-  var.test = NULL, ...)
+\method{createContrast}{mmm}(object, par = NULL, add.variance = NULL, var.test = NULL, ...)
 }
 \arguments{
 \item{object}{a \code{ls.lvmfit} object.}

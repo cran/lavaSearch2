@@ -14,17 +14,13 @@
 \usage{
 vcov2(object, ...)
 
-\method{vcov2}{lm}(object, param = NULL, data = NULL,
-  bias.correct = TRUE, ...)
+\method{vcov2}{lm}(object, param = NULL, data = NULL, bias.correct = TRUE, ...)
 
-\method{vcov2}{gls}(object, param = NULL, data = NULL,
-  bias.correct = TRUE, ...)
+\method{vcov2}{gls}(object, param = NULL, data = NULL, bias.correct = TRUE, ...)
 
-\method{vcov2}{lme}(object, param = NULL, data = NULL,
-  bias.correct = TRUE, ...)
+\method{vcov2}{lme}(object, param = NULL, data = NULL, bias.correct = TRUE, ...)
 
-\method{vcov2}{lvmfit}(object, param = NULL, data = NULL,
-  bias.correct = TRUE, ...)
+\method{vcov2}{lvmfit}(object, param = NULL, data = NULL, bias.correct = TRUE, ...)
 
 \method{vcov2}{lm2}(object, param = NULL, data = NULL, ...)
 

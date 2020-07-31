@@ -4,8 +4,7 @@
 \alias{autoplot.intDensTri}
 \title{2D-display of the Domain Used to Compute the Integral}
 \usage{
-\method{autoplot}{intDensTri}(object, coord.plot = c("x", "y1"),
-  plot = TRUE, ...)
+\method{autoplot}{intDensTri}(object, coord.plot = c("x", "y1"), plot = TRUE, ...)
 }
 \arguments{
 \item{object}{output of the function \code{intDensTri}.}

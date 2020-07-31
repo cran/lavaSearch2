@@ -9,3 +9,7 @@ OLS2_cpp <- function(X, y) {
     .Call(`_lavaSearch2_OLS2_cpp`, X, y)
 }
 
+wildBoot_cpp <- function(iid, lsIndexModel, nSample, nObs, nModel, p) {
+    .Call(`_lavaSearch2_wildBoot_cpp`, iid, lsIndexModel, nSample, nObs, nModel, p)
+}
+

@@ -4,9 +4,9 @@
 ## Author: Brice Ozenne
 ## Created: nov 29 2017 (12:56) 
 ## Version: 
-## Last-Updated: feb 25 2019 (09:40) 
+## Last-Updated: jun 14 2019 (13:44) 
 ##           By: Brice Ozenne
-##     Update #: 547
+##     Update #: 556
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -261,7 +261,7 @@ glht2.mmm <- function (model, linfct, rhs = 0,
     }
 
 
-### ** define the contrast matrix
+    ## ** define the contrast matrix
     out <- list()
     if (is.character(linfct)){
         resC <- createContrast(model, par = linfct, add.variance = TRUE)
@@ -279,6 +279,11 @@ glht2.mmm <- function (model, linfct, rhs = 0,
         })
         names(ls.contrast) <- name.model
         contrast <- linfct
+        if("rhs" %in% names(match.call()) == FALSE){ ## left rhs to default value
+            rhs <- rep(0, NROW(contrast))
+        }else if(length(rhs)!=NROW(contrast)){
+            stop("mismatch between the dimensions of argument \'rhs\' and argument \'contrast\' \n")
+        }
     }else{
         stop("Argument \'linfct\' must be a matrix or a vector of characters. \n",
              "Consider using  out <- createContrast(...) and pass out$contrast to linfct. \n")
@@ -345,10 +350,13 @@ glht2.mmm <- function (model, linfct, rhs = 0,
         out$iid <- matrix(NA, nrow = n.obs, ncol = length(name.param),
                           dimnames = list(NULL, name.param))
         
+        ## dim(iid2(model[[iM]], robust = robust, cluster = cluster))
+        ## dim(out$iid)
+        ## names(model[[iM]])
         out$iid[setdiff(1:n.obs,index.missing),] <- iid2(model[[iM]], robust = robust, cluster = cluster)
         
         colnames(out$iid) <- name.object.param
-            
+
         return(out)
         
     })

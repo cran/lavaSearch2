@@ -9,8 +9,15 @@
 \usage{
 .getVarCov2(object, ...)
 
-\method{.getVarCov2}{gls}(object, param, attr.param, name.endogenous,
-  n.endogenous, ref.group, ...)
+\method{.getVarCov2}{gls}(
+  object,
+  param,
+  attr.param,
+  name.endogenous,
+  n.endogenous,
+  ref.group,
+  ...
+)
 
 \method{.getVarCov2}{lme}(object, param, attr.param, ...)
 }

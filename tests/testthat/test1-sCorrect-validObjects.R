@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: mar  6 2018 (10:42) 
 ## Version: 
-## Last-Updated: mar 18 2020 (13:46) 
+## Last-Updated: jul 31 2020 (10:46) 
 ##           By: Brice Ozenne
-##     Update #: 66
+##     Update #: 64
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -45,8 +45,7 @@ test_that("error for multigroup models", {
 ## ** error for tobit lvm
 ## check in sCorrect.R
 ## if(require(lava.tobit)){
-##     m <- lava::lvm(G~X1)
-##     e <- lava::estimate(m, data = d)
+##     e <- estimate(lvm(G~X1), data = d)
 ##     test_that("error for tobit models", {
 ##         expect_error(sCorrect(e))
 ##     })

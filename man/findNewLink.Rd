@@ -7,9 +7,17 @@
 \usage{
 findNewLink(object, ...)
 
-\method{findNewLink}{lvm}(object, data = NULL, type = "both",
-  exclude.var = NULL, rm.latent_latent = FALSE, rm.endo_endo = FALSE,
-  rm.latent_endo = FALSE, output = "names", ...)
+\method{findNewLink}{lvm}(
+  object,
+  data = NULL,
+  type = "both",
+  exclude.var = NULL,
+  rm.latent_latent = FALSE,
+  rm.endo_endo = FALSE,
+  rm.latent_endo = FALSE,
+  output = "names",
+  ...
+)
 }
 \arguments{
 \item{object}{a \code{lvm} object.}

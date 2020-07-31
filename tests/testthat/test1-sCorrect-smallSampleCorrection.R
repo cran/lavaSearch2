@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: mar  7 2018 (12:08) 
 ## Version: 
-## Last-Updated: apr 26 2018 (13:28) 
+## Last-Updated: jul 31 2020 (10:23) 
 ##           By: Brice Ozenne
-##     Update #: 56
+##     Update #: 57
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -23,7 +23,7 @@ if(FALSE){ ## already called in test-all.R
 }
 
 lava.options(symbols = c("~","~~"))
-library(clubSandwich)
+## library(clubSandwich)
 library(nlme)
 calcFactor <- function(object){
     return((object$dims$N - object$dims$p)/(object$dims$N - object$dims$p * (object$method == "REML")))
@@ -52,7 +52,7 @@ e.lm <- lm(Y1~X1+X2, data = d)
 
 ## ** iid2 matches clubSandwich
 test_that("iid2.lm/iid2.lvm matches clubSandwich", {
-    V.GS <- clubSandwich::vcovCR(e.lm, type = "CR2", cluster = d$Id)
+    ## V.GS <- clubSandwich::vcovCR(e.lm, type = "CR2", cluster = d$Id)
     
     eHC2.iid2.lm <- iid2(e.lm, bias.correct = TRUE)
     V.lm <- crossprod(eHC2.iid2.lm)
@@ -94,12 +94,12 @@ test_that("iid2.gls/iid2.lvm matches clubSandwich (HC0-HC1)", {
                  tol = 1e-5)
     
     VHC0.gls <- crossprod(iid2HC0.gls)[index.coef,index.coef]
-    GS <- clubSandwich::vcovCR(e.gls, type = "CR0", cluster = dLred$Id) * factor^2
-    expect_equal(as.double(GS),as.double(VHC0.gls), tolerance = 1e-10)
+    ## GS <- clubSandwich::vcovCR(e.gls, type = "CR0", cluster = dLred$Id) * factor^2
+    ## expect_equal(as.double(GS),as.double(VHC0.gls), tolerance = 1e-10)
     
-    GS <- clubSandwich::vcovCR(e.gls, type = "CR1", cluster = dLred$Id) * factor^2
-    VHC1.gls <- VHC0.gls*n/(n-1)
-    expect_equal(as.double(GS),as.double(VHC1.gls), tolerance = 1e-10)
+    ## GS <- clubSandwich::vcovCR(e.gls, type = "CR1", cluster = dLred$Id) * factor^2
+    ## VHC1.gls <- VHC0.gls*n/(n-1)
+    ## expect_equal(as.double(GS),as.double(VHC1.gls), tolerance = 1e-10)
 })
 
 ## ** HC2
@@ -112,7 +112,7 @@ test_that("iid2.lvm matches clubSandwich (HC2)", {
                  tol = 1e-5)
 
     VHC2.gls <- crossprod(iid2HC2.gls)[index.coef,index.coef]
-    GS <- clubSandwich::vcovCR(e.gls, type = "CR2", cluster = dLred$Id) * factor^2
+    ## GS <- clubSandwich::vcovCR(e.gls, type = "CR2", cluster = dLred$Id) * factor^2
 
     ## no more equal to clubSandwich since version 1.2.1 
     ## > lavaSearch2 uses the average bias to correct the residuals instead of the individual bias
@@ -159,12 +159,12 @@ test_that("iid2.gls/iid2.lme/iid2.lvm matches clubSandwich (HC0-HC1)", {
                  tol = 1e-5)
     
     VHC0.gls <- crossprod(iid2HC0.gls)[index.coef,index.coef]
-    GS <- clubSandwich::vcovCR(e.gls, type = "CR0", cluster = dLred$Id) * factor^2
-    expect_equal(as.double(GS),as.double(VHC0.gls), tolerance = 1e-10)
+    ## GS <- clubSandwich::vcovCR(e.gls, type = "CR0", cluster = dLred$Id) * factor^2
+    ## expect_equal(as.double(GS),as.double(VHC0.gls), tolerance = 1e-10)
 
-    GS <- clubSandwich::vcovCR(e.gls, type = "CR1", cluster = dLred$Id) * factor^2
-    VHC1.gls <- VHC0.gls*n/(n-1)
-    expect_equal(as.double(GS),as.double(VHC1.gls), tolerance = 1e-10)
+    ## GS <- clubSandwich::vcovCR(e.gls, type = "CR1", cluster = dLred$Id) * factor^2
+    ## VHC1.gls <- VHC0.gls*n/(n-1)
+    ## expect_equal(as.double(GS),as.double(VHC1.gls), tolerance = 1e-10)
 })
 
 ## ** HC2
@@ -182,7 +182,7 @@ test_that("iid2.gls/iid2.lme/iid2.lvm matches clubSandwich (HC2)", {
                  tol = 1e-5)
 
     VHC2.gls <- crossprod(iid2HC2.gls)[index.coef,index.coef]
-    GS <- clubSandwich::vcovCR(e.gls, type = "CR2", cluster = dLred$Id) * factor^2
+    ## GS <- clubSandwich::vcovCR(e.gls, type = "CR2", cluster = dLred$Id) * factor^2
     ## no more equal to clubSandwich since version 1.2.1 
     ## > lavaSearch2 uses the average bias to correct the residuals instead of the individual bias
     ## expect_equal(as.double(GS),as.double(VHC2.gls), tolerance = 1e-10)
@@ -225,12 +225,12 @@ test_that("iid2.lme/iid2.lvm matches clubSandwich (HC0-HC1)", {
                  tol = 1e-5)
 
     VHC0.lme <- crossprod(iid2HC0.lme)[index.coef,index.coef]
-    GS <- clubSandwich::vcovCR(e.lme, type = "CR0", cluster = dLred$Id)
-    expect_equal(as.double(GS),as.double(VHC0.lme), tolerance = 1e-10)
+    ## GS <- clubSandwich::vcovCR(e.lme, type = "CR0", cluster = dLred$Id)
+    ## expect_equal(as.double(GS),as.double(VHC0.lme), tolerance = 1e-10)
 
-    GS <- clubSandwich::vcovCR(e.lme, type = "CR1", cluster = dLred$Id)
-    VHC1.lme <- VHC0.lme*n/(n-1)
-    expect_equal(as.double(GS),as.double(VHC1.lme), tolerance = 1e-10)
+    ## GS <- clubSandwich::vcovCR(e.lme, type = "CR1", cluster = dLred$Id)
+    ## VHC1.lme <- VHC0.lme*n/(n-1)
+    ## expect_equal(as.double(GS),as.double(VHC1.lme), tolerance = 1e-10)
 })
 
 ## ** HC2
@@ -244,7 +244,7 @@ test_that("iid2.lme/iid2.lvm matches clubSandwich (HC2)", {
                  tol = 1e-5)
 
     VHC2.lme <- crossprod(iid2HC2.lme)[index.coef,index.coef]
-    GS <- clubSandwich::vcovCR(e.lme, type = "CR2", cluster = dLred$Id)
+    ## GS <- clubSandwich::vcovCR(e.lme, type = "CR2", cluster = dLred$Id)
     ## no more equal to clubSandwich since version 1.2.1 
     ## > lavaSearch2 uses the average bias to correct the residuals instead of the individual bias
     ## expect_equal(as.double(GS),as.double(VHC2.lme), tolerance = 1e-5)
@@ -291,12 +291,12 @@ test_that("iid2.gls/iid2.lme/iid2.lvm matches clubSandwich (HC0-HC1)", {
                  tol = 1e-5)
 
     VHC0.lvm <- crossprod(iid2HC0.lvm)[index.coef,index.coef]
-    GS <- clubSandwich::vcovCR(e.lme, type = "CR0", cluster = dLred$Id)
-    expect_equal(as.double(GS),as.double(VHC0.lvm), tolerance = 1e-5)
+    ## GS <- clubSandwich::vcovCR(e.lme, type = "CR0", cluster = dLred$Id)
+    ## expect_equal(as.double(GS),as.double(VHC0.lvm), tolerance = 1e-5)
 
-    GS <- clubSandwich::vcovCR(e.lme, type = "CR1", cluster = dLred$Id)
-    VHC1.lvm <- VHC0.lvm*n/(n-1)
-    expect_equal(as.double(GS),as.double(VHC1.lvm), tolerance = 1e-5)
+    ## GS <- clubSandwich::vcovCR(e.lme, type = "CR1", cluster = dLred$Id)
+    ## VHC1.lvm <- VHC0.lvm*n/(n-1)
+    ## expect_equal(as.double(GS),as.double(VHC1.lvm), tolerance = 1e-5)
 })
 
 ## ** HC2
@@ -311,7 +311,7 @@ test_that("iid2.gls/iid2.lme/iid2.lvm matches clubSandwich (HC2)", {
                  tol = 1e-5)
 
     VHC2.lvm <- crossprod(iid2HC2.lvm)[index.coef,index.coef]
-    GS <- clubSandwich::vcovCR(e.lme, type = "CR2", cluster = dLred$Id)
+    ## GS <- clubSandwich::vcovCR(e.lme, type = "CR2", cluster = dLred$Id)
     ## no more equal to clubSandwich since version 1.2.1 
     ## > lavaSearch2 uses the average bias to correct the residuals instead of the individual bias
     ## expect_equal(as.double(GS),as.double(VHC2.lvm), tolerance = 1e-5)

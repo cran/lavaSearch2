@@ -11,20 +11,47 @@
 \usage{
 conditionalMoment(object, ...)
 
-\method{conditionalMoment}{lm}(object, data, param, name.endogenous,
-  first.order, second.order, ...)
+\method{conditionalMoment}{lm}(
+  object,
+  data,
+  param,
+  name.endogenous,
+  first.order,
+  second.order,
+  ...
+)
 
-\method{conditionalMoment}{gls}(object, data, formula, param, attr.param,
-  ref.group, first.order, second.order, index.Omega, vec.OmegaMat, cluster,
-  n.cluster, name.endogenous, n.endogenous, ...)
+\method{conditionalMoment}{gls}(
+  object,
+  data,
+  formula,
+  param,
+  attr.param,
+  ref.group,
+  first.order,
+  second.order,
+  index.Omega,
+  vec.OmegaMat,
+  cluster,
+  n.cluster,
+  name.endogenous,
+  n.endogenous,
+  ...
+)
 
 \method{conditionalMoment}{lme}(object, attr.param, ...)
 
-\method{conditionalMoment}{lvm}(object, data, first.order, second.order,
-  name.endogenous, name.latent, ...)
+\method{conditionalMoment}{lvm}(
+  object,
+  data,
+  first.order,
+  second.order,
+  name.endogenous,
+  name.latent,
+  ...
+)
 
-\method{conditionalMoment}{lvmfit}(object, data, param, first.order,
-  second.order, usefit, ...)
+\method{conditionalMoment}{lvmfit}(object, data, param, first.order, second.order, usefit, ...)
 }
 \arguments{
 \item{object, x}{a latent variable model.}

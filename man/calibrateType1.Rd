@@ -8,17 +8,46 @@
 \usage{
 calibrateType1(object, param, n.rep, ...)
 
-\method{calibrateType1}{lvm}(object, param, n.rep, n, correction = TRUE,
-  warmup = NULL, null = NULL, F.test = FALSE, cluster = NULL,
-  generative.object = NULL, generative.coef = NULL, true.coef = NULL,
-  n.true = 1e+06, round.true = 2, bootstrap = FALSE,
-  n.bootstrap = 1000, checkType1 = FALSE, checkType2 = FALSE,
-  dir.save = NULL, label.file = NULL, seed = NULL, cpus = 1,
-  trace = 2, ...)
+\method{calibrateType1}{lvm}(
+  object,
+  param,
+  n.rep,
+  n,
+  correction = TRUE,
+  warmup = NULL,
+  null = NULL,
+  F.test = FALSE,
+  cluster = NULL,
+  generative.object = NULL,
+  generative.coef = NULL,
+  true.coef = NULL,
+  n.true = 1e+06,
+  round.true = 2,
+  bootstrap = FALSE,
+  n.bootstrap = 1000,
+  checkType1 = FALSE,
+  checkType2 = FALSE,
+  dir.save = NULL,
+  label.file = NULL,
+  seed = NULL,
+  cpus = 1,
+  trace = 2,
+  ...
+)
 
-\method{calibrateType1}{lvmfit}(object, param, n.rep, correction = TRUE,
-  F.test = FALSE, bootstrap = FALSE, n.bootstrap = 1000,
-  seed = NULL, trace = 2, cpus = 1, ...)
+\method{calibrateType1}{lvmfit}(
+  object,
+  param,
+  n.rep,
+  correction = TRUE,
+  F.test = FALSE,
+  bootstrap = FALSE,
+  n.bootstrap = 1000,
+  seed = NULL,
+  trace = 2,
+  cpus = 1,
+  ...
+)
 }
 \arguments{
 \item{object}{a \code{lvm} object defining the model to be fitted.}

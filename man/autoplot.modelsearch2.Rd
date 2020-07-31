@@ -5,9 +5,16 @@
 \alias{autoplot.modelsearch2}
 \title{Display the Value of a Coefficient across the Steps.}
 \usage{
-\method{autoplot}{modelsearch2}(object, param, ci = TRUE,
-  step = 0:nStep(object), conf.level = 0.95, plot = TRUE,
-  add.0 = TRUE, ...)
+\method{autoplot}{modelsearch2}(
+  object,
+  param,
+  ci = TRUE,
+  step = 0:nStep(object),
+  conf.level = 0.95,
+  plot = TRUE,
+  add.0 = TRUE,
+  ...
+)
 }
 \arguments{
 \item{object}{a \code{modelsearch2} object.}

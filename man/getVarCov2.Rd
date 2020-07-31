@@ -13,7 +13,7 @@ getVarCov2(object, ...)
 
 \method{getVarCov2}{lme}(object, data = NULL, cluster, ...)
 
-\method{getVarCov2}{lvmfit}(object, ...)
+\method{getVarCov2}{lvmfit}(object, data = NULL, param = NULL, ...)
 }
 \arguments{
 \item{object}{a \code{gls} or \code{lme} object}
@@ -23,6 +23,8 @@ getVarCov2(object, ...)
 \item{data}{[data.frame] the data set.}
 
 \item{cluster}{[integer vector] the grouping variable relative to which the observations are iid.}
+
+\item{param}{[numeric vector] values for the model parameters.}
 }
 \value{
 A list containing the residual variance-covariance matrix in the element Omega.

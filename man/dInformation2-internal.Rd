@@ -5,8 +5,20 @@
 \alias{.dInformation2}
 \title{Compute the First Derivative of the Expected Information Matrix}
 \usage{
-.dInformation2(dmu, d2mu, dOmega, d2Omega, Omega, OmegaM1, n.corrected,
-  index.Omega, leverage, n.cluster, name.param, name.3deriv)
+.dInformation2(
+  dmu,
+  d2mu,
+  dOmega,
+  d2Omega,
+  Omega,
+  OmegaM1,
+  n.corrected,
+  index.Omega,
+  leverage,
+  n.cluster,
+  name.param,
+  name.3deriv
+)
 }
 \description{
 Compute the first derivative of the expected information matrix.

@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: mar 27 2018 (09:55) 
 ## Version: 
-## Last-Updated: dec 10 2018 (22:59) 
+## Last-Updated: jul 25 2019 (10:13) 
 ##           By: Brice Ozenne
-##     Update #: 26
+##     Update #: 33
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -23,6 +23,7 @@
 #' @name getVarCov2
 #'
 #' @param object a \code{gls} or \code{lme} object
+#' @param param [numeric vector] values for the model parameters.
 #' @param data [data.frame] the data set.
 #' @param cluster [integer vector] the grouping variable relative to which the observations are iid.
 #' @param ... [internal] only used by the generic method.
@@ -148,7 +149,7 @@ getVarCov2.lme <- getVarCov2.gls
 ## * getVarCov2.lvmfit
 #' @rdname getVarCov2
 #' @export
-getVarCov2.lvmfit <- function(object, ...){
+getVarCov2.lvmfit <- function(object, data = NULL, param = NULL, ...){
 
     if(inherits(object, "lvmfit2")){
         return(object$sCorrect$Omega)
@@ -159,12 +160,16 @@ getVarCov2.lvmfit <- function(object, ...){
         ## ** Prepare
         if(is.null(object$conditionalMoment)){
             name.endogenous <- endogenous(object)
-            object.coef <- coef(object)
-            object.data <- as.data.frame(object$data$model.frame)
+            if(is.null(param)){
+                param <- coef(object)
+            }
+            if(is.null(data)){
+                data <- as.data.frame(object$data$model.frame)
+            }
 
             object$conditionalMoment <- conditionalMoment(object,
-                                                          data = object.data,
-                                                          param = object.coef,
+                                                          data = data,
+                                                          param = param,
                                                           name.endogenous = name.endogenous,
                                                           name.latent = name.latent,
                                                           first.order = FALSE,

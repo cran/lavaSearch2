@@ -3,9 +3,9 @@
 ## author: Brice Ozenne
 ## created: jun 21 2017 (16:44) 
 ## Version: 
-## last-updated: feb 18 2019 (10:25) 
+## last-updated: jun 20 2019 (10:28) 
 ##           By: Brice Ozenne
-##     Update #: 629
+##     Update #: 630
 #----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -29,7 +29,6 @@
 #' @param quantile.compute [logical] should the rejection quantile be computed?
 #' @param quantile.previous [numeric, EXPERIMENTAL] rejection quantiles of the previously tested hypotheses. If not \code{NULL} the values should correspond the variable in to the first column(s) of the argument \code{iid.previous}.
 #' @param method [character] the method used to compute the p-values.
-#' See the output of \code{lava.options()$search.calcMaxDist} for the possible values.
 #' @param alpha [numeric 0-1] the significance cutoff for the p-values.
 #' When the p-value is below, the corresponding link will be retained.
 #' @param cpus [integer >0] the number of processors to use.

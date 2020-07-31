@@ -16,24 +16,37 @@ summary2(object, ...)
 
 \method{summary2}{lm}(object, df = TRUE, bias.correct = TRUE, ...)
 
-\method{summary2}{gls}(object, df = TRUE, bias.correct = TRUE,
-  cluster = NULL, ...)
+\method{summary2}{gls}(object, df = TRUE, bias.correct = TRUE, cluster = NULL, ...)
 
 \method{summary2}{lme}(object, df = TRUE, bias.correct = TRUE, ...)
 
 \method{summary2}{lvmfit}(object, df = TRUE, bias.correct = TRUE, ...)
 
-\method{summary2}{lm2}(object, digit = max(3, getOption("digit")),
-  robust = FALSE, df = TRUE, ...)
+\method{summary2}{lm2}(
+  object,
+  digit = max(3, getOption("digit")),
+  robust = FALSE,
+  df = TRUE,
+  ...
+)
 
-\method{summary2}{gls2}(object, digit = max(3, getOption("digit")),
-  robust = FALSE, df = TRUE, ...)
+\method{summary2}{gls2}(
+  object,
+  digit = max(3, getOption("digit")),
+  robust = FALSE,
+  df = TRUE,
+  ...
+)
 
-\method{summary2}{lme2}(object, digit = max(3, getOption("digit")),
-  robust = FALSE, df = TRUE, ...)
+\method{summary2}{lme2}(
+  object,
+  digit = max(3, getOption("digit")),
+  robust = FALSE,
+  df = TRUE,
+  ...
+)
 
-\method{summary2}{lvmfit2}(object, cluster = NULL, robust = FALSE,
-  df = TRUE, ...)
+\method{summary2}{lvmfit2}(object, cluster = NULL, robust = FALSE, df = TRUE, ...)
 }
 \arguments{
 \item{object}{a \code{gls}, \code{lme} or \code{lvm} object.}

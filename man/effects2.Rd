@@ -8,8 +8,7 @@
 \usage{
 effects2(object, link, ...)
 
-\method{effects2}{lvmfit}(object, link, df = TRUE, bias.correct = TRUE,
-  ...)
+\method{effects2}{lvmfit}(object, link, df = TRUE, bias.correct = TRUE, ...)
 
 \method{effects2}{lvmfit2}(object, link, ...)
 }

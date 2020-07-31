@@ -5,12 +5,33 @@
 \alias{modelsearch2.lvmfit}
 \title{Data-driven Extension of a Latent Variable Model}
 \usage{
-modelsearch2(object, link, data, method.p.adjust, type.information, alpha,
-  nStep, na.omit, trace, cpus)
+modelsearch2(
+  object,
+  link,
+  data,
+  method.p.adjust,
+  method.maxdist,
+  n.sample,
+  na.omit,
+  alpha,
+  nStep,
+  trace,
+  cpus
+)
 
-\method{modelsearch2}{lvmfit}(object, link = NULL, data = NULL,
-  method.p.adjust = "fastmax", type.information = "E", alpha = 0.05,
-  nStep = NULL, na.omit = TRUE, trace = TRUE, cpus = 1)
+\method{modelsearch2}{lvmfit}(
+  object,
+  link = NULL,
+  data = NULL,
+  method.p.adjust = "fastmax",
+  method.maxdist = "approximate",
+  n.sample = 1e+05,
+  na.omit = TRUE,
+  alpha = 0.05,
+  nStep = NULL,
+  trace = TRUE,
+  cpus = 1
+)
 }
 \arguments{
 \item{object}{a \code{lvmfit} object.}
@@ -23,15 +44,21 @@ modelsearch2(object, link, data, method.p.adjust, type.information, alpha,
 Can be any method that is valid for the \code{stats::p.adjust} function (e.g. \code{"fdr"}).
 Can also be \code{"max"}, \code{"fastmax"}, or \code{"gof"}.}
 
-\item{type.information}{[character] the method used by \code{lava::information} to compute the information matrix.}
+\item{method.maxdist}{[character] the method used to estimate the distribution of the max statistic.
+\code{"resampling"} resample the score under the null to estimate the null distribution.
+\code{"bootstrap"} performs a wild bootstrap of the iid decomposition of the score to estimate the null distribution.
+\code{"approximate"} attemps to identify the latent gaussian variable corresponding to each score statistic (that is chi-2 distributed).
+It approximates the correlation matrix between these latent gaussian variables and uses numerical integration to compute the distribution of the max.}
+
+\item{n.sample}{[integer, >0] number of samples used in the resampling approach.}
+
+\item{na.omit}{should tests leading to NA for the test statistic be ignored. Otherwise this will stop the selection process.}
 
 \item{alpha}{[numeric 0-1] the significance cutoff for the p-values.
 When the p-value is below, the corresponding link will be added to the model
 and the search will continue. Otherwise the search will stop.}
 
 \item{nStep}{the maximum number of links that can be added to the model.}
-
-\item{na.omit}{should tests leading to NA for the test statistic be ignored. Otherwise this will stop the selection process.}
 
 \item{trace}{[logical] should the execution of the function be traced?}
 
@@ -67,7 +94,7 @@ method.p.adjust = \code{"gof"} keep adding links until the chi-squared test (of 
 }
 \examples{
 
-## simulate data
+## simulate data 
 mSim <- lvm()
 regression(mSim) <- c(y1,y2,y3,y4)~u
 regression(mSim) <- u~x1+x2
@@ -75,6 +102,8 @@ categorical(mSim,labels=c("A","B","C")) <- "x2"
 latent(mSim) <- ~u
 covariance(mSim) <- y1~y2
 transform(mSim, Id~u) <- function(x){1:NROW(x)}
+
+set.seed(10)
 df.data <- lava::sim(mSim, n = 1e2, latent = FALSE)
 
 ## only identifiable extensions

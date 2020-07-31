@@ -5,9 +5,14 @@
 \alias{initVarLinks}
 \title{Normalize var1 and var2}
 \usage{
-initVarLink(var1, var2, rep.var1 = FALSE, format = "list",
+initVarLink(
+  var1,
+  var2,
+  rep.var1 = FALSE,
+  format = "list",
   Slink = c(lava.options()$symbols[1], "~"),
-  Scov = lava.options()$symbols[2])
+  Scov = lava.options()$symbols[2]
+)
 
 initVarLinks(var1, format = "list", ...)
 }
