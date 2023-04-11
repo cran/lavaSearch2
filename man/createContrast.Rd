@@ -3,56 +3,38 @@
 \name{createContrast}
 \alias{createContrast}
 \alias{createContrast.character}
-\alias{createContrast.lm}
-\alias{createContrast.gls}
-\alias{createContrast.lme}
 \alias{createContrast.lvmfit}
+\alias{createContrast.lvmfit2}
 \alias{createContrast.list}
 \alias{createContrast.mmm}
 \title{Create Contrast matrix}
 \usage{
 createContrast(object, ...)
 
-\method{createContrast}{character}(
-  object,
-  name.param,
-  diff.first = FALSE,
-  add.rowname = TRUE,
-  rowname.rhs = TRUE,
-  ...
-)
+\method{createContrast}{character}(object, ...)
 
-\method{createContrast}{lm}(object, par, add.variance, ...)
+\method{createContrast}{lvmfit}(object, linfct, ...)
 
-\method{createContrast}{gls}(object, par, add.variance, ...)
+\method{createContrast}{lvmfit2}(object, linfct, ...)
 
-\method{createContrast}{lme}(object, par, add.variance, ...)
+\method{createContrast}{list}(object, linfct = NULL, ...)
 
-\method{createContrast}{lvmfit}(object, par = NULL, var.test = NULL, ...)
-
-\method{createContrast}{list}(object, par = NULL, add.variance = NULL, var.test = NULL, ...)
-
-\method{createContrast}{mmm}(object, par = NULL, add.variance = NULL, var.test = NULL, ...)
+\method{createContrast}{mmm}(object, linfct = NULL, ...)
 }
 \arguments{
-\item{object}{a \code{ls.lvmfit} object.}
+\item{object}{a \code{lvmfit} object or a list of  a \code{lvmfit} objects.}
 
-\item{...}{[internal] Only used by the generic method.}
+\item{...}{Argument to be passed to \code{.createContrast}:
+\itemize{
+\item diff.first [logical] should the contrasts between the first and any of the other coefficients define the null hypotheses.
+\item add.rowname [logical] add rownames to the contrast matrix and names to the right-hand side.
+\item rowname.rhs [logical] when naming the hypotheses, add the right-hand side (i.e. "X1-X2=0" instead of "X1-X2").
+\item sep [character vector of length2] character surrounding the left part of the row names.
+}}
 
-\item{name.param}{[internal] the names of all the model coefficients.}
-
-\item{diff.first}{[logical] should the contrasts between the first and any of the other coefficients define the null hypotheses.}
-
-\item{add.rowname}{[internal] should a name be defined for each hypothesis.}
-
-\item{rowname.rhs}{should the right hand side of the null hypothesis be added to the name.}
-
-\item{par}{[vector of characters] expression defining the linear hypotheses to be tested. See the examples section.}
-
-\item{add.variance}{[logical] should the variance coefficients be considered as model coefficients?
-Required for lm, gls, and lme models.}
-
-\item{var.test}{[character] a regular expression that is used to identify the coefficients to be tested using \code{grep}. Each coefficient will be tested in a separate hypothesis. When this argument is used, the argument \code{par} is disregarded.}
+\item{linfct}{[vector of characters] expression defining the linear hypotheses to be tested.
+Can also be a regular expression (of length 1) that is used to identify the coefficients to be tested using \code{grep}.
+See the examples section.}
 }
 \value{
 A list containing
@@ -69,10 +51,7 @@ Returns a contrast matrix corresponding an object.
 The contrast matrix will contains the hypotheses in rows and the model coefficients in columns.
 }
 \details{
-One can initialize an empty contrast matrix setting the argument\code{par} to \code{character(0)}. \cr \cr
-
-When using \code{multcomp::glht} one should set the argument \code{add.variance} to \code{FALSE}. \cr
-When using \code{lavaSearch2::glht2} one should set the argument \code{add.variance} to \code{TRUE}.
+One can initialize an empty contrast matrix setting the argument\code{linfct} to \code{character(0)}. \cr \cr
 }
 \examples{
 ## Simulate data
@@ -94,20 +73,22 @@ lvmZ <- lava::estimate(lvm(c(Z1,Z2,Z3) ~ -1 + 1*eta, eta ~ -1 + Treatment),
                  data = df.data)
 
 ## Contrast matrix for a given model
-createContrast(lmX, par = "X~Age")
-createContrast(lmX, par = c("X~Age=0","X~Age+5*X~TreatmentSSRI=0"))
-createContrast(lmX, par = character(0))
+createContrast(lmX, linfct = "X~Age")
+createContrast(lmX, linfct = c("X~Age=0","X~Age+5*X~TreatmentSSRI=0"))
+createContrast(lmX, linfct = c("X~Age=0","X~Age+5*X~TreatmentSSRI=0"), sep = NULL)
+createContrast(lmX, linfct = character(0))
 
 ## Contrast matrix for the join model
 ls.lvm <- list(X = lmX, Y = lmY, Z = lvmZ)
-createContrast(ls.lvm, var.test = "Treatment", add.variance = FALSE)
-createContrast(ls.lvm, par = character(0), add.variance = FALSE)
+createContrast(ls.lvm, linfct = "TreatmentSSRI=0")
+createContrast(ls.lvm, linfct = "TreatmentSSRI=0", rowname.rhs = FALSE)
+createContrast(ls.lvm, linfct = character(0))
 
 ## Contrast for multigroup models
 m <- lava::lvm(Y~Age+Treatment)
 e <- lava::estimate(list(m,m), data = split(df.data, df.data$Gender))
 print(coef(e))
-createContrast(e, par = "Y~TreatmentSSRI@1 - Y~TreatmentSSRI@2 = 0")
-createContrast(e, par = "Y~TreatmentSSRI@2 - Y~TreatmentSSRI@1 = 0")
+createContrast(e, linfct = "Y~TreatmentSSRI@1 - Y~TreatmentSSRI@2 = 0")
+createContrast(e, linfct = "Y~TreatmentSSRI@2 - Y~TreatmentSSRI@1 = 0")
+
 }
-\concept{small sample inference}

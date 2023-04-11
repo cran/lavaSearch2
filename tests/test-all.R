@@ -1,3 +1,6 @@
 #library(lavaSearch2)
 suppressPackageStartupMessages(library("testthat"))
+suppressPackageStartupMessages(library("nlme"))
+suppressPackageStartupMessages(library("multcomp"))
+suppressPackageStartupMessages(library("Matrix"))
 test_check("lavaSearch2")

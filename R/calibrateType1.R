@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr  5 2018 (10:23) 
 ## Version: 
-## Last-Updated: mar 13 2019 (11:55) 
+## Last-Updated: Jan 11 2022 (16:51) 
 ##           By: Brice Ozenne
-##     Update #: 813
+##     Update #: 852
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -49,7 +49,7 @@
 ##' Can also be \code{NULL}: in such a case the results are not exported.
 ##' @param F.test [logical] should a multivariate Wald test be perform testing simultaneously all the null hypotheses?
 ##' @param label.file [character] element to include in the file name.
-##' @param seed [integer, >0] seed value that will be set at the beginning of the simulation to enable eproducibility of the results.
+##' @param seed [integer, >0] value that will be set before adjustment for multiple comparisons to ensure reproducible results.
 ##' Can also be \code{NULL}: in such a case no seed is set.
 ##' @param cpus [integer >0] the number of processors to use.
 ##' If greater than 1, the simulations are performed in parallel. 
@@ -184,7 +184,7 @@ calibrateType1.lvm <- function(object, param, n.rep, n, correction = TRUE, warmu
     ## *** type of the coef of the fitted model
     df.type <- coefType(e.true, as.lava = FALSE)
     df.type <- df.type[df.type$name %in% name.coef,]
-    type.coef <- setNames(df.type$detail, df.type$name)
+    type.coef <- stats::setNames(df.type$detail, df.type$name)
 
     ## *** null hypothesis
     n.param <- length(param)
@@ -210,7 +210,10 @@ calibrateType1.lvm <- function(object, param, n.rep, n, correction = TRUE, warmu
         txtCoef <- paste(param[coef.true[param]==0], collapse = "\" \"")
         stop("Control type 2 error: coefficients \"",txtCoef,"\" are 0 while their belong to the param hypothesis\n")
     }
-    res.C <- createContrast(param, name.param = name.coef, add.rowname = TRUE, rowname.rhs = FALSE)
+    res.C <- .createContrast(param,
+                             name.param = name.coef,
+                             add.rowname = TRUE,
+                             rowname.rhs = FALSE)
     contrast <- res.C$contrast
     if(is.null(null)){
         rhs <- res.C$null
@@ -249,7 +252,7 @@ calibrateType1.lvm <- function(object, param, n.rep, n, correction = TRUE, warmu
 
     
 ### ** loop
-    store.coef <- param
+    store.coef <- paste0(rownames(contrast)," == ",rhs)
     if(F.test){
         store.coef <- c(store.coef, "global")
     }
@@ -363,7 +366,9 @@ calibrateType1.lvm <- function(object, param, n.rep, n, correction = TRUE, warmu
         filename.estimate <- gsub("\\(tempo\\)","",filename_tempo.estimate)
 
         if(!is.null(dir.save)){
-            validPath(dir.save, type = "dir")
+            if (dir.exists(dir.save) == FALSE) {
+                stop("Argument \'dir.save\' does not lead to an existing directory \n")
+            }            
         }
 
         if(!is.null(dir.save)){
@@ -525,21 +530,19 @@ calibrateType1.lvmfit <- function(object, param, n.rep, correction = TRUE, F.tes
     
     ## ** model fit
     e.lvm <- suppressWarnings(do.call(lava::estimate, args = c(list(object, data = dt.sim, cluster = cluster), dots)))
-    eS.lvm <- suppressWarnings(try(summary(e.lvm)$coef, silent = TRUE))
     
     ## check correct convergence of the latent variable model
     if(("convergence" %in% names(e.lvm$opt)) && (e.lvm$opt$convergence==1)){return(list(pvalue=NULL,estimate=NULL))} ## exclude lvm that has not converged
-    if(any(eigen(getVarCov2(e.lvm))$values<=0)){return(list(pvalue=NULL,estimate=NULL))} ## exclude lvm where the residual covariance matrix is not semipositive definite
+    if(any(eigen(getVarCov2(e.lvm, ssc = FALSE, df = FALSE))$values<=0)){return(list(pvalue=NULL,estimate=NULL))} ## exclude lvm where the residual covariance matrix is not semipositive definite
     ratio_sd_beta <- sqrt(diag(vcov(e.lvm)))/(abs(coef(e.lvm))+1)
-    if(max(na.omit(ratio_sd_beta))>1e3){return(list(pvalue=NULL,estimate=NULL))} ## exclude if standard error much larger than coefficient
-    if(inherits(eS.lvm, "try-error")){return(list(pvalue=NULL,estimate=NULL))} ## exclude lvm where we cannot compute the summary
+    if(max(stats::na.omit(ratio_sd_beta))>1e3){return(list(pvalue=NULL,estimate=NULL))} ## exclude if standard error much larger than coefficient
+    if(inherits(suppressWarnings(try(summary(e.lvm)$coef, silent = TRUE)), "try-error")){return(list(pvalue=NULL,estimate=NULL))} ## exclude lvm where we cannot compute the summary
 
     ## ** corrections
+    e.lvm <- estimate2(e.lvm, df = "none", ssc = "none")
     if(correction){
-        e.lvm.Satt <- e.lvm    
-        testError.Satt <- try(sCorrect(e.lvm.Satt) <- FALSE, silent = TRUE)
-        e.lvm.KR <- e.lvm
-        testError.KR <- try(suppressWarnings(sCorrect(e.lvm.KR, safeMode = TRUE) <- TRUE), silent = TRUE)
+        e.lvm.Satt <- try(estimate2(e.lvm, df = "satterthwaite", ssc = "none"), silent = TRUE)
+        e.lvm.KR <- try(suppressWarnings(estimate2(e.lvm, df = "satterthwaite", ssc = "residuals")), silent = TRUE)
     }else{
         e.lvm.Satt <- 1
         class(e.lvm.Satt) <- "try-error"
@@ -548,49 +551,49 @@ calibrateType1.lvmfit <- function(object, param, n.rep, correction = TRUE, F.tes
     }
     
     ## ** extract p.values
-    eS.ML <- summary2(e.lvm, robust = FALSE, df = FALSE, bias.correct = FALSE)$coef
-    F.ML <- compare2(e.lvm, robust = FALSE, df = FALSE, bias.correct = FALSE,
-                     contrast = contrast, null = rhs, F.test = F.test, as.lava = FALSE)
+    eS.ML <- summary2(e.lvm, robust = FALSE)$coef
+    F.ML <- summary(compare2(e.lvm, robust = FALSE,
+                             linfct = contrast, rhs = rhs, F.test = F.test, as.lava = FALSE))$table2
 
-    eS.robustML <- summary2(e.lvm, robust = TRUE, df = FALSE, bias.correct = FALSE)$coef
-    F.robustML <- compare2(e.lvm, robust = TRUE, df = FALSE, bias.correct = FALSE,
-                           contrast = contrast, null = rhs, F.test = F.test, as.lava = FALSE)
+    eS.robustML <- summary2(e.lvm, robust = TRUE)$coef
+    F.robustML <- summary(compare2(e.lvm, robust = TRUE,
+                                   linfct = contrast, rhs = rhs, F.test = F.test, as.lava = FALSE))$table2
     
 
     if(!inherits(e.lvm.Satt,"try-error")){
         
         eS.Satt <- summary2(e.lvm.Satt, robust = FALSE)$coef
-        F.Satt <- compare2(e.lvm.Satt, robust = FALSE,
-                           contrast = contrast, null = rhs, F.test = F.test,
-                           as.lava = FALSE)
+        F.Satt <- summary(compare2(e.lvm.Satt, robust = FALSE,
+                                   linfct = contrast, rhs = rhs, F.test = F.test,
+                                   as.lava = FALSE))$table2
             
         eS.robustSatt <- summary2(e.lvm.Satt, robust = TRUE)$coef
-        F.robustSatt <- compare2(e.lvm.Satt, robust = TRUE,
-                                  contrast = contrast, null = rhs, F.test = F.test,
-                                  as.lava = FALSE)
+        F.robustSatt <- summary(compare2(e.lvm.Satt, robust = TRUE,
+                                  linfct = contrast, rhs = rhs, F.test = F.test,
+                                  as.lava = FALSE))$table2
     }
     
     if(!inherits(e.lvm.KR,"try-error")){
 
-        ## eS.SSC <- summary2(e.lvm.KR, robust = FALSE, df = FALSE)$coef
-        F.SSC <- compare2(e.lvm.KR, robust = FALSE, df = FALSE,
-                           contrast = contrast, null = rhs, F.test = F.test,
-                          as.lava = FALSE)
+        eS.SSC <- summary2(e.lvm.KR, robust = FALSE)$coef
+        F.SSC <- summary(compare2(e.lvm.KR, robust = FALSE, 
+                                  linfct = contrast, rhs = rhs, F.test = F.test,
+                                  as.lava = FALSE))$table2
         
-        ## eS.robustSSC <- summary2(e.lvm.KR, robust = TRUE, df = FALSE)$coef
-        F.robustSSC <- compare2(e.lvm.KR, robust = TRUE, df = FALSE,
-                                 contrast = contrast, null = rhs, F.test = F.test,
-                                 as.lava = FALSE)
+        eS.robustSSC <- summary2(e.lvm.KR, robust = TRUE)$coef
+        F.robustSSC <- summary(compare2(e.lvm.KR, robust = TRUE, 
+                                        linfct = contrast, rhs = rhs, F.test = F.test,
+                                        as.lava = FALSE))$table2
 
         eS.KR <- summary2(e.lvm.KR, robust = FALSE)$coef
-        F.KR <- compare2(e.lvm.KR, robust = FALSE,
-                          contrast = contrast, null = rhs, F.test = F.test,
-                          as.lava = FALSE)
+        F.KR <- summary(compare2(e.lvm.KR, robust = FALSE,
+                                 linfct = contrast, rhs = rhs, F.test = F.test,
+                                 as.lava = FALSE))$table2
         
         eS.robustKR <- summary2(e.lvm.KR, robust = TRUE)$coef
-        F.robustKR <- compare2(e.lvm.KR, robust = TRUE,
-                                contrast = contrast, null = rhs, F.test = F.test,
-                                as.lava = FALSE)
+        F.robustKR <- summary(compare2(e.lvm.KR, robust = TRUE,
+                                       linfct = contrast, rhs = rhs, F.test = F.test,
+                                       as.lava = FALSE))$table2
     }
     
     ## ** store
@@ -637,28 +640,28 @@ calibrateType1.lvmfit <- function(object, param, n.rep, correction = TRUE, F.tes
     
     ## *** p-value
     if(is.null(cluster)){
-        ls.iP$p.Ztest <- F.ML[store.coef,"p-value"]
+        ls.iP$p.Ztest <- F.ML[store.coef,"p.value"]
         if(!inherits(e.lvm.Satt,"try-error")){
-            ls.iP$p.Satt <- F.Satt[store.coef,"p-value"]
+            ls.iP$p.Satt <- F.Satt[store.coef,"p.value"]
         }
         if(!inherits(e.lvm.KR,"try-error")){
-            ls.iP$p.SSC <- F.SSC[store.coef,"p-value"]
-            ls.iP$p.KR <- F.KR[store.coef,"p-value"]
+            ls.iP$p.SSC <- F.SSC[store.coef,"p.value"]
+            ls.iP$p.KR <- F.KR[store.coef,"p.value"]
         }
     }
-    ls.iP$p.robustZtest <- F.robustML[store.coef,"p-value"]
+    ls.iP$p.robustZtest <- F.robustML[store.coef,"p.value"]
     if(!inherits(e.lvm.Satt,"try-error")){
-        ls.iP$p.robustSatt <- F.robustSatt[store.coef,"p-value"]
+        ls.iP$p.robustSatt <- F.robustSatt[store.coef,"p.value"]
     }
     if(!inherits(e.lvm.KR,"try-error")){
-        ls.iP$p.robustSSC <- F.robustSSC[store.coef,"p-value"]
-        ls.iP$p.robustKR <- F.robustKR[store.coef,"p-value"]
+        ls.iP$p.robustSSC <- F.robustSSC[store.coef,"p.value"]
+        ls.iP$p.robustKR <- F.robustKR[store.coef,"p.value"]
     }
 
     ## *** niter.correct / warning
     if(!inherits(e.lvm.KR,"try-error")){
         test.warning <- inherits(attr(e.lvm.KR$sCorrect,"warning"),"try-error")
-        niter.correct <- as.double(e.lvm.KR$sCorrect$opt$iterations)
+        niter.correct <- as.double(e.lvm.KR$sCorrect$ssc$iter)
     }else{
         test.warning <- NA
         niter.correct <- as.double(NA)
@@ -684,12 +687,12 @@ calibrateType1.lvmfit <- function(object, param, n.rep, correction = TRUE, F.tes
     ## estimates
     ## use rep to avoid warning
     ## return(list(n = n,
-                ## rep = iRep,
-                ## seed = seed,
-                ## ninter = niter.correct,
-                ## warning = test.warning,
-                ## name = names(coef.true),
-                ## type = type.coef[name.coef]))
+    ## rep = iRep,
+    ## seed = seed,
+    ## ninter = niter.correct,
+    ## warning = test.warning,
+    ## name = names(coef.true),
+    ## type = type.coef[name.coef]))
     df1 <- data.frame(n = n,
                       rep = iRep, n.coef,
                       seed = seed, n.coef,

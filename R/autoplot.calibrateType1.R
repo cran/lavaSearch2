@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr  5 2018 (13:20) 
 ## Version: 
-## Last-Updated: maj 23 2018 (09:53) 
+## Last-Updated: Jan 11 2022 (16:46) 
 ##           By: Brice Ozenne
-##     Update #: 29
+##     Update #: 30
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -107,7 +107,7 @@ autoplot.calibrateType1 <- function(object, type = "bias", plot = TRUE, color.th
             keep.method <- as.character(unique(df.gg$method))
         }
         if(is.null(name2label)){
-            name2label <- setNames(unique(paste0(df.gg$statistic,", ",df.gg$correction)),unique(df.gg$method))
+            name2label <- stats::setNames(unique(paste0(df.gg$statistic,", ",df.gg$correction)),unique(df.gg$method))
         }
         if(is.null(color)){
             ## from ggthemes::colorblind_pal()(8)

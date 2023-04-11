@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: nov 27 2018 (14:35) 
 ## Version: 
-## Last-Updated: nov 28 2018 (15:34) 
+## Last-Updated: Jan 11 2022 (16:00) 
 ##           By: Brice Ozenne
-##     Update #: 13
+##     Update #: 14
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -53,7 +53,6 @@
 #' clean(m)
 
 ## * clean.lvm
-#' @rdname clean
 #' @export
 clean.lvm <- function(x, rm.exo = TRUE, rm.endo = TRUE, rm.latent = TRUE, ...){
 

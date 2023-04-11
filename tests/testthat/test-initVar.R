@@ -1,5 +1,5 @@
 ## * header
-rm(list = ls())
+## rm(list = ls())
 if(TRUE){ ## already called in test-all.R
     library(testthat)
     library(lavaSearch2)

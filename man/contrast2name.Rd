@@ -5,12 +5,14 @@
 \alias{.contrast2name}
 \title{Create Rownames for a Contrast Matrix}
 \usage{
-.contrast2name(contrast, null = NULL)
+.contrast2name(contrast, null = NULL, sep = c("[", "]"))
 }
 \arguments{
 \item{contrast}{[matrix] a contrast matrix defining the left hand side of the linear hypotheses to be tested.}
 
 \item{null}{[vector, optional] the right hand side of the linear hypotheses to be tested.}
+
+\item{sep}{[character of length 2, optional] character used in rownames to wrap the left hand side of the equation.}
 }
 \value{
 a character vector.

@@ -115,7 +115,6 @@
 #' 
 
 ## * modelsearch2.lvmfit (code)
-#' @rdname modelsearch2
 #' @export
 modelsearch2.lvmfit <- function(object, link = NULL, data = NULL, 
                                 method.p.adjust = "fastmax", method.maxdist = "approximate", n.sample = 1e5, na.omit = TRUE, 
@@ -544,7 +543,7 @@ modelsearch2.lvmfit <- function(object, link = NULL, data = NULL,
         newModel <- lava::fixsome(newModel, measurement.fix=TRUE, S=suffStat$S, mu=suffStat$mu, n = suffStat$n, debug=FALSE)
 
         ## *** define constrained coefficients
-        coef0.new <- setNames(rep(0, ncoef.object+1), coef(newModel))
+        coef0.new <- stats::setNames(rep(0, ncoef.object+1), coef(newModel))
         coef0.new[namecoef.object] <- coef.object
 
         ## *** compute the iid decomposition and statistic

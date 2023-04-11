@@ -3,9 +3,9 @@
 ## author: Brice Ozenne
 ## created: jun 23 2017 (09:15) 
 ## Version: 
-## last-updated: okt 23 2018 (13:57) 
+## last-updated: Jan 11 2022 (16:08) 
 ##           By: Brice Ozenne
-##     Update #: 331
+##     Update #: 333
 #----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -37,53 +37,15 @@
 #' 
 #' @examples
 #' n <- 20
-#'
-#' #### glm ####
 #' set.seed(10)
-#' m <- lvm(y~x+z)
-#' distribution(m, ~y+z) <- binomial.lvm("logit")
-#' d <- lava::sim(m,n)
-#' g <- glm(y~x+z,data=d,family="binomial")
-#' iid1 <- iidJack(g, cpus = 1)
-#' iid2 <- lava::iid(g)
-#' quantile(iid1-iid2)
-#' vcov(g)
-#' colSums(iid2^2)
-#' colSums(iid1^2)
-#' 
-#' #### Cox model ####
-#' \dontrun{
-#' library(survival)
-#' data(Melanoma, package = "riskRegression")
-#' m <- coxph(Surv(time,status==1)~ici+age, data = Melanoma, x = TRUE, y = TRUE)
-#'
-#' ## require riskRegression > 1.4.3
-#' if(utils::packageVersion("riskRegression") > "1.4.3"){
-#' library(riskRegression)
-#' iid1 <- iidJack(m)
-#' iid2 <- iidCox(m)$IFbeta
-#'
-#' apply(iid1,2,sd)
-#'
-#' print(iid2)
-#' 
-#' apply(iid2,2,sd)
-#'   }
-#' }
-#' 
-#' #### LVM ####
-#' \dontrun{
-#' set.seed(10)
-#'
 #' mSim <- lvm(c(Y1,Y2,Y3,Y4,Y5) ~ 1*eta)
 #' latent(mSim) <- ~eta
 #' categorical(mSim, K=2) <- ~G
 #' transform(mSim, Id ~ eta) <- function(x){1:NROW(x)}
 #' dW <- lava::sim(mSim, n, latent = FALSE)
-#' dL <- reshape2::melt(dW, id.vars = c("G","Id"),
-#'                      variable.name = "time", value.name = "Y")
-#' dL$time <- gsub("Y","",dL$time)
 #'
+#' #### LVM ####
+#' \dontrun{
 #' m1 <- lvm(c(Y1,Y2,Y3,Y4,Y5) ~ 1*eta)
 #' latent(m1) <- ~eta
 #' regression(m1) <- eta ~ G
@@ -98,15 +60,6 @@
 #' quantile(iid2 - iid1)
 #' }
 #'
-#' #### lme ####
-#' \dontrun{
-#' library(nlme)
-#' e2 <- lme(Y~G+time, random = ~1|Id, weights = varIdent(form =~ 1|Id), data = dL)
-#' e2 <- lme(Y~G, random = ~1|Id, data = dL)
-#'
-#' iid3 <- iidJack(e2)
-#' apply(iid3,2,sd)
-#' }
 #'
 #' @concept iid decomposition
 #' @export
@@ -164,11 +117,7 @@ iidJack.default <- function(object, data = NULL, grouping = NULL, cpus = 1,
 
     ## ** define the grouping level for the data
     if(is.null(grouping)){
-        if(any(class(object)%in%c("lme","gls","nlme"))){
-            myData$XXXgroupingXXX <- as.vector(apply(object$groups,2,interaction))
-        }else{
-            myData$XXXgroupingXXX <- 1:n.obs
-        }
+        myData$XXXgroupingXXX <- 1:n.obs
         grouping <- "XXXgroupingXXX"        
     }else{
         if(length(grouping)>1){

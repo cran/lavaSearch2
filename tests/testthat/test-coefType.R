@@ -3,9 +3,9 @@
 ## author: Brice Ozenne
 ## created: okt 12 2017 (14:52) 
 ## Version: 
-## last-updated: aug  6 2018 (15:34) 
+## last-updated: Jan 12 2022 (12:32) 
 ##           By: Brice Ozenne
-##     Update #: 79
+##     Update #: 82
 #----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -16,7 +16,7 @@
 ### Code:
 
 ## * header
-rm(list = ls())
+## rm(list = ls())
 if(TRUE){ ## already called in test-all.R
     library(testthat)
     library(lavaSearch2)
@@ -44,7 +44,7 @@ test_that("coefType - lm", {
     expect_equal(test,GS)
 
     test <- subset(coefType(m, as.lava = FALSE), !is.na(lava))
-    expect_equal(test$detail,df.truth$letter)
+    expect_equal(as.character(test$detail),df.truth$letter)
     expect_equal(test$name,df.truth$name)
 
     test <- coefType(e, as.lava = TRUE)
@@ -52,7 +52,7 @@ test_that("coefType - lm", {
     expect_equal(test,GS)
 
     test <- subset(coefType(e, as.lava = FALSE), !is.na(lava))
-    expect_equal(test$detail,df.truth$letter)
+    expect_equal(as.character(test$detail),df.truth$letter)
     expect_equal(test$name,df.truth$name)
 
 })
@@ -94,7 +94,6 @@ df.truth <- data.frame(name = c("Y","Y~X1","Y~X2b","Y~X2c","Y~X3","Y~~Y"),
                        )
 
 test_that("coefType - lm", {
-    
     test <- coefType(mSim, as.lava = TRUE)
     expect_equal(names(test),as.character(coef(mSim)))
 
@@ -103,7 +102,7 @@ test_that("coefType - lm", {
     expect_equal(test,GS)
     
     test <- subset(coefType(e, as.lava = FALSE), !is.na(lava))
-    expect_equal(test$detail,df.truth$letter)
+    expect_equal(as.character(test$detail),df.truth$letter)
     expect_equal(test$name,df.truth$name)
 })
 
@@ -132,7 +131,7 @@ test_that("coefType - lm", {
     expect_equal(test,GS)
     
     test <- subset(coefType(e, as.lava = FALSE), !is.na(lava))
-    expect_equal(test$detail,df.truth$letter)
+    expect_equal(as.character(test$detail),df.truth$letter)
     expect_equal(test$name,df.truth$name)
 })
 
@@ -142,7 +141,7 @@ m.sim <- lvm(Y1 ~ 1)
 categorical(m.sim, labels = c("control","concussion")) <- ~group
 
 test_that("coefType - lm with extra variable", {
-    coefType(m.sim)
+    expect_equal(unname(coefType(m.sim)), c("intercept", "variance", "extra"))    
 })
 
 ## m.sim <- lvm(Y1 ~ 1, group ~ 1) ## ERROR
@@ -172,15 +171,15 @@ df.truth <- rbind(c("Y2","intercept","nu"),
                   ##
                   c("Y1~X1","regression","K"),
                   ##
+                  c("eta2~X2b","regression","Gamma"),
+                  c("eta2~X2c","regression","Gamma"),
+                  ##
                   c("Y2~eta1","regression","Lambda"),
                   c("Y3~eta1","regression","Lambda"),
                   c("Z2~eta2","regression","Lambda"),
                   c("Z3~eta2","regression","Lambda"),
                   ##
                   c("eta2~eta1","regression","B"),
-                  ##
-                  c("eta2~X2b","regression","Gamma"),
-                  c("eta2~X2c","regression","Gamma"),
                   ##
                   c("Y1~~Y1","variance","Sigma_var"),
                   c("Y2~~Y2","variance","Sigma_var"),
@@ -189,15 +188,14 @@ df.truth <- rbind(c("Y2","intercept","nu"),
                   c("Z2~~Z2","variance","Sigma_var"),
                   c("Z3~~Z3","variance","Sigma_var"),
                   ##
-                  c("eta1~~eta1","variance","Psi_var"),
-                  c("eta2~~eta2","variance","Psi_var"),
+                  c("Y1~~Z1","covariance","Sigma_cov"),
                   ##
-                  c("Y1~~Z1","covariance","Sigma_cov")
+                  c("eta1~~eta1","variance","Psi_var"),
+                  c("eta2~~eta2","variance","Psi_var")
                   )
 
 df.truth <- as.data.frame(df.truth, stringsAsFactors = FALSE)
 names(df.truth) <- c("name","type","detail")
-df.truth <- df.truth[order(df.truth$type,df.truth$detail,df.truth$name),]
 
 test_that("coefType - lvm", {
 
@@ -209,7 +207,7 @@ test_that("coefType - lvm", {
     expect_equal(test,GS)
 
     test <- subset(coefType(e, as.lava = FALSE), !is.na(lava))
-    expect_equal(test$detail,df.truth$detail)
+    expect_equal(as.character(test$detail),df.truth$detail)
     expect_equal(test$name,df.truth$name)
 })
 ## ** constrains (0 mean 1 loading)
@@ -246,13 +244,12 @@ df.truth <- rbind(data.frame(name = "Y1", type = "intercept", detail = "nu", fix
                   data.frame(name = "Z2~~Z2", type = "variance", detail = "Sigma_var", fixed = FALSE, stringsAsFactors = FALSE),
                   data.frame(name = "Z3~~Z3", type = "variance", detail = "Sigma_var", fixed = FALSE, stringsAsFactors = FALSE),
                   ##
-                  data.frame(name = "eta1~~eta1", type = "variance", detail = "Psi_var", fixed = FALSE, stringsAsFactors = FALSE),
-                  data.frame(name = "eta2~~eta2", type = "variance", detail = "Psi_var", fixed = FALSE, stringsAsFactors = FALSE),
+                  data.frame(name = "Y1~~Y2", type = "covariance", detail = "Sigma_cov", fixed = FALSE, stringsAsFactors = FALSE),
                   ##
-                  data.frame(name = "Y1~~Y2", type = "covariance", detail = "Sigma_cov", fixed = FALSE, stringsAsFactors = FALSE)
+                  data.frame(name = "eta1~~eta1", type = "variance", detail = "Psi_var", fixed = FALSE, stringsAsFactors = FALSE),
+                  data.frame(name = "eta2~~eta2", type = "variance", detail = "Psi_var", fixed = FALSE, stringsAsFactors = FALSE)
                   )
 df.truth <- as.data.frame(df.truth)
-df.truth <- df.truth[order(df.truth$type,df.truth$detail,df.truth$name),]
 
 test_that("coefType - constrains 0/1", {
 
@@ -264,7 +261,7 @@ test_that("coefType - constrains 0/1", {
     expect_equal(test,GS)
     
     test <- coefType(e, as.lava = FALSE)
-    expect_equal(test$detail,df.truth$detail)
+    expect_equal(as.character(test$detail),df.truth$detail)
     expect_equal(test$name,df.truth$name)    
 })
 

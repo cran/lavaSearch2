@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr 23 2018 (12:58) 
 ## Version: 
-## Last-Updated: jul 16 2018 (16:37) 
+## Last-Updated: Jan 11 2022 (16:48) 
 ##           By: Brice Ozenne
-##     Update #: 71
+##     Update #: 72
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -103,7 +103,7 @@ summary.calibrateType1 <- function(object, robust = FALSE, type = "type1error",
         ## display
         if(print){
             seqN <- unique(dfS$n)
-            seqRep <- setNames(dfS$n.rep[duplicated(dfS$n) == FALSE],seqN)
+            seqRep <- stats::setNames(dfS$n.rep[duplicated(dfS$n) == FALSE],seqN)
 
             vecTrans <- c("Gaus" = "Gaussian approx.",
                           "Satt" = "Satterthwaite approx.",

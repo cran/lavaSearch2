@@ -3,9 +3,9 @@
 ## author: Brice Ozenne
 ## created: okt 12 2017 (14:38) 
 ## Version: 
-## last-updated: okt  4 2018 (16:16) 
+## last-updated: Jan 11 2022 (09:55) 
 ##           By: Brice Ozenne
-##     Update #: 513
+##     Update #: 882
 #----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -112,7 +112,7 @@ coefType.lvm <- function(object, as.lava = TRUE, data = NULL, ...){
 
     externalLink <- type <- NULL ## [:for CRAN check] subset
     
-    ## *** extract all coef
+    ## ** extract all coef
     index.all <- which(!is.na(object$M), arr.ind = FALSE)
     ls.name <- list()
     ls.X <- list()
@@ -122,11 +122,11 @@ coefType.lvm <- function(object, as.lava = TRUE, data = NULL, ...){
     ls.param <- list()
     ls.marginal <- list()
 
-    ## *** intercept
+    ## ** intercept
     n.intercept <- length(object$mean)
     if(n.intercept>0){
         ls.name$intercept <- names(object$mean)    
-    
+
         ls.Y$intercept <- ls.name$intercept
         ls.X$intercept <- rep(NA, n.intercept)    
         ls.type$intercept <- rep("intercept", n.intercept)
@@ -139,7 +139,7 @@ coefType.lvm <- function(object, as.lava = TRUE, data = NULL, ...){
         ls.marginal$intercept <-  ls.name$intercept %in% exogenous(object)
     }
     
-    ## *** regression
+    ## ** regression
     arrIndex.regression <- which(object$M==1, arr.ind = TRUE)
     index.regression <- which(object$M==1, arr.ind = FALSE)
     n.regression <- length(index.regression)
@@ -161,7 +161,7 @@ coefType.lvm <- function(object, as.lava = TRUE, data = NULL, ...){
         ls.marginal$regression <- rep(FALSE,n.regression)
     }
 
-    ## *** covariance
+    ## ** covariance
     M.cov <- object$cov
     M.cov[upper.tri(M.cov)] <- 0
     
@@ -205,7 +205,7 @@ coefType.lvm <- function(object, as.lava = TRUE, data = NULL, ...){
         ls.marginal$covariance <- rep(FALSE, n.covariance)
     }
     
-    ## *** external coefficients
+    ## ** external coefficients
     n.external <- length(object$expar)
     if(n.external>0){
         ls.name$external <- names(object$expar)
@@ -225,7 +225,7 @@ coefType.lvm <- function(object, as.lava = TRUE, data = NULL, ...){
         ls.marginal$external <-  rep(FALSE, n.external)
     }
 
-    ## *** merge
+    ## ** merge
     df.param <- data.frame(name = unlist(ls.name),
                            Y = unlist(ls.Y),
                            X = unlist(ls.X),
@@ -235,9 +235,9 @@ coefType.lvm <- function(object, as.lava = TRUE, data = NULL, ...){
                            param = unlist(ls.param),
                            marginal = unlist(ls.marginal),
                            stringsAsFactors = FALSE)
-    df.param[df.param$X %in% latent(object),"data"] <- NA
+    df.param[which(df.param$X %in% latent(object)),"data"] <- NA
     
-    ## *** categorical variables
+    ## ** categorical variables
     if(!is.null(object$attributes$ordinalparname)){
         resCar <- defineCategoricalLink(object, link = df.param$name, data = data)
         
@@ -279,8 +279,11 @@ coefType.lvm <- function(object, as.lava = TRUE, data = NULL, ...){
         df.param$originalLink <- df.param$name
     }
 
-    ## *** merge with lava
-    coef.lava <- coef(object)
+    ## ** original link
+    coef.lava <- coef(object, labels = 0)
+    coef2.lava <- coef(object, labels = 1)
+    
+    ## ** merge with lava
     name.coef <- names(coef.lava)
 
     index.keep <- which(df.param$type!="external" & df.param$factitious == FALSE & df.param$marginal == FALSE)
@@ -289,10 +292,13 @@ coefType.lvm <- function(object, as.lava = TRUE, data = NULL, ...){
                                                  name.coef = df.param[index.keep, "name"],
                                                  type.coef = df.param[index.keep, "type"])
     df.param$lava <- name.coef[match(df.param$originalLink,coef.lava)]
+    df.param[df.param$factitious,c("param","lava")] <- as.character(NA)
     df.param <- df.param[order(df.param$type,df.param$detail,df.param$name),,drop=FALSE]
+    df.param$originalLink[is.na(df.param$lava)] <- NA
+    ## df.param$param[is.na(df.param$lava)] <- NA
     rownames(df.param) <- NULL
 
-    ## *** export
+    ## ** export
     if(as.lava){
         ## add extra mean as links
         vec.extra <- unique(stats::na.omit(df.param$externalLink))
@@ -303,13 +309,15 @@ coefType.lvm <- function(object, as.lava = TRUE, data = NULL, ...){
             df.param <- rbind(df.param[,c("name", "type", "lava")],
                               df.extra)
         }
-        
         ## 
-        out <- subset(df.param, subset = !is.na(lava), select = c("type", "name"))
-        out <- stats::setNames(out$type, out$name)
-        out <- out[!duplicated(names(out))]
+        out <- stats::setNames(df.param$type, df.param$name)
+        ## out <- out[!duplicated(names(out))]
         return(out[coef.lava])    
     }else{
+        df.param$detail <- factor(df.param$detail,
+                                  levels = c("nu","alpha","K","Gamma","Lambda","B","Sigma_var","Sigma_cov","sigma2","sigma2k","cor","Psi_var","Psi_cov",NA))
+        df.param <- df.param[order(df.param$detail,df.param$param),]
+        df.param$detail <- as.character(df.param$detail)
         return(df.param)
     }
 }
@@ -319,16 +327,16 @@ coefType.lvm <- function(object, as.lava = TRUE, data = NULL, ...){
 #' @export
 coefType.lvmfit <- function(object, as.lava = TRUE, ...){ 
 
-    ## *** find type of the coefficients in the original model
-    df.param <- coefType(object$model0, as.lava = FALSE)
+    ## ** find type of the coefficients in the original model
+    df.param <- coefType(object$model0, as.lava = FALSE, ...)
     
-    ## *** export
+    ## ** export
     if(as.lava){
         out <- subset(df.param, subset = !is.na(lava), select = c("type", "name"))
         out <- stats::setNames(out$type, out$name)
         coef.lava <- names(stats::coef(object))
         return(out[coef.lava])    
-    }else{
+    }else{        
         return(df.param)
     }
 }
@@ -386,6 +394,5 @@ detailName <- function(object, name.coef, type.coef){
     return(type.coef)
 }
 
-
-#----------------------------------------------------------------------
+##----------------------------------------------------------------------
 ### coefType.R ends here

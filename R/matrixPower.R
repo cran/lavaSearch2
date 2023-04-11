@@ -3,9 +3,9 @@
 ## author: Brice Ozenne
 ## created: okt 23 2017 (16:52) 
 ## Version: 
-## last-updated: nov  2 2018 (15:00) 
+## last-updated: Jan 11 2022 (16:00) 
 ##           By: Brice Ozenne
-##     Update #: 59
+##     Update #: 60
 #----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -57,7 +57,6 @@
 ##' 
 
 ## * matrixPower (code)
-##' @rdname matrixPower
 ##' @export
 matrixPower <- function(object, power, symmetric, tol = 1e-12, print.warning = TRUE){
     object.eigen <- eigen(object, symmetric = symmetric)

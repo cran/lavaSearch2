@@ -98,7 +98,7 @@ Can also be \code{NULL}: in such a case the results are not exported.}
 
 \item{label.file}{[character] element to include in the file name.}
 
-\item{seed}{[integer, >0] seed value that will be set at the beginning of the simulation to enable eproducibility of the results.
+\item{seed}{[integer, >0] value that will be set before adjustment for multiple comparisons to ensure reproducible results.
 Can also be \code{NULL}: in such a case no seed is set.}
 
 \item{cpus}{[integer >0] the number of processors to use.

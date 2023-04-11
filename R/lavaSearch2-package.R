@@ -65,7 +65,7 @@
 #' @import Rcpp
 #' @importFrom reshape2 melt
 #' @importFrom sandwich estfun
-#' @importFrom stats anova as.formula coef cov df.residual dist formula hclust logLik median model.frame model.matrix na.omit optim p.adjust pf pnorm predict qqnorm quantile pt residuals rnorm sd setNames sigma update vcov
+#' @importFrom stats anova coef confint cov effects formula logLik model.frame model.matrix model.tables predict qqnorm quantile residuals update vcov
 #' @importFrom utils methods packageVersion setTxtProgressBar tail txtProgressBar
 #' 
 NULL

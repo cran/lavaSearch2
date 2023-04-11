@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: jan 31 2018 (12:05) 
 ## Version: 
-## Last-Updated: mar  4 2019 (11:14) 
+## Last-Updated: jan 18 2022 (10:38) 
 ##           By: Brice Ozenne
-##     Update #: 264
+##     Update #: 491
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -21,23 +21,21 @@
 #' The contrast matrix will contains the hypotheses in rows and the model coefficients in columns.
 #' @name createContrast
 #' 
-#' @param object a \code{ls.lvmfit} object.
-#' @param par [vector of characters] expression defining the linear hypotheses to be tested. See the examples section. 
-#' @param add.variance [logical] should the variance coefficients be considered as model coefficients?
-#' Required for lm, gls, and lme models.
-#' @param var.test [character] a regular expression that is used to identify the coefficients to be tested using \code{grep}. Each coefficient will be tested in a separate hypothesis. When this argument is used, the argument \code{par} is disregarded.
-#' @param diff.first [logical] should the contrasts between the first and any of the other coefficients define the null hypotheses.
-#' @param name.param [internal] the names of all the model coefficients.
-#' @param add.rowname [internal] should a name be defined for each hypothesis.
-#' @param rowname.rhs should the right hand side of the null hypothesis be added to the name.
-#' @param ... [internal] Only used by the generic method.
+#' @param object a \code{lvmfit} object or a list of  a \code{lvmfit} objects.
+#' @param linfct [vector of characters] expression defining the linear hypotheses to be tested.
+#' Can also be a regular expression (of length 1) that is used to identify the coefficients to be tested using \code{grep}.
+#' See the examples section.
+#' @param ... Argument to be passed to \code{.createContrast}:
+#' \itemize{
+#' \item diff.first [logical] should the contrasts between the first and any of the other coefficients define the null hypotheses.
+#' \item add.rowname [logical] add rownames to the contrast matrix and names to the right-hand side.
+#' \item rowname.rhs [logical] when naming the hypotheses, add the right-hand side (i.e. "X1-X2=0" instead of "X1-X2").
+#' \item sep [character vector of length2] character surrounding the left part of the row names.
+#' }
 #'
 #' @details
-#' One can initialize an empty contrast matrix setting the argument\code{par} to \code{character(0)}. \cr \cr
+#' One can initialize an empty contrast matrix setting the argument\code{linfct} to \code{character(0)}. \cr \cr
 #'
-#' When using \code{multcomp::glht} one should set the argument \code{add.variance} to \code{FALSE}. \cr
-#' When using \code{lavaSearch2::glht2} one should set the argument \code{add.variance} to \code{TRUE}.
-#' 
 #' @return A list containing
 #' \itemize{
 #' \item{contrast} [matrix] a contrast matrix corresponding to the left hand side of the linear hypotheses.
@@ -66,22 +64,23 @@
 #'                  data = df.data)
 #'
 #' ## Contrast matrix for a given model
-#' createContrast(lmX, par = "X~Age")
-#' createContrast(lmX, par = c("X~Age=0","X~Age+5*X~TreatmentSSRI=0"))
-#' createContrast(lmX, par = character(0))
+#' createContrast(lmX, linfct = "X~Age")
+#' createContrast(lmX, linfct = c("X~Age=0","X~Age+5*X~TreatmentSSRI=0"))
+#' createContrast(lmX, linfct = c("X~Age=0","X~Age+5*X~TreatmentSSRI=0"), sep = NULL)
+#' createContrast(lmX, linfct = character(0))
 #'
 #' ## Contrast matrix for the join model
 #' ls.lvm <- list(X = lmX, Y = lmY, Z = lvmZ)
-#' createContrast(ls.lvm, var.test = "Treatment", add.variance = FALSE)
-#' createContrast(ls.lvm, par = character(0), add.variance = FALSE)
+#' createContrast(ls.lvm, linfct = "TreatmentSSRI=0")
+#' createContrast(ls.lvm, linfct = "TreatmentSSRI=0", rowname.rhs = FALSE)
+#' createContrast(ls.lvm, linfct = character(0))
 #'
 #' ## Contrast for multigroup models
 #' m <- lava::lvm(Y~Age+Treatment)
 #' e <- lava::estimate(list(m,m), data = split(df.data, df.data$Gender))
 #' print(coef(e))
-#' createContrast(e, par = "Y~TreatmentSSRI@1 - Y~TreatmentSSRI@2 = 0")
-#' createContrast(e, par = "Y~TreatmentSSRI@2 - Y~TreatmentSSRI@1 = 0")
-#' @concept small sample inference
+#' createContrast(e, linfct = "Y~TreatmentSSRI@1 - Y~TreatmentSSRI@2 = 0")
+#' createContrast(e, linfct = "Y~TreatmentSSRI@2 - Y~TreatmentSSRI@1 = 0")
 #' 
 #' @export
 `createContrast` <-
@@ -90,154 +89,62 @@
 ## * createContrast.character
 #' @rdname createContrast
 #' @export
-createContrast.character <- function(object, name.param, diff.first = FALSE,
-                                     add.rowname = TRUE, rowname.rhs = TRUE,
-                                     ...){
+createContrast.character <- function(object, ...){
 
-    n.param <- length(name.param)
-    dots <- list(...)
-    dots[["add.variance"]] <- NULL
-    if(length(dots)>0){
-        txt.args <- paste(names(dots), collapse = "\" \"")
-        txt.s <- if(length(dots)>1){"s"}else{""}
-        warning("Extra argument",txt.s," \"",txt.args,"\" are ignored. \n")
-    }
+    object.lhs <- strsplit(object,split = "=")[[1]] ## rm rhs
+    object.term.lhs <- base::trimws(strsplit(object.lhs[[1]],split = "\\+|\\-")[[1]], which = "both") ## split with +/-
+    object.coefname <- sapply(object.term.lhs, function(iE){tail(strsplit(iE,split="*",fixed=TRUE)[[1]],1)}) ## remove *
 
-    if(diff.first){
-        object <- paste0(object[-1]," - ",object[1])
-    }
-    
-    n.hypo <- length(object)
-    if(any(nchar(object)==0)){
-        stop("Argument contains empty character string(s) instead of an expression involving the model mean coefficients \n")
-    }
-    null <- rep(NA, n.hypo)
-    contrast <- matrix(0, nrow = n.hypo, ncol = n.param,
-                       dimnames = list(NULL,name.param))
-
-    if(n.hypo>0){
-        for(iH in 1:n.hypo){ # iH <- 1
-            iTempo.eq <- strsplit(object[iH], split = "=", fixed = TRUE)[[1]]
-            if(length(iTempo.eq)==1){ ## set null to 0 when second side of the equation is missing
-                iTempo.eq <- c(iTempo.eq,"0")
-            }
-
-            null[iH] <- as.numeric(trim(iTempo.eq[2]))
-            iRh.plus <- strsplit(iTempo.eq[[1]], split = "+", fixed = TRUE)[[1]]
-            iRh <- trim(unlist(sapply(iRh.plus, strsplit, split = "-", fixed = TRUE)))
-            iRh <- iRh[iRh!="",drop=FALSE]
-                            
-            ls.iRh <- lapply(strsplit(iRh, split = "*", fixed = TRUE), trim)
-                    
-            iN.tempo <- length(ls.iRh)
-                    
-            for(iCoef in 1:iN.tempo){ # iCoef <- 1
-
-                if(length(ls.iRh[[iCoef]])==1){
-                    iFactor <- 1
-                    iName <- ls.iRh[[iCoef]][1]                
-                }else{
-                    iFactor <- as.numeric(ls.iRh[[iCoef]][1])
-                    iName <- ls.iRh[[iCoef]][2]
-                }
-            
-                if(iName %in% name.param == FALSE){
-                    txt.message <- paste0("unknown coefficient ",iName," in hypothesis ",iH,"\n")
-                    possibleMatch <- pmatch(iName, table = name.param)
-                    if(all(is.na(possibleMatch))){
-                        possibleMatch <- grep(iName, name.param, fixed = TRUE, value = TRUE)
-                    }
-                    if(length(possibleMatch)==0){
-                        possibleMatch <- agrep(iName, name.param, ignore.case = TRUE,value = TRUE)
-                    }
-                    if(length(possibleMatch)>0){
-                        txt.message <- c(txt.message,
-                                         paste0("candidates: \"",paste(possibleMatch, collapse = "\" \""),"\"\n"))
-                    }
-                    stop(txt.message)                    
-                }
-
-                ## identify if it is a minus sign
-                iBeforeCoef <- strsplit(iTempo.eq[[1]], split = ls.iRh[iCoef])[[1]][1]
-                if(iCoef > 1){
-                    iBeforeCoef <- strsplit(iBeforeCoef, split = ls.iRh[iCoef-1])[[1]][2]
-                }
-                test.sign <- length(grep("-",iBeforeCoef))>0
-                contrast[iH,iName] <- c(1,-1)[test.sign+1] * iFactor
-            }
-        }
-    
-        if(add.rowname){
-            name.hypo <- .contrast2name(contrast, null = if(rowname.rhs){null}else{NULL})
-            rownames(contrast) <- name.hypo
-            null <- setNames(null, name.hypo)
-        }
-    }
-    
-    return(list(contrast = contrast,
-                null = null,
-                Q = n.hypo))
+    return(.createContrast(object, object.coefname, ...))
+        
 }
-
-## * createContrast.lm
-#' @rdname createContrast
-#' @export
-createContrast.lm <- function(object, par, add.variance, ...){
-
-    if(!identical(class(par),"character")){
-        stop("Argument \'par\' must be a character \n")
-    }    
-    name.coef <- names(coef(object))
-    if(is.null(add.variance)){
-        stop("Argument \'add.variance\' must be specified for lm objects \n")
-    }
-    if(add.variance){
-        if(any("sigma2" %in% name.coef)){
-            stop("createContrast does not work when one of the coefficients is named \"sigma2\" \n")
-        }
-        name.coef <- c(name.coef,"sigma2")
-    }
-
-    out <- createContrast(par, name.param = name.coef, ...)
-    return(out)
-    
-}
-
-## * createContrast.gls
-#' @rdname createContrast
-#' @export
-createContrast.gls <- function(object, par, add.variance, ...){
-
-    if(!identical(class(par),"character")){
-        stop("Argument \'par\' must be a character \n")
-    }
-    if(add.variance){
-        name.coef <- names(.coef2(object))
-    }else{
-        name.coef <- names(coef(object))
-    }
-    out <- createContrast(par, name.param = name.coef, ...)
-    return(out)
-    
-}
-
-## * createContrast.lme
-#' @rdname createContrast
-#' @export
-createContrast.lme <- createContrast.gls
 
 ## * createContrast.lvmfit
 #' @rdname createContrast
 #' @export
-createContrast.lvmfit <- function(object, par = NULL, var.test = NULL, ...){
+createContrast.lvmfit <- function(object, linfct, ...){
+    name.param <- names(coef(object))
+    if(!identical(class(linfct),"character")){
+        stop("Argument \'linfct\' must be of type character (or vector of character) \n")
+    }
+    ## if(length(linfct)==1 && all(linfct %in% name.param == FALSE) & all(sapply(linfct, function(iL){any(grepl(iL, name.param, fixed = TRUE))}))){
+    ##     linfct <- grep(linfct, name.param,  value = TRUE)
+    ## }
+    out <- .createContrast(linfct = linfct, name.param = name.param, ...)
+    return(out)
+    
+}
 
-    if(is.null(par) && !is.null(var.test)){
-       par <- grep(var.test, names(coef(object)),  value = TRUE)
+## * createContrast.lvmfit
+#' @rdname createContrast
+#' @export
+createContrast.lvmfit2 <- function(object, linfct, ...){
+    if(!identical(class(linfct),"character")){
+        stop("Argument \'linfct\' must be of type character (or vector of character) \n")
     }
-    if(!identical(class(par),"character")){
-        stop("Argument \'par\' must be a character \n")
+    ## if(length(linfct)==1){
+        ## name.param <- names(coef(object, as.lava = TRUE))
+        ## name.param2 <- names(coef(object, as.lava = FALSE))
+
+    ##     if(all(name.param != linfct) & all(sapply(linfct, function(iL){any(grepl(iL, name.param, fixed = TRUE))}))){
+    ##         linfct <- grep(linfct, name.param,  value = TRUE)
+    ##     }
+    ## }else{
+    ##     name.param <- names(coef(object))
+    ## }
+    name.param <- names(coef(object, as.lava = TRUE))
+    name.param2 <- names(coef(object, as.lava = FALSE))
+    if(any(name.param!=name.param2)){
+        if(any(sapply(setdiff(name.param2,name.param), function(iCoef){any(grepl(iCoef, linfct, fixed = TRUE))}))){
+            out <- .createContrast(linfct = linfct, name.param = name.param2, ...)
+        }else{
+            out <- .createContrast(linfct = linfct, name.param = name.param, ...)
+        }
+        
+    }else{
+        out <- .createContrast(linfct = linfct, name.param = name.param, ...)
     }
-    out <- createContrast(par, name.param = names(coef(object)), ...)
+    
     return(out)
     
 }
@@ -245,19 +152,23 @@ createContrast.lvmfit <- function(object, par = NULL, var.test = NULL, ...){
 ## * createContrast.list
 #' @rdname createContrast
 #' @export
-createContrast.list <- function(object, par = NULL, add.variance = NULL, var.test = NULL, 
-                                ...){
+createContrast.list <- function(object, linfct = NULL, ...){
+
+    if(!identical(class(linfct),"character")){
+        stop("Argument \'linfct\' must be of type character (or vector of character) \n")
+    }
 
     ## ** find the names of the coefficients
     name.model <- names(object)
+    n.model <- length(name.model)
     if(is.null(name.model)){
-        stop("Each element of the argument \'object\' must be named \n")
+        stop("Incorrect argument  \'object\' \n",
+             "Each element of the list must be named \n")
     }
-    
+
     ls.coefname <- lapply(name.model, function(iModel){ ## list by model
         iResC <- createContrast(object[[iModel]],
-                                par = character(0),
-                                add.variance = add.variance)
+                                linfct = character(0))
         return(colnames(iResC$contrast))
     })
     names(ls.coefname) <- name.model
@@ -269,24 +180,59 @@ createContrast.list <- function(object, par = NULL, add.variance = NULL, var.tes
     
     object.coefname <- unname(unlist(ls.object.coefname)) ## vector
     n.coef <- length(object.coefname)
-    
-    ## ** normalize arguments
-    if(!is.null(var.test)){
-        if(!is.null(par)){
-            stop("Argument \'var.test\' cannot be specified when argument \'par\' is specified \n")
-        }else{
-            if(length(var.test)!=1){
-                stop("Argument \'var.test\' must have length 1 \n")
-            }
-            object.coefname.red <- unlist(lapply(object.coefname, function(iName){strsplit(iName, split = ": ", fixed = TRUE)[[1]][2]}))
-            par <- object.coefname[grep(var.test, object.coefname.red, value = FALSE)]
-        }
-    }
-
+        
     ## ** create full contrast matrix
-    out <- createContrast(par, name.param = object.coefname)
-    if(any(out$null!=0)){
-        warning("glht ignores the \'rhs\' argument when dealing with a multiple models \n")
+    if(length(linfct)==1){
+
+        ## isolate left hand side of the linfct and remove multiplicative factor (e.g. 2*Age=0 -> Age)
+        linfct.contrast <- createContrast(linfct, ...)
+        linfct.coefname <- colnames(linfct.contrast$contrast)
+        linfct.rhs <- as.double(linfct.contrast$null)
+        linfct.factor <- as.double(linfct.contrast$contrast)
+        
+        ## name associated with each hypothesis
+        name.linfct <- names(linfct)
+        if(is.null(name.linfct)){
+            name.linfct <- rownames(linfct.contrast$contrast)
+        }
+        ## generate contrast matrix with only 0
+        out <- list(contrast = matrix(0, nrow = 0, ncol = n.coef,
+                                      dimnames = list(NULL, object.coefname)),
+                    null = numeric(0),
+                    Q = 0)
+        
+        ## regressor corresponding to each coefficient
+        tableCoef <- data.frame(name = unlist(lapply(object, function(iO){rownames(coef(iO, type = 9, labels = 2))})),
+                                model = unlist(lapply(1:n.model, function(iO){rep(name.model[iO], NROW(coef(object[[iO]], type = 9, labels = 2)))})),
+                                type = unlist(lapply(object, function(iO){attr(coef(iO, type = 9, labels = 2),"type")})),
+                                to = unlist(lapply(object, function(iO){attr(coef(iO, type = 9, labels = 2),"var")})),
+                                from = unlist(lapply(object, function(iO){attr(coef(iO, type = 9, labels = 2),"from")})))
+        tableCoef <- tableCoef[tableCoef$type=="regression",]
+        tableCoef$group <- interaction(tableCoef$model,tableCoef$to,drop=TRUE)
+        tableCoef$group <- as.numeric(factor(tableCoef$group,unique(tableCoef$group)))
+
+        ## fill contrast matrix
+        for(iG in 1:max(tableCoef$group)){ ## iG <- 3
+            if(all(linfct.coefname %in% tableCoef[tableCoef$group==iG,"from"])){
+
+                iTemplate <- .createContrast(linfct, tableCoef[tableCoef$group==iG,"from"], ...)
+
+                iRow <- matrix(0, nrow = 1, ncol = n.coef, dimnames = list(NULL,object.coefname))
+                if(!is.null(rownames(iTemplate$contrast))){
+                        rownames(iRow) <- paste0(unique(tableCoef[tableCoef$group==iG,"model"]),": ",name.linfct)
+                }
+                iRow[,paste0(tableCoef[tableCoef$group==iG,"model"],": ",tableCoef[tableCoef$group==iG,"name"])] <- unname(iTemplate$contrast)
+
+                out$contrast <- rbind(out$contrast,iRow)
+                out$null <- c(out$null, unname(iTemplate$null))
+                out$Q <- out$Q+1
+
+                tableCoef[tableCoef$group==iG,"contrast"] <- as.double(iTemplate$contrast)
+            }
+        }
+
+    }else{
+        out <- .createContrast(linfct, name.param = object.coefname, ...)
     }
 
     ## ** create contrast matrix relative to each model
@@ -309,18 +255,21 @@ createContrast.list <- function(object, par = NULL, add.variance = NULL, var.tes
     class(out$mlf) <- "mlf"
 
     ## remove right hand side from the names (like in multicomp)
-    if(length(par)>0){
-        rownames(out$contrast) <- .contrast2name(out$contrast, null = NULL)
+    if(!is.null(list(...)$rowname.rhs) && list(...)$rowname.rhs==FALSE){
         out$mlf <- lapply(out$mlf, function(x){ ## x <- name.model[1]
             if(NROW(x)>0){
-                rownames(x) <- .contrast2name(x, null = NULL)
+                if("sep" %in% names(list(...))){
+                    rownames(x) <- .contrast2name(x, null = NULL, sep = list(...)$sep)
+                }else{
+                    rownames(x) <- .contrast2name(x, null = NULL)
+                }
             }
             return(x)
         })
             
         class(out$mlf) <- "mlf"
-        names(out$null) <- rownames(out$contrast)
     }
+    names(out$null) <- rownames(out$contrast)
    
     ## ** export
     return(out)    
@@ -331,6 +280,102 @@ createContrast.list <- function(object, par = NULL, add.variance = NULL, var.tes
 #' @export
 createContrast.mmm <- createContrast.list
 
+## * .createContrast
+.createContrast <- function(linfct, name.param, diff.first = FALSE, add.rowname = TRUE, rowname.rhs = TRUE, sep = c("[","]"), ...){
+
+    n.param <- length(name.param)
+    dots <- list(...)
+    if(length(dots)>0){
+        txt.args <- paste(names(dots), collapse = "\" \"")
+        txt.s <- if(length(dots)>1){"s"}else{""}
+        txt.verb <- if(length(dots)>1){"are"}else{"is"}
+        warning("Extra argument",txt.s," \"",txt.args,"\" ",txt.verb," ignored. \n")
+    }
+
+    if(diff.first){
+        linfct <- paste0(linfct[-1]," - ",linfct[1])
+    }
+
+    n.hypo <- length(linfct)
+    name.hypo <- names(linfct)
+    if(any(nchar(linfct)==0)){
+        stop("Argument contains empty character string(s) instead of an expression involving the model mean coefficients \n")
+    }
+    null <- rep(NA, n.hypo)
+    contrast <- matrix(0, nrow = n.hypo, ncol = n.param,
+                       dimnames = list(NULL,name.param))
+
+    if(n.hypo>0){
+        for(iH in 1:n.hypo){ # iH <- 1
+            iTempo.eq <- strsplit(linfct[iH], split = "=", fixed = TRUE)[[1]]
+            if(length(iTempo.eq)==1){ ## set null to 0 when second side of the equation is missing
+                iTempo.eq <- c(iTempo.eq,"0")
+            }
+
+            null[iH] <- as.numeric(trim(iTempo.eq[2]))
+            iRh.plus <- strsplit(iTempo.eq[[1]], split = "+", fixed = TRUE)[[1]]
+            iRh <- trim(unlist(sapply(iRh.plus, strsplit, split = "-", fixed = TRUE)))
+            iRh <- iRh[iRh!="",drop=FALSE]
+                            
+            ls.iRh <- lapply(strsplit(iRh, split = "*", fixed = TRUE), trim)
+                    
+            iN.tempo <- length(ls.iRh)
+
+            for(iCoef in 1:iN.tempo){ # iCoef <- 1
+
+                if(length(ls.iRh[[iCoef]])==1){
+                    iFactor <- 1
+                    iName <- ls.iRh[[iCoef]][1]                
+                }else{
+                    iFactor <- as.numeric(ls.iRh[[iCoef]][1])
+                    iName <- ls.iRh[[iCoef]][2]
+                }
+            
+                if(iName %in% name.param == FALSE){
+                    txt.message <- paste0("unknown coefficient ",iName," in hypothesis ",iH,"\n")
+                    possibleMatch <- grep(iName, name.param, fixed = TRUE, value = TRUE)
+                    if(all(is.na(possibleMatch)) || length(possibleMatch)==0){
+                        possibleMatch <- pmatch(iName, table = name.param)
+                    }else if(length(linfct) == 1 && length(possibleMatch)>1){ ##
+                        message("Guessing the contrast based on the string \"",linfct,"\" (",length(possibleMatch)," coefficients found). \n")
+                        return(.createContrast(linfct = possibleMatch, name.param = name.param, diff.first = diff.first, add.rowname = add.rowname, rowname.rhs = rowname.rhs, sep = sep, ...))
+                    }
+                    
+                    if(all(is.na(possibleMatch)) || length(possibleMatch)==0){
+                        possibleMatch <- agrep(iName, name.param, ignore.case = TRUE,value = TRUE)
+                    }
+                    if(all(!is.na(possibleMatch)) && length(possibleMatch)>0){
+                        txt.message <- c(txt.message,
+                                         paste0("candidates: \"",paste(possibleMatch, collapse = "\" \""),"\"\n"))
+                    }
+                    stop(txt.message)                    
+                    
+                    
+                    
+                }
+
+                ## identify if it is a minus sign
+                iBeforeCoef <- strsplit(iTempo.eq[[1]], split = ls.iRh[iCoef])[[1]][1]
+                if(iCoef > 1){
+                    iBeforeCoef <- strsplit(iBeforeCoef, split = ls.iRh[iCoef-1])[[1]][2]
+                }
+                test.sign <- length(grep("-",iBeforeCoef))>0
+                contrast[iH,iName] <- c(1,-1)[test.sign+1] * iFactor
+            }
+        }
+        if(add.rowname){
+            if(is.null(name.hypo)){
+                name.hypo <- .contrast2name(contrast, null = if(rowname.rhs){null}else{NULL}, sep = sep)
+            }
+            rownames(contrast) <- name.hypo
+            null <- stats::setNames(null, name.hypo)
+        }
+    }
+    return(list(contrast = contrast,
+                null = null,
+                Q = n.hypo))
+}
+
 ## * .contrast2name
 #' @title Create Rownames for a Contrast Matrix
 #' @description Create rownames for a contrast matrix using the coefficients and the names of the coefficients. The rownames will be [value * name] == null, e.g. [beta + 4*alpha] = 0.
@@ -338,13 +383,14 @@ createContrast.mmm <- createContrast.list
 #'
 #' @param contrast [matrix] a contrast matrix defining the left hand side of the linear hypotheses to be tested.
 #' @param null [vector, optional] the right hand side of the linear hypotheses to be tested.
+#' @param sep [character of length 2, optional] character used in rownames to wrap the left hand side of the equation.
 #'
 #' @details When argument \code{NULL} is null then the rownames will not be put into brackets and the right hand side will not be added to the name.
 #'
 #' @return a character vector.
 #' 
 #' @keywords internal
-.contrast2name <- function(contrast, null = NULL){
+.contrast2name <- function(contrast, null = NULL, sep = c("[","]")){
     contrast.names <- colnames(contrast)
     
     df.index <- as.data.frame(which(contrast != 0, arr.ind = TRUE))
@@ -382,8 +428,10 @@ createContrast.mmm <- createContrast.list
 
     ## add right hand side
     if(!is.null(null)){
-        out <- paste0("[",out,"] = ",null)
-        
+        ## out <- paste0("[",out,"] = ",null)
+        out <- paste0(sep[1],out,sep[2]," = ",null)
+    }else if(!is.null(sep)){
+        out <- paste0(sep[1],out,sep[2])
     }
 
     return(as.character(out))
