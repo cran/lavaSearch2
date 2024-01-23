@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: nov  8 2017 (10:35) 
 ## Version: 
-## Last-Updated: jan 17 2022 (14:44) 
+## Last-Updated: jan 23 2024 (13:46) 
 ##           By: Brice Ozenne
-##     Update #: 1697
+##     Update #: 1699
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -22,9 +22,8 @@
 #' 
 #' @param object a \code{lvm} object.
 #' @param X [matrix] design matrix containing the covariates for each endogeneous and latent variable.
-#' @param endogeneous [character vector] the name of the endogeneous variables.
+#' @param endogenous [character vector] the name of the endogeneous variables.
 #' @param latent [character vector] the name of the latent variables.
-#' @param ... [internal] only used by the generic method.
 #' 
 #' @details
 #' When the user specifies names for the coefficients (e.g. Y1[mu:sigma]) or uses constraints (Y1~beta*X1), \code{as.lava=FALSE} will use the names specified by the user (e.g. mu, sigma, beta)

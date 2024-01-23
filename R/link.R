@@ -267,6 +267,7 @@ addLink.lvm <- function(object,
 }
 
 ## ** method addLink.lvm.reduced
+#' @export
 #' @rdname addLink
 addLink.lvm.reduced <- function(object, ...){
   return(addLink.lvm(object, all.vars = lava::vars(object, lp = FALSE, xlp = TRUE) , ...))

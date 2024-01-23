@@ -100,8 +100,6 @@ moments2(
 \item{dVcov}{[logical] should the derivative of the variance-covariance matrix be output?}
 
 \item{dVcov.robust}{[logical]  should the derivative of the robust variance-covariance matrix be output?}
-
-\item{...}{[internal] only used by the generic method or by the <- methods.}
 }
 \description{
 Compute conditional mean, conditional variance, their first and second derivative regarding model parameters, as well as various derivatives of the log-likelihood.

@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: jan 30 2018 (14:33) 
 ## Version: 
-## Last-Updated: Apr 11 2023 (22:31) 
+## Last-Updated: jan 23 2024 (10:31) 
 ##           By: Brice Ozenne
-##     Update #: 903
+##     Update #: 904
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -29,11 +29,11 @@
 #' @param as.lava [logical] should the output be similar to the one return by \code{lava::compare}?
 #' @param F.test [logical] should a joint test be performed?
 #' @param conf.level [numeric 0-1] level of the confidence intervals.
-#' @param ssc [character] method used to correct the small sample bias of the variance coefficients: no correction (code{"none"}/\code{FALSE}/\code{NA}),
+#' @param ssc [character] method used to correct the small sample bias of the variance coefficients: no correction (\code{"none"}/\code{FALSE}/\code{NA}),
 #' correct the first order bias in the residual variance (\code{"residual"}), or correct the first order bias in the estimated coefficients \code{"cox"}).
 #' Only relevant when using a \code{lvmfit} object. 
 #' @param df [character] method used to estimate the degree of freedoms of the Wald statistic: Satterthwaite \code{"satterthwaite"}. 
-#' Otherwise (\code{"none"}/code{FALSE}/code{NA}) the degree of freedoms are set to \code{Inf}.
+#' Otherwise (\code{"none"}/\code{FALSE}/\code{NA}) the degree of freedoms are set to \code{Inf}.
 #' Only relevant when using a \code{lvmfit} object. 
 #' @param ... additional argument passed to \code{estimate2} when using a \code{lvmfit} object. 
 #'

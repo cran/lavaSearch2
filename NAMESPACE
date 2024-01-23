@@ -2,6 +2,7 @@
 
 S3method("sCorrect<-",default)
 S3method(addLink,lvm)
+S3method(addLink,lvm.reduced)
 S3method(autoplot,calibrateType1)
 S3method(autoplot,intDensTri)
 S3method(autoplot,modelsearch2)

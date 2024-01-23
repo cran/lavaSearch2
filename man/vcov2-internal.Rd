@@ -8,9 +8,9 @@
 .info2vcov(information, attr.info = FALSE)
 }
 \arguments{
-\item{attr.info}{[logical] should the information matrix be returned as an attribute?}
+\item{information}{[matrix] information matrix to be inverted.}
 
-\item{...}{arguments passed to .information2}
+\item{attr.info}{[logical] should the information matrix be returned as an attribute?}
 }
 \description{
 Compute the inverse of the information matrix.

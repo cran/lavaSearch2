@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: nov 18 2019 (11:17) 
 ## Version: 
-## Last-Updated: Jan 11 2022 (16:00) 
+## Last-Updated: jan 23 2024 (10:26) 
 ##           By: Brice Ozenne
-##     Update #: 140
+##     Update #: 141
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -28,7 +28,7 @@
 #' \code{"normalized"} for normalized residuals.
 #' @param format [character] Use \code{"wide"} to return the residuals in the wide format (one row relative to each sample).
 #' Otherwise use \code{"long"} to return the residuals in the long format.
-#' @param ssc [character] method used to correct the small sample bias of the variance coefficients: no correction (code{"none"}/\code{FALSE}/\code{NA}),
+#' @param ssc [character] method used to correct the small sample bias of the variance coefficients: no correction (\code{"none"}/\code{FALSE}/\code{NA}),
 #' correct the first order bias in the residual variance (\code{"residual"}), or correct the first order bias in the estimated coefficients \code{"cox"}).
 #' Only relevant when using a \code{lvmfit} object. 
 #' @param ... additional argument passed to \code{estimate2} when using a \code{lvmfit} object. 

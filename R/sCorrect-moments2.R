@@ -3,9 +3,9 @@
 ## author: Brice Ozenne
 ## created: okt 27 2017 (16:59) 
 ## Version: 
-## last-updated: Jan 17 2022 (19:13) 
+## last-updated: jan 23 2024 (10:28) 
 ##           By: Brice Ozenne
-##     Update #: 1953
+##     Update #: 1955
 #----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -34,7 +34,6 @@
 #' @param dVcov [logical] should the derivative of the variance-covariance matrix be output?
 #' @param dVcov.robust [logical]  should the derivative of the robust variance-covariance matrix be output?
 #' @param Psi [matrix]  Average first order bias in the residual variance. Only necessary for computing adjusted residuals.
-#' @param ... [internal] only used by the generic method or by the <- methods.
 #' 
 #' @details For lvmfit objects, there are two levels of pre-computation:
 #' \itemize{
@@ -535,8 +534,8 @@ moments2.lvmfit <- moments2.lvm
 #' @description Compute the inverse of the information matrix.
 #' @name vcov2-internal
 #'
+#' @param information [matrix] information matrix to be inverted.
 #' @param attr.info [logical] should the information matrix be returned as an attribute?
-#' @param ... arguments passed to .information2
 #' 
 #' @keywords internal
 .info2vcov <- function(information, attr.info = FALSE){

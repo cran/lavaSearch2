@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: jan  3 2018 (14:29) 
 ## Version: 
-## Last-Updated: Jan 22 2022 (14:00) 
+## Last-Updated: jan 23 2024 (10:30) 
 ##           By: Brice Ozenne
-##     Update #: 2168
+##     Update #: 2169
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -23,11 +23,11 @@
 #' @param object a \code{lvm} object.
 #' @param param [numeric vector, optional] the values of the parameters at which to perform the correction.
 #' @param data [data.frame, optional] the dataset relative to which the correction should be performed.
-#' @param ssc [character] method used to correct the small sample bias of the variance coefficients: no correction (code{"none"}/\code{FALSE}/\code{NA}),
+#' @param ssc [character] method used to correct the small sample bias of the variance coefficients: no correction (\code{"none"}/\code{FALSE}/\code{NA}),
 #' correct the first order bias in the residual variance (\code{"residual"}), or correct the first order bias in the estimated coefficients \code{"cox"}).
 #' Only relevant when using a \code{lvmfit} object. 
 #' @param df [character] method used to estimate the degree of freedoms of the Wald statistic: Satterthwaite \code{"satterthwaite"}. 
-#' Otherwise (\code{"none"}/code{FALSE}/code{NA}) the degree of freedoms are set to \code{Inf}.
+#' Otherwise (\code{"none"}/\code{FALSE}/\code{NA}) the degree of freedoms are set to \code{Inf}.
 #' Only relevant when using a \code{lvmfit} object. 
 #' @param tol.max [numeric >0] the largest acceptable absolute difference between two succesive estimates of the bias correction.
 #' @param iter.max [integer >0] the maximum number of iterations used to estimate the bias correction.

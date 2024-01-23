@@ -1,8 +1,8 @@
 Package: lavaSearch2
 Type: Package
 Title: Tools for Model Specification in the Latent Variable Framework
-Version: 2.0.1
-Date: 2023-04-11
+Version: 2.0.2
+Date: 2024-01-23
 Authors@R: c(
     person("Brice", "Ozenne", role = c("aut", "cre"), email = "brice.mh.ozenne@gmail.com", comment = c(ORCID = "0000-0001-9694-2956"))
 	)
@@ -24,9 +24,9 @@ Suggests: clubSandwich, data.table, foreach, emmeans, lme4, lmerTest,
 LinkingTo: Rcpp, RcppArmadillo
 VignetteBuilder: R.rsp
 NeedsCompilation: yes
-RoxygenNote: 7.2.1
-Packaged: 2023-04-11 20:52:26 UTC; bozenne
+RoxygenNote: 7.2.3
+Packaged: 2024-01-23 14:09:36 UTC; hpl802
 Author: Brice Ozenne [aut, cre] (<https://orcid.org/0000-0001-9694-2956>)
 Maintainer: Brice Ozenne <brice.mh.ozenne@gmail.com>
 Repository: CRAN
-Date/Publication: 2023-04-11 21:40:02 UTC
+Date/Publication: 2024-01-23 15:10:02 UTC

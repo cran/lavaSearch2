@@ -4,9 +4,9 @@
 ## Author: Brice Ozenne
 ## Created: nov 10 2017 (10:57) 
 ## Version: 
-## Last-Updated: jan 18 2022 (09:48) 
+## Last-Updated: jan 23 2024 (10:26) 
 ##           By: Brice Ozenne
-##     Update #: 552
+##     Update #: 554
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -26,11 +26,11 @@
 #' @param digit [integer > 0] the number of decimal places to use when displaying the summary.
 #' @param robust [logical] should robust standard errors be used instead of the model based standard errors? Should be \code{TRUE} if argument cluster is not \code{NULL}.
 #' @param cluster [integer vector] the grouping variable relative to which the observations are iid.
-#' @param ssc [character] method used to correct the small sample bias of the variance coefficients: no correction (code{"none"}/\code{FALSE}/\code{NA}),
+#' @param ssc [character] method used to correct the small sample bias of the variance coefficients: no correction (\code{"none"}/\code{FALSE}/\code{NA}),
 #' correct the first order bias in the residual variance (\code{"residual"}), or correct the first order bias in the estimated coefficients \code{"cox"}).
 #' Only relevant when using a \code{lvmfit} object. 
 #' @param df [character] method used to estimate the degree of freedoms of the Wald statistic: Satterthwaite \code{"satterthwaite"}. 
-#' Otherwise (\code{"none"}/code{FALSE}/code{NA}) the degree of freedoms are set to \code{Inf}.
+#' Otherwise (\code{"none"}/\code{FALSE}/\code{NA}) the degree of freedoms are set to \code{Inf}.
 #' Only relevant when using a \code{lvmfit} object. 
 #' @param ... [logical] arguments passed to lower level methods.
 #' 

@@ -27,11 +27,9 @@ skeletonDtheta2(object)
 
 \item{X}{[matrix] design matrix containing the covariates for each endogeneous and latent variable.}
 
+\item{endogenous}{[character vector] the name of the endogeneous variables.}
+
 \item{latent}{[character vector] the name of the latent variables.}
-
-\item{endogeneous}{[character vector] the name of the endogeneous variables.}
-
-\item{...}{[internal] only used by the generic method.}
 }
 \description{
 Pre-compute quantities that are necessary to compute the score of a lvm model.

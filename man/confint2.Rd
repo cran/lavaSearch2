@@ -37,12 +37,12 @@ model.tables2(object, robust, cluster, transform, as.lava, conf.level, ...)
 
 \item{...}{additional argument passed to \code{estimate2} when using a \code{lvmfit} object.}
 
-\item{ssc}{[character] method used to correct the small sample bias of the variance coefficients: no correction (code{"none"}/\code{FALSE}/\code{NA}),
+\item{ssc}{[character] method used to correct the small sample bias of the variance coefficients: no correction (\code{"none"}/\code{FALSE}/\code{NA}),
 correct the first order bias in the residual variance (\code{"residual"}), or correct the first order bias in the estimated coefficients \code{"cox"}).
 Only relevant when using a \code{lvmfit} object.}
 
 \item{df}{[character] method used to estimate the degree of freedoms of the Wald statistic: Satterthwaite \code{"satterthwaite"}. 
-Otherwise (\code{"none"}/code{FALSE}/code{NA}) the degree of freedoms are set to \code{Inf}.
+Otherwise (\code{"none"}/\code{FALSE}/\code{NA}) the degree of freedoms are set to \code{Inf}.
 Only relevant when using a \code{lvmfit} object.}
 }
 \value{

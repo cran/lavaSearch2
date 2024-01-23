@@ -3,9 +3,9 @@
 ## author: Brice Ozenne
 ## created: okt 20 2017 (10:22) 
 ## Version: 
-## last-updated: Jan 17 2022 (23:26) 
+## last-updated: jan 23 2024 (11:31) 
 ##           By: Brice Ozenne
-##     Update #: 235
+##     Update #: 237
 #----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -35,7 +35,6 @@ if(FALSE){ ## already called in test-all.R
     library(testthat)
     library(lavaSearch2)
 }
-
 
 library(clubSandwich)
 library(nlme)
@@ -163,9 +162,9 @@ m <- lvm(c(Y1[mu1:sigma]~1*eta,
 e.lvm <- estimate(m, d)
 ## compare2(e.lvm)
 
-e.lmer <- lmerTest::lmer(value ~ variable + X1 + Gender + (1|Id),
-                         data = dLred, REML = FALSE)
-e2.lmer <- update(e.lmer, REML = TRUE)
+## e.lmer <- lmerTest::lmer(value ~ variable + X1 + Gender + (1|Id),
+##                           data = dLred, REML = FALSE)
+## e2.lmer <- update(e.lmer, REML = TRUE)
 e.lme <- nlme::lme(value ~ variable + X1 + Gender, random = ~ 1|Id,
                    data = dLred, method = "ML")
 
@@ -174,33 +173,35 @@ e.gls <- nlme::gls(value ~ variable + X1 + Gender,
                    data = dLred, method = "ML")
 
 ## ** clubSandwich - bug
-expect_equal(logLik(e.lmer),logLik(e.lme))
+## expect_equal(logLik(e.lmer),logLik(e.lme))
+expect_equal(-259.840820322626, as.double(logLik(e.lme)))
 coef_test(e.lme, vcov = "CR0", test = "Satterthwaite", cluster = dLred$Id)
 ## strange that same type of coef have very different degrees of freedom
 
 ## ** compare 
-expect_equal(as.double(logLik(e.lmer)),as.double(logLik(e.lvm)))
+expect_equal(-259.840820322626,as.double(logLik(e.lvm)))
 
 test_that("mixed model: Satterthwaite ",{
-    skip_if_not_installed("lmerTest", minimum_version = "2.0-37.90016")
 
     ## does not work when running test
-    ## GS <- summary(e.lmer)$coef[,"df"]
-    GS <- do.call(rbind,lapply(1:5, function(x){ ## x <- 3
-        C <- rep(0,5) ; C[x] <- 1;
-        tempo <- lmerTest::contestMD(e.lmer, L = C, rhs = 0, ddf = "Satterthwaite")
-        return(data.frame(df = tempo[["DenDF"]], statistic = sqrt(tempo[["F value"]])))
-    }))
+    ## GS <- summary(e.lmer)$coef[,c("df","t value")]
+    GS <- matrix(c(91.83528558, 100.00000017, 100.00000016, 49.99999976, 49.99999977, -1.00221818, 0.63398721, 1.67029848, 10.09702494, 3.08796567), 
+                 nrow = 5, 
+                 ncol = 2, 
+                 dimnames = list(c("(Intercept)", "variableY2", "variableY3", "X1", "GenderFemale"),c("df", "t value")) 
+                 ) 
 
     name.param <- names(coef(e.lvm))
     df.lvm <- compare2(e.lvm, linfct = name.param, ssc = "none", as.lava = FALSE)
-    expect_equal(as.double(GS$df),
+    expect_equal(as.double(GS[,"df"]),
                  as.double(df.lvm$df[1:5]), tol = 1e-4) ## needed for CRAN
-    expect_equal(as.double(GS$statistic),
-                 as.double(abs(summary(df.lvm, test = multcomp::adjusted("none"))$table2[1:5,"statistic"])), tol = 1e-8) ## needed for CRAN
+    expect_equal(as.double(GS[,"t value"]),
+                 as.double(summary(df.lvm, test = multcomp::adjusted("none"))$table2[1:5,"statistic"]), tol = 1e-8) ## needed for CRAN
 
     ## F test
-    GS <- lmerTest::contestMD(e.lmer, L = diag(1,5,5), rhs = 0, ddf = "Satterthwaite")
+    ## GS <- lmerTest::contestMD(e.lmer, L = diag(1,5,5), rhs = 0, ddf = "Satterthwaite")
+    GS <- data.frame("Sum Sq" = c(166.27553944),"Mean Sq" = c(33.25510789),"NumDF" = c(5),"DenDF" = c(76.52281817),"F value" = c(23.33447979),"Pr(>F)" = c(0),
+                     check.names = FALSE)
     name.param <- names(coef(e.lvm))    
     df.F <- compare2(e.lvm, linfct = name.param[1:5], ssc = "none", as.lava = FALSE, F.test = TRUE)
     
@@ -209,20 +210,23 @@ test_that("mixed model: Satterthwaite ",{
 })
 
 test_that("mixed model: KR-like correction",{
-    skip_if_not_installed("lmerTest", minimum_version = "2.0-37.90016")
 
     ## does not work when running test
-    ## GS <- summary(e.lmer, ddf = "Kenward-Roger")$coef[,"df"]
-    GS <- do.call(rbind,lapply(1:5, function(x){ ## x <- 3
-        C <- rep(0,5) ; C[x] <- 1;
-        tempo <- lmerTest::contestMD(e2.lmer, L = C, rhs = 0, ddf = "Kenward-Roger")
-        return(data.frame(df = tempo[["DenDF"]], statistic = sqrt(tempo[["F value"]])))
-    })) ## disagreement
-    
-    ## get_Lb_ddf(e.lmer, c(0,1,0,0,0))
-    ## get_Lb_ddf(e.lmer, c(0,0,0,1,0))
+    ## GS <- summary(e2.lmer, ddf = "Kenward-Roger")$coef[,c("df","t value")]
+    ## get_Lb_ddf(e2.lmer, c(0,1,0,0,0))
+    ## get_Lb_ddf(e2.lmer, c(0,0,0,1,0))
+    GS <- matrix(c(85.06326979, 98, 98, 47, 47, -0.97751931, 0.62761532, 1.65351114, 9.78942877, 2.99389376), 
+                 nrow = 5, 
+                 ncol = 2, 
+                 dimnames = list(c("(Intercept)", "variableY2", "variableY3", "X1", "GenderFemale"),c("df", "t value")) 
+                 ) 
     name.param <- names(coef(e.lvm))
     df.lvm <- compare2(e.lvm, linfct = name.param, as.lava = FALSE)
+
+    ## expect_equal(as.double(GS[,"df"]),
+    ##              as.double(df.lvm$df[1:5]), tol = 1) ## difference of 1 or 2 df
+    expect_equal(as.double(GS[,"t value"]),
+                 as.double(summary(df.lvm, test = multcomp::adjusted("none"))$table2[1:5,"statistic"]), tol = 1e-5) ## needed for CRAN
 
     previous.value <- data.frame("estimate" = c(-0.25588154, 0.15137028, 0.39879913, 1.48076547, 0.92411608, 1.45423356, 0.6594628), 
                                  "se" = c(0.26176621, 0.24118321, 0.24118321, 0.15126168, 0.30866695, 0.20917549, 0.24297288), 
