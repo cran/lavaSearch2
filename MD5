@@ -1,4 +1,4 @@
-123ccf03a2b55d5bbb582faa14dc0409 *DESCRIPTION
+5b406acc4586ca78034c6b66fd31a96f *DESCRIPTION
 8e8853d26e00cadc88a3e8952ad1fb3b *NAMESPACE
 b71f61d8deb2fb61cdbb4769060128e0 *NEWS
 3cf266f66ed9fe3fd71987dd2cb5a256 *R/0onload.R
@@ -74,7 +74,7 @@ d1ce16297e9ae5e10b8fbdffa5c1c2d8 *inst/doc-software/overview.log
 5d5bc69e3acd88a0bd4307dd3fa37afa *inst/doc-software/overview.org
 f2793dafe26263a9f3e6e12f0ea4be90 *inst/doc-software/overview.pdf
 6ad6087c9dbeb5219e60c7acea6ba2f4 *inst/doc-software/overview.tex
-2220ba55969b6688e879bd533734e333 *inst/doc/overview.pdf
+50701f3940160a52496c453c6fe4efc0 *inst/doc/overview.pdf
 39c663a837ce4a8aa3030f2bc6f304c4 *inst/doc/overview.pdf.asis
 a13c8c8ccc20a90e39ef2c715454d26c *man/addLink.Rd
 b33d3d51833c66ccacad9de688936fe9 *man/autoplot.intDensTri.Rd
@@ -159,7 +159,7 @@ da7d0d48a9a0d013ffe7e64c10627958 *tests/test-all.R
 a625844a2211a92029bd134facc9dc71 *tests/testthat/test1-sCorrect-effects2.R
 d2307acccab7c3e75d9e9daa00c2208c *tests/testthat/test1-sCorrect-missingValues.R
 e4a25bd3cf564318d9a598cd60e8c89e *tests/testthat/test1a-sCorrect-validObjects.R
-5abb840e7d542a500243b8abfef29142 *tests/testthat/test1b-sCorrect-conditionalMoment.R
+0fdc225c8fb7339177eb7d1189d98a35 *tests/testthat/test1b-sCorrect-conditionalMoment.R
 82ec52543e90602970a28adac1c7796c *tests/testthat/test1c-sCorrect-ssc.R
 1b08a526a9b7d67a9607ff34b49a2458 *tests/testthat/test1d-sCorrect-compare2.R
 70f5de23b0ac8a05bc6c8686383d0ff0 *tests/testthat/test1d-sCorrect-residuals2.R

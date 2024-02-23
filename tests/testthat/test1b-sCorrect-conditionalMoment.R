@@ -60,10 +60,10 @@ test_that("linear regression (ML) - no constrains",{
     
     test.lvm <- estimate2(e.lvm, ssc = "none", df = if(test.secondOrder){"satterthwaite"}else{"none"}, derivative = "analytic", hessian = TRUE, dVcov.robust = TRUE)
     
-    expect_equal(lava::score(e.lvm, indiv = TRUE),
-                 score2(test.lvm, indiv = TRUE),
+    expect_equal(unname(lava::score(e.lvm, indiv = TRUE)),
+                 unname(score2(test.lvm, indiv = TRUE)),
                  tol = 1e-8)
-    expect_equal(lava::information(e.lvm),
+    expect_equal(unname(lava::information(e.lvm)),
                  unname(information2(test.lvm)),
                  tol = 1e-8)
     expect_equal(coef(e.lvm),
@@ -105,10 +105,10 @@ test_that("linear regression (ML+1) - no constrains",{
     newcoef <- coef(e.lvm)+1
     test.lvm <- estimate2(e.lvm, param = newcoef, ssc = "none", df = "none")
     
-    expect_equal(lava::score(e.lvm, p = newcoef, indiv = TRUE),
-                 score2(test.lvm, indiv = TRUE),
+    expect_equal(unname(lava::score(e.lvm, p = newcoef, indiv = TRUE)),
+                 unname(score2(test.lvm, indiv = TRUE)),
                  tol = 1e-8)
-    expect_equal(lava::information(e.lvm, p = newcoef),
+    expect_equal(unname(lava::information(e.lvm, p = newcoef)),
                  unname(information2(test.lvm)),
                  tol = 1e-8)
     expect_equal(unname(residuals(e.lvm, p = newcoef)),
@@ -131,7 +131,7 @@ test_that("linear regression - constrains and covariance",{
     expect_equal(unname(lava::score(e.lvm, indiv = TRUE)),
                  unname(score2(test, indiv = TRUE)),
                  tol = 1e-8)
-    expect_equal(lava::information(e.lvm),
+    expect_equal(unname(lava::information(e.lvm)),
                  unname(information2(test)),
                  tol = 1e-8)
     expect_equal(unname(coef(e.lvm)),
@@ -221,7 +221,7 @@ test_that("Compound symmetry", {
     expect_equal(unname(lava::score(e.lvm, indiv = TRUE)),
                  unname(score2(test.lvm, indiv = TRUE)),
                  tol = 1e-8)
-    expect_equal(lava::information(e.lvm),
+    expect_equal(unname(lava::information(e.lvm)),
                  unname(information2(test.lvm)),
                  tol = 1e-8)
     expect_equal(unname(coef(e.lvm)),
@@ -360,10 +360,10 @@ test_that("factor model",{
     test <- estimate2(e.lvm, ssc = "none", df = if(test.secondOrder){"Satterthwaite"}else{NA},
                       derivative = "analytic", hessian = TRUE, dVcov.robust = TRUE)
     
-    expect_equal(lava::score(e.lvm, indiv = TRUE),
-                 score2(test, indiv = TRUE),
+    expect_equal(unname(lava::score(e.lvm, indiv = TRUE)),
+                 unname(score2(test, indiv = TRUE)),
                  tol = 1e-8)
-    expect_equal(lava::information(e.lvm),
+    expect_equal(unname(lava::information(e.lvm)),
                  unname(information2(test)),
                  tol = 1e-8)
     expect_equal(coef(e.lvm),
@@ -422,10 +422,10 @@ test_that("two factor model - correlation",{
     test <- estimate2(e.lvm, ssc = "none", df = if(test.secondOrder){"Satterthwaite"}else{NA},
                       derivative = "analytic", hessian = TRUE, dVcov.robust = TRUE)
     
-    expect_equal(lava::score(e.lvm, indiv = TRUE),
-                 score2(test, indiv = TRUE),
+    expect_equal(unname(lava::score(e.lvm, indiv = TRUE)),
+                 unname(score2(test, indiv = TRUE)),
                  tol = 1e-8)
-    expect_equal(lava::information(e.lvm),
+    expect_equal(unname(lava::information(e.lvm)),
                  unname(information2(test)),
                  tol = 1e-8)
     expect_equal(coef(e.lvm),
@@ -482,8 +482,8 @@ test_that("two factor model - covariance",{
     test <- estimate2(e.lvm, ssc = "none", df = "Satterthwaite",
                       derivative = "analytic", hessian = TRUE, dVcov.robust = TRUE)
     
-    expect_equal(lava::score(e.lvm, indiv = TRUE),
-                 score2(test, indiv = TRUE),
+    expect_equal(unname(lava::score(e.lvm, indiv = TRUE)),
+                 unname(score2(test, indiv = TRUE)),
                  tol = 1e-8)
     expect_equal(lava::information(e.lvm),
                  unname(information2(test)),
